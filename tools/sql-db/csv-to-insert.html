@@ -815,6 +815,7 @@ function generate() {
         </div>`;
       scrollToOutput(output);
 
+      scrollToOutput(output);
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
     }
@@ -869,6 +870,15 @@ function loadSample() {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generate();
 });
+
+function loadSample() {
+  document.getElementById('tableName').value = 'users';
+  document.getElementById('csvInput').value =
+`id,name,age,email
+1,Alice,30,alice@example.com
+2,Bob,25,bob@example.com
+3,Charlie,,charlie@example.com`;
+}
 </script>
 </body>
 </html>

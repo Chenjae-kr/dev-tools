@@ -198,6 +198,7 @@
         <button class="generate-btn" id="generateBtn" onclick="convert()" disabled>
           ⚡ 변환하기
         </button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -461,7 +462,10 @@ function convert() {
           <div class="sql-block-header">
             <span class="sql-type-badge badge-insert">HEX</span>
             <span class="sql-dialect-tag">${escHtml(fmtLabel)}</span>
-            <button class="copy-btn" id="copy_${blockId}" onclick="copyOutput('${blockId}')">COPY ALL</button>
+            <div class="block-actions">
+              <button class="wrap-btn" id="wrap_${blockId}" onclick="toggleWrap('${blockId}')">WRAP</button>
+              <button class="copy-btn" id="copy_${blockId}" onclick="copyOutput('${blockId}')">COPY ALL</button>
+            </div>
           </div>
           <div class="out-meta">
             <div><span>FILE</span> ${escHtml(currentFile.name)}</div>
@@ -472,6 +476,7 @@ function convert() {
           <pre class="sql-code hex-output" id="${blockId}">${htmlContent}</pre>
         </div>`;
 
+      scrollToOutput(output);
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ 변환 오류\n${e.message}</div>`;
     }

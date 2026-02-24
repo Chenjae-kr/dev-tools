@@ -129,6 +129,7 @@
   <div class="panel mb-16">
     <div class="panel-header">
       <div class="panel-title"><div class="dot"></div>INPUT</div>
+      <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
     </div>
     <div class="diff-grid">
       <div>
@@ -180,6 +181,7 @@
     <button class="generate-btn" id="diffBtn" onclick="runDiff()">
       ⚡ 비교하기
     </button>
+    <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
   </div>
 
   <!-- Output -->
@@ -463,6 +465,7 @@ function runDiff() {
           copyHandler: `copyDiff('${blockId}')`,
           bodyHtml,
         });
+        scrollToOutput(output);
         changeCursor = -1;
       }
     } catch (e) {
@@ -494,6 +497,20 @@ function jumpChange(dir = 1){
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runDiff();
 });
+
+function loadSample() {
+  document.getElementById('originalInput').value =
+`function greet(name) {
+  console.log('Hello, ' + name);
+  return true;
+}`;
+  document.getElementById('modifiedInput').value =
+`function greet(name, greeting = 'Hello') {
+  console.log(\`\${greeting}, \${name}!\`);
+  // Updated greeting logic
+  return name.length > 0;
+}`;
+}
 </script>
 </body>
 </html>
