@@ -282,7 +282,10 @@ function renderThumb(){
     ctx.font = `800 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     ctx.textAlign='center';
     ctx.lineWidth=Math.max(1,Math.floor(fs*0.06));
-    if(idx===0){ ctx.strokeStyle=strokeColor; ctx.globalAlpha=0.95; ctx.strokeText(line,w/2,y); ctx.globalAlpha=1; }
+    ctx.strokeStyle=strokeColor;
+    ctx.globalAlpha=0.95;
+    ctx.strokeText(line,w/2,y);
+    ctx.globalAlpha=1;
     ctx.fillText(line,w/2,y+ (idx===0?0:6));
     y += fs*1.12;
   });
@@ -290,6 +293,11 @@ function renderThumb(){
   const subFs = fitFont(ctx, sub.replace(/\n/g,' '), maxW, Math.floor(w*0.05));
   ctx.font = `700 ${subFs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
   ctx.fillStyle='rgba(255,255,255,0.96)';
+  ctx.lineWidth=Math.max(1,Math.floor(subFs*0.055));
+  ctx.strokeStyle=strokeColor;
+  ctx.globalAlpha=0.95;
+  ctx.strokeText(sub,w/2,h*0.72);
+  ctx.globalAlpha=1;
   ctx.fillText(sub,w/2,h*0.72);
 }
 
