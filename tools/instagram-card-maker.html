@@ -197,6 +197,18 @@
         <div class="options-bar" style="border-top:none;padding-top:0;">
           <span class="options-label">Body Size%</span><input id="bodyScale" type="number" value="100" min="60" max="180" class="table-name-input small">
         </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Body BG</span>
+          <div class="toggle-group">
+            <button class="toggle-btn bodybgmode-btn active" data-bgmode="solid">Color</button>
+            <button class="toggle-btn bodybgmode-btn" data-bgmode="image">Image</button>
+          </div>
+          <input id="bodyBgColor" type="color" value="#ffffff" class="table-name-input small" style="padding:4px 6px;max-width:120px">
+          <span class="options-label">Opacity%</span>
+          <input id="bodyBgOpacity" type="number" value="100" min="0" max="100" class="table-name-input small" style="max-width:90px">
+          <input id="bodyBgImageInput" type="file" accept="image/*" style="display:none">
+        </div>
         </div>
 
         <div class="setting-group">
@@ -275,7 +287,7 @@ let exportFormat='png';
 let tableSepMode='auto';
 let tableInputMode='text';
 
-function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',bodyBgMode:'solid',bodyBgColor:'#ffffff',bodyBgOpacity:100,bodyBgImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -285,6 +297,11 @@ function setBodyUI(){
   document.getElementById('bodyTableWrap').classList.toggle('hidden', bodyType!=='table');
   document.getElementById('bodyImageWrap').classList.toggle('hidden', bodyType!=='image');
   updateInputModeToggle();
+}
+
+function setBodyBgUI(){
+  const mode = document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid';
+  document.getElementById('bodyBgImageInput').style.display = mode === 'image' ? '' : 'none';
 }
 
 function updateInputModeToggle(){
@@ -333,8 +350,13 @@ function fillInputsFromPage(){
   document.getElementById('imgZoom').value=p.imgZoom ?? 100;
   document.getElementById('imgPosX').value=p.imgPosX ?? 50;
   document.getElementById('imgPosY').value=p.imgPosY ?? 50;
+  document.getElementById('bodyBgColor').value=p.bodyBgColor || '#ffffff';
+  document.getElementById('bodyBgOpacity').value=p.bodyBgOpacity ?? 100;
   const fit = p.imgFit || 'cover';
+  const bgMode = p.bodyBgMode || 'solid';
   document.querySelectorAll('.imgfit-btn').forEach(b=>b.classList.toggle('active', b.dataset.fit===fit));
+  document.querySelectorAll('.bodybgmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.bgmode===bgMode));
+  setBodyBgUI();
   bodyType=p.bodyType||'text';
   document.querySelectorAll('.bodytype-btn').forEach(b=>b.classList.toggle('active', b.dataset.body===bodyType));
   setBodyUI();
@@ -361,6 +383,10 @@ function savePage(){
     titleY:parseInt(document.getElementById('titleY').value || '8',10),
     bodyScale:parseInt(document.getElementById('bodyScale').value || '100',10),
     imgFit:(document.querySelector('.imgfit-btn.active')?.dataset.fit || 'cover'),
+    bodyBgMode:(document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid'),
+    bodyBgColor:document.getElementById('bodyBgColor').value || '#ffffff',
+    bodyBgOpacity:parseInt(document.getElementById('bodyBgOpacity').value || '100',10),
+    bodyBgImageData:(pages[page-1]?.bodyBgImageData || ''),
     imgZoom:parseInt(document.getElementById('imgZoom').value || '100',10),
     imgPosX:parseInt(document.getElementById('imgPosX').value || '50',10),
     imgPosY:parseInt(document.getElementById('imgPosY').value || '50',10),
@@ -653,6 +679,19 @@ function drawBodyImage(ctx, img, x, y, w, h, fit='cover', zoom=100, posX=50, pos
   ctx.restore();
 }
 
+const imageCache = new Map();
+function getCachedImage(dataUrl){
+  if(!dataUrl) return null;
+  let img = imageCache.get(dataUrl);
+  if(!img){
+    img = new Image();
+    img.onload = ()=>renderCard();
+    img.src = dataUrl;
+    imageCache.set(dataUrl, img);
+  }
+  return img.complete ? img : null;
+}
+
 function drawBg(ctx,w,h){
   const th=themes[themeKey];
   if(bgMode==='image' && bgImage){
@@ -746,9 +785,23 @@ function renderCard(){
 
   const contentW = rawContentW;
 
+  // body background (color / image + opacity)
+  const bodyBgMode = p.bodyBgMode || 'solid';
+  const bodyBgOpacity = Math.max(0, Math.min(100, p.bodyBgOpacity ?? 100)) / 100;
+  ctx.save();
+  ctx.globalAlpha = bodyBgOpacity;
+  if (bodyBgMode === 'image' && p.bodyBgImageData) {
+    const bgImg = getCachedImage(p.bodyBgImageData);
+    if (bgImg) drawBodyImage(ctx, bgImg, contentX, contentY, contentW, contentH, 'cover', 100, 50, 50);
+    else { ctx.fillStyle = p.bodyBgColor || '#ffffff'; ctx.fillRect(contentX,contentY,contentW,contentH); }
+  } else {
+    ctx.fillStyle = p.bodyBgColor || '#ffffff';
+    ctx.fillRect(contentX,contentY,contentW,contentH);
+  }
+  ctx.restore();
+
   // body by type
   if(p.bodyType==='text'){
-    ctx.fillStyle='rgba(16,38,90,0.07)'; ctx.fillRect(contentX,contentY,contentW,contentH);
     const lines=(p.bodyText||'').split('\n').filter(Boolean);
     let ty=contentY+36;
     lines.forEach(line=>{
@@ -871,6 +924,7 @@ document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.qu
 document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;if(tableInputMode==='grid') syncGridFromText();renderCard();});
 /* table input mode is controlled by single toggle button */
 document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.bodybgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodybgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');setBodyBgUI();savePage();renderCard();});
 document.querySelectorAll('.headvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.headvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.subvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.subvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.sourcevis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sourcevis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
@@ -878,7 +932,7 @@ document.querySelectorAll('.brandvis-btn').forEach(b=>b.onclick=()=>{document.qu
 document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
-['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','bodyBgColor','bodyBgOpacity','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
   if(id==='pageCount') syncPages();
   
   renderCard();
@@ -886,6 +940,7 @@ document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.query
 
 document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
 document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
+document.getElementById('bodyBgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyBgImageData=ev.target.result;savePage();renderCard();};r.readAsDataURL(f);});
 
 // init
 pages[0]={
@@ -908,7 +963,11 @@ pages[0]={
   bodyType:'table',
   bodyText:'',
   tableText:'기업명,예상기업가치,주요 사업\n무신사,8조원 이상,패션 플랫폼\n한화에너지,5조원 이상,에너지 발전·공급\n케이뱅크,3조 3,673억,인터넷전문은행',
-  bodyImageData:''
+  bodyImageData:'',
+  bodyBgMode:'solid',
+  bodyBgColor:'#ffffff',
+  bodyBgOpacity:100,
+  bodyBgImageData:''
 };
 fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); syncGridFromText(false); renderCard();
 </script>
