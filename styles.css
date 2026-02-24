@@ -715,6 +715,14 @@ body::before {
 .table-name-input:focus { border-color: var(--accent); }
 .table-name-input::placeholder { color: var(--text-muted); }
 
+/* ─── Shared UI Utilities ───────────────────────────────── */
+.row-tight { border-top: none !important; padding-top: 0 !important; gap: 8px; flex-wrap: wrap; }
+.mt-8 { margin-top: 8px; }
+.input-xs { max-width: 90px; }
+.input-sm { max-width: 120px; }
+.input-md { max-width: 160px; }
+.color-input { padding: 4px 6px; }
+
 /* ─── Textarea Inputs ────────────────────────────────────── */
 .ddl-textarea,
 .md-textarea {
