@@ -194,10 +194,18 @@
           <div class="options-bar" style="border-top:none;padding-top:0;">
             <span class="options-label">Footer Source</span>
             <input id="sourceText" class="table-name-input" value="출처: 관련 자료" placeholder="출처: ...">
+            <div class="toggle-group">
+              <button class="toggle-btn sourcevis-btn active" data-source="on">ON</button>
+              <button class="toggle-btn sourcevis-btn" data-source="off">OFF</button>
+            </div>
           </div>
           <div class="options-bar" style="border-top:none;padding-top:0;">
             <span class="options-label">Watermark</span>
             <input id="brandText" class="table-name-input" value="@instagram" placeholder="@your_brand">
+            <div class="toggle-group">
+              <button class="toggle-btn brandvis-btn active" data-brand="on">ON</button>
+              <button class="toggle-btn brandvis-btn" data-brand="off">OFF</button>
+            </div>
             <span class="options-label">Paging</span>
             <div class="toggle-group">
               <button class="toggle-btn pagewm-btn active" data-pagewm="on">ON</button>
@@ -257,7 +265,7 @@ let exportFormat='png';
 let tableSepMode='auto';
 let tableInputMode='text';
 
-function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -303,7 +311,11 @@ function fillInputsFromPage(){
   document.getElementById('sourceText').value=p.source||'출처: 관련 자료';
   document.getElementById('brandText').value=p.brand||'@instagram';
   const pagewm = p.showPage === false ? 'off' : 'on';
+  const sourceVis = p.showSource === false ? 'off' : 'on';
+  const brandVis = p.showBrand === false ? 'off' : 'on';
   document.querySelectorAll('.pagewm-btn').forEach(b=>b.classList.toggle('active', b.dataset.pagewm===pagewm));
+  document.querySelectorAll('.sourcevis-btn').forEach(b=>b.classList.toggle('active', b.dataset.source===sourceVis));
+  document.querySelectorAll('.brandvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brandVis));
   document.getElementById('imgZoom').value=p.imgZoom ?? 100;
   document.getElementById('imgPosX').value=p.imgPosX ?? 50;
   document.getElementById('imgPosY').value=p.imgPosY ?? 50;
@@ -324,6 +336,8 @@ function savePage(){
     bodyType,
     source:document.getElementById('sourceText').value,
     brand:document.getElementById('brandText').value,
+    showSource:(document.querySelector('.sourcevis-btn.active')?.dataset.source || 'on') === 'on',
+    showBrand:(document.querySelector('.brandvis-btn.active')?.dataset.brand || 'on') === 'on',
     showPage:(document.querySelector('.pagewm-btn.active')?.dataset.pagewm || 'on') === 'on',
     h1Scale:parseInt(document.getElementById('h1Scale').value || '100',10),
     h2Scale:parseInt(document.getElementById('h2Scale').value || '100',10),
@@ -781,9 +795,20 @@ function renderCard(){
   const source = (p.source || '출처: 관련 자료').trim();
   const brand = (p.brand || '@instagram').trim();
   ctx.fillStyle='rgba(5,10,25,0.9)'; ctx.fillRect(panelX,panelY+panelH-fh,panelW,fh);
-  ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.font='600 16px Pretendard, sans-serif'; ctx.fillText(source, panelX+12,panelY+panelH-11);
-  const wmText = p.showPage === false ? `${brand}` : `${brand}  ${page}/${pages.length}`;
-  ctx.textAlign='right'; ctx.font='700 18px JetBrains Mono, sans-serif'; ctx.fillText(wmText, panelX+panelW-12,panelY+panelH-11);
+
+  if (p.showSource !== false && source) {
+    ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.font='600 16px Pretendard, sans-serif';
+    ctx.fillText(source, panelX+12,panelY+panelH-11);
+  }
+
+  const rightParts=[];
+  if (p.showBrand !== false && brand) rightParts.push(brand);
+  if (p.showPage !== false) rightParts.push(`${page}/${pages.length}`);
+  const wmText = rightParts.join('  ');
+  if (wmText) {
+    ctx.fillStyle='#fff'; ctx.textAlign='right'; ctx.font='700 18px JetBrains Mono, sans-serif';
+    ctx.fillText(wmText, panelX+panelW-12,panelY+panelH-11);
+  }
 }
 
 function getExportOptions(){
@@ -826,6 +851,8 @@ document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.qu
 document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;if(tableInputMode==='grid') syncGridFromText();renderCard();});
 /* table input mode is controlled by single toggle button */
 document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.sourcevis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sourcevis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.brandvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.brandvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
@@ -846,6 +873,8 @@ pages[0]={
   label:'2026년 IPO 예상 주요 기업',
   source:'출처: 관련 언론보도',
   brand:'@instagram',
+  showSource:true,
+  showBrand:true,
   showPage:true,
   h1Scale:100,
   h2Scale:100,
