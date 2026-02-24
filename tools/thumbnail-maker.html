@@ -91,7 +91,7 @@
           <span class="options-label">Text Color</span>
           <input id="textColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
           <span class="options-label">Stroke</span>
-          <input id="strokeColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
+          <input id="strokeColor" type="color" value="#000000" class="table-name-input" style="max-width:90px;padding:4px 6px;">
           <span class="options-label">Stroke Px</span>
           <input id="strokeWidth" type="number" value="6" min="0" max="24" class="table-name-input" style="max-width:70px;">
         </div>
@@ -151,17 +151,17 @@ let saveFormat = 'png';
 const ratios = { '1:1':[1200,1200], '16:9':[1600,900], '4:3':[1200,900], '3:2':[1500,1000] };
 const presets = {
   quote: {
-    ratio: '1:1', bgColor: '#5f6fdd', textColor: '#ffffff', strokeColor: '#ffffff', strokeWidth: 6, pad: 90, ov: 'none', ovStrength: 28,
+    ratio: '1:1', bgColor: '#5f6fdd', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 6, pad: 90, ov: 'none', ovStrength: 28,
     mainScale: 100, subScale: 100, mainY: 43, subY: 72,
     main: '블로그 썸네일\n3분 제작', sub: '3분만에 블로그 썸네일 만들기'
   },
   blog: {
-    ratio: '4:3', bgColor: '#2e3f8f', textColor: '#ffffff', strokeColor: '#ffffff', strokeWidth: 5, pad: 80, ov: 'gradient', ovStrength: 32,
+    ratio: '4:3', bgColor: '#2e3f8f', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 5, pad: 80, ov: 'gradient', ovStrength: 32,
     mainScale: 100, subScale: 95, mainY: 41, subY: 73,
     main: '실전 가이드\n핵심 요약', sub: '바로 적용 가능한 블로그 포스트 템플릿'
   },
   youtube: {
-    ratio: '16:9', bgColor: '#1c1f2a', textColor: '#ffffff', strokeColor: '#ffd24a', strokeWidth: 6, pad: 70, ov: 'vignette', ovStrength: 40,
+    ratio: '16:9', bgColor: '#1c1f2a', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 6, pad: 70, ov: 'vignette', ovStrength: 40,
     mainScale: 110, subScale: 95, mainY: 42, subY: 74,
     main: '조회수 올리는\n썸네일', sub: '클릭을 부르는 타이틀 디자인'
   }
@@ -221,7 +221,7 @@ function applyPreset(name){
 
   document.getElementById('bgColor').value = p.bgColor;
   document.getElementById('textColor').value = p.textColor;
-  document.getElementById('strokeColor').value = p.strokeColor || '#ffffff';
+  document.getElementById('strokeColor').value = p.strokeColor || '#000000';
   if (p.strokeWidth != null) document.getElementById('strokeWidth').value = p.strokeWidth;
   document.getElementById('pad').value = p.pad;
   document.getElementById('ovStrength').value = p.ovStrength;
