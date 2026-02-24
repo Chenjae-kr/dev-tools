@@ -394,14 +394,15 @@ function setTableInputUI(){
 function renderTableGrid(head, body){
   const wrap = document.getElementById('tableGridWrap');
   const cols = head.length;
-  const rows = body.length;
 
-  const th = `<tr>${head.map((h,i)=>`<th><input data-r="0" data-c="${i}" value="${String(h||'').replace(/"/g,'&quot;')}" class="table-name-input" style="min-width:120px"></th>`).join('')}</tr>`;
-  const tr = body.map((r,ri)=>`<tr>${Array.from({length:cols},(_,ci)=>`<td><input data-r="${ri+1}" data-c="${ci}" value="${String((r&&r[ci])||'').replace(/"/g,'&quot;')}" class="table-name-input" style="min-width:120px"></td>`).join('')}</tr>`).join('');
+  const th = `<tr>${head.map((h,i)=>`<th><input data-r="0" data-c="${i}" value="${String(h||'').replace(/"/g,'&quot;')}" class="table-name-input" style="min-width:140px"></th>`).join('')}</tr>`;
+  const tr = body.map((r,ri)=>`<tr>${Array.from({length:cols},(_,ci)=>`<td><input data-r="${ri+1}" data-c="${ci}" value="${String((r&&r[ci])||'').replace(/"/g,'&quot;')}" class="table-name-input" style="min-width:140px"></td>`).join('')}</tr>`).join('');
 
-  wrap.innerHTML = `<table style="border-collapse:collapse;width:100%"><thead>${th}</thead><tbody>${tr}</tbody></table>`;
+  wrap.innerHTML = `<table style="border-collapse:collapse;min-width:100%;width:max-content"><thead>${th}</thead><tbody>${tr}</tbody></table>`;
 
   wrap.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>syncTextFromGrid(false)));
+  document.getElementById('tblCols').value = cols;
+  document.getElementById('tblRows').value = body.length;
 }
 
 function syncGridFromText(doRender=true){
@@ -455,8 +456,34 @@ function serializeTableData(head, body){
   return [line(head), ...body.map(line)].join('\n');
 }
 
+function getGridMatrix(){
+  const wrap = document.getElementById('tableGridWrap');
+  const inputs = [...wrap.querySelectorAll('input[data-r]')];
+  if(!inputs.length) return null;
+  const head=[];
+  const bodyMap=new Map();
+  for(const el of inputs){
+    const r=parseInt(el.dataset.r,10), c=parseInt(el.dataset.c,10);
+    if(r===0) head[c]=el.value;
+    else {
+      if(!bodyMap.has(r)) bodyMap.set(r,[]);
+      bodyMap.get(r)[c]=el.value;
+    }
+  }
+  const body=[...bodyMap.keys()].sort((a,b)=>a-b).map(k=>{
+    const row=bodyMap.get(k);
+    while(row.length<head.length) row.push('');
+    return row;
+  });
+  return {head, body};
+}
+
 function tableToMatrix(){
-  if (tableInputMode === 'grid') syncTextFromGrid(false);
+  const m = tableInputMode === 'grid' ? getGridMatrix() : null;
+  if (m) {
+    document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+    return m;
+  }
   const t = parseCsvTable(document.getElementById('tableText').value || '');
   if (!t) return null;
   return { head:[...t.head], body:t.body.map(r=>[...r]) };
@@ -626,9 +653,13 @@ function renderCard(){
     y += Math.floor(h*0.02);
   }
   const fh = 34; // footer height reserved
-  const contentX=panelX+24, contentY=y, contentW=panelW-48;
+  const contentX=panelX+24, contentY=y;
   const contentBottom = panelY + panelH - fh - 10;
+  const rawContentW = panelW-48;
   const contentH = Math.max(120, contentBottom - contentY);
+
+
+  const contentW = rawContentW;
 
   // body by type
   if(p.bodyType==='text'){
@@ -651,17 +682,19 @@ function renderCard(){
       const cols=t.head.length;
       const maxRowsByHeight = Math.max(1, Math.floor(contentH / 46) - 1);
       const rows=Math.min(t.body.length, maxRowsByHeight, 12);
-      const rh=Math.floor(contentH/(rows+1)); const cw=Math.floor(contentW/cols);
+      const tableW = cols <= 3 ? Math.min(contentW, cols * 280) : contentW;
+      const tableX = contentX + Math.floor((contentW - tableW) / 2);
+      const rh=Math.floor(contentH/(rows+1)); const cw=Math.floor(tableW/cols);
       // header
       for(let c=0;c<cols;c++){
-        ctx.fillStyle='#0f2f7d'; ctx.fillRect(contentX+c*cw,contentY,cw,rh);
+        ctx.fillStyle='#0f2f7d'; ctx.fillRect(tableX+c*cw,contentY,cw,rh);
         ctx.fillStyle='#fff'; ctx.font=`700 ${Math.floor(rh*0.34*bodyScale)}px sans-serif`; ctx.textAlign='center';
-        ctx.fillText((t.head[c]||'').slice(0,14), contentX+c*cw+cw/2, contentY+Math.floor(rh*0.62));
+        ctx.fillText((t.head[c]||'').slice(0,14), tableX+c*cw+cw/2, contentY+Math.floor(rh*0.62));
       }
       // rows
       for(let r=0;r<rows;r++){
         for(let c=0;c<cols;c++){
-          const y0=contentY+rh*(r+1), x0=contentX+c*cw;
+          const y0=contentY+rh*(r+1), x0=tableX+c*cw;
           ctx.fillStyle=(r%2===0)?'#f6f8ff':'#ffffff'; ctx.fillRect(x0,y0,cw,rh);
           ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.strokeRect(x0,y0,cw,rh);
           ctx.fillStyle='#111'; ctx.font=`600 ${Math.floor(rh*0.33*bodyScale)}px sans-serif`; ctx.textAlign='center';
