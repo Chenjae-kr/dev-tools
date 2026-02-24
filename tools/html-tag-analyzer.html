@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Tag Analyzer | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
+.setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:10px;text-transform:uppercase}
+.setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
+.input-area{width:100%;min-height:220px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;resize:vertical}
+.file-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);background:var(--surface)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.stat{border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--surface2)}
+.stat .k{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
+.stat .v{font-size:18px;font-weight:700;margin-top:2px}
+.tag-table{width:100%;border-collapse:collapse}
+.tag-table th,.tag-table td{padding:8px;border-bottom:1px solid var(--border);text-align:left;font-family:'JetBrains Mono',monospace;font-size:12px}
+@media(max-width:980px){.stats{grid-template-columns:repeat(2,minmax(0,1fr));}}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+<div class="container">
+  <div class="tool-header"><h1>HTML <span>Tag Analyzer</span></h1><p>// HTML 파일/소스에서 사용 태그 분석</p></div>
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="dot"></div>INPUT</div></div>
+
+        <div class="setting-group">
+          <div class="setting-title">Source</div>
+          <div class="options-bar"><span class="options-label">Upload</span><input id="fileInput" class="file-input" type="file" accept=".html,.htm,text/html"></div>
+          <div class="options-bar"><span class="options-label">HTML</span><button class="toggle-btn" onclick="loadSample()">샘플</button></div>
+          <textarea id="htmlInput" class="input-area" placeholder="<div><h1>Title</h1><p>Hello</p></div>"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel" id="outputPanel">
+      <div class="panel"><div class="empty-state"><div class="icon">TAG</div><p>HTML 입력 후 분석</p></div></div>
+    </div>
+  </div>
+  <footer>// HTML Tag Analyzer</footer>
+</div>
+
+<script>
+function loadSample(){
+  document.getElementById('htmlInput').value = `<!doctype html>\n<html><head><title>Demo</title></head><body><header><h1>Title</h1></header><main><section><p>Hello <strong>world</strong></p><ul><li>A</li><li>B</li></ul></section></main><footer>copyright</footer></body></html>`;
+  analyze();
+}
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{ document.getElementById('htmlInput').value = ev.target.result || ''; analyze(); };
+  r.readAsText(f,'utf-8');
+});
+
+document.getElementById('htmlInput').addEventListener('input', analyze);
+
+function analyze(){
+  const out=document.getElementById('outputPanel');
+  const raw=document.getElementById('htmlInput').value.trim();
+  if(!raw){
+    out.innerHTML = '<div class="panel"><div class="empty-state"><div class="icon">TAG</div><p>HTML 입력 후 분석</p></div></div>';
+    return;
+  }
+
+  const doc = new DOMParser().parseFromString(raw,'text/html');
+  const all = [...doc.querySelectorAll('*')];
+  const freq = new Map();
+  all.forEach(el=>{
+    const t=el.tagName.toLowerCase();
+    freq.set(t,(freq.get(t)||0)+1);
+  });
+
+  const sorted=[...freq.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0]));
+  const totalEls=all.length;
+  const unique=sorted.length;
+  const links=[...doc.querySelectorAll('a[href]')].length;
+  const images=[...doc.querySelectorAll('img')].length;
+
+  out.innerHTML = `
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title"><div class="dot"></div>RESULT</div></div>
+      <div class="stats">
+        <div class="stat"><div class="k">Total Elements</div><div class="v">${totalEls}</div></div>
+        <div class="stat"><div class="k">Unique Tags</div><div class="v">${unique}</div></div>
+        <div class="stat"><div class="k">Links (a)</div><div class="v">${links}</div></div>
+        <div class="stat"><div class="k">Images (img)</div><div class="v">${images}</div></div>
+      </div>
+      <table class="tag-table">
+        <thead><tr><th>Tag</th><th>Count</th><th>Ratio</th></tr></thead>
+        <tbody>
+          ${sorted.map(([tag,c])=>`<tr><td>&lt;${tag}&gt;</td><td>${c}</td><td>${((c/Math.max(1,totalEls))*100).toFixed(1)}%</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+</script>
+</body>
+</html>

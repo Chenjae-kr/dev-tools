@@ -83,6 +83,13 @@ const TOOLS = [
     footer: 'HTML ↔ Markdown',
   },
   {
+    category: 'Data/Format', href: 'html-tag-analyzer.html', label: 'HTML Tags', icon: 'TAG',
+    title: 'HTML Tag Analyzer',
+    desc: 'HTML 소스 또는 파일을 입력하면 사용된 태그 종류/빈도/비율을 분석합니다.',
+    tags: ['HTML', 'Tag', 'Analyzer', 'Stats'],
+    footer: 'HTML → Tag Stats',
+  },
+  {
     category: 'Data/Format', href: 'mock-data-generator.html', label: 'Mock Data', icon: 'MOCK',
     title: 'Mock Data Generator',
     desc: '컬럼 스키마(DSL 또는 SQL DDL)를 기반으로 테스트 데이터를 생성합니다. CSV/JSON/SQL INSERT 출력, seed 기반 재현 가능한 랜덤 데이터 지원.',
