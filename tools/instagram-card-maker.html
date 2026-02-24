@@ -26,6 +26,7 @@
 .matrix-grid{display:grid;gap:8px;width:100%}
 .matrix-grid .matrix-cell input{width:100%;min-width:0}
 .matrix-grid .matrix-head input{font-weight:700}
+.table-grid-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)}
 @media (max-width: 980px){.table-dual{grid-template-columns:1fr}.control-grid-4{grid-template-columns:1fr 1fr}}
 @media (max-width: 640px){.control-grid-4,.control-grid-2{grid-template-columns:1fr}}
 .export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
@@ -75,7 +76,7 @@
             <button class="toggle-btn bgmode-btn" data-bgmode="image">이미지</button>
           </div>
           <input id="bgColor" type="color" value="#0b122b" class="table-name-input small color-input">
-          <input id="bgImageInput" type="file" accept="image/*" style="display:none">
+          <input id="bgImageInput" type="file" accept="image/*" class="hidden">
         </div>
         </div>
 
@@ -129,8 +130,8 @@
             <button class="toggle-btn bodytype-btn" data-body="table">Table</button>
             <button class="toggle-btn bodytype-btn" data-body="image">Image</button>
           </div>
-          <span class="options-label" id="inputModeLabel" style="display:none">Input Mode</span>
-          <button class="toggle-btn" id="inputModeToggle" onclick="toggleTableInputMode()" style="display:none">텍스트 입력</button>
+          <span class="options-label hidden" id="inputModeLabel">Input Mode</span>
+          <button class="toggle-btn hidden" id="inputModeToggle" onclick="toggleTableInputMode()">텍스트 입력</button>
         </div>
 
         <div id="bodyTextWrap">
@@ -154,7 +155,7 @@
               <textarea id="tableText" class="input-area" placeholder="기업명	예상가치	주요사업\n케이뱅크	3조 3,673억	인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |"></textarea>
             </div>
 
-            <div id="tableGridWrap" style="overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)"></div>
+            <div id="tableGridWrap" class="table-grid-wrap"></div>
           </div>
 
           <div class="options-bar row-tight">
@@ -203,7 +204,7 @@
           <input id="bodyBgColor" type="color" value="#ffffff" class="table-name-input small input-sm color-input">
           <span class="options-label">Opacity%</span>
           <input id="bodyBgOpacity" type="number" value="100" min="0" max="100" class="table-name-input small input-xs">
-          <input id="bodyBgImageInput" type="file" accept="image/*" style="display:none">
+          <input id="bodyBgImageInput" type="file" accept="image/*" class="hidden">
         </div>
         </div>
 
@@ -297,15 +298,15 @@ function setBodyUI(){
 
 function setBodyBgUI(){
   const mode = document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid';
-  document.getElementById('bodyBgImageInput').style.display = mode === 'image' ? '' : 'none';
+  document.getElementById('bodyBgImageInput').classList.toggle('hidden', mode !== 'image');
 }
 
 function updateInputModeToggle(){
   const label = document.getElementById('inputModeLabel');
   const btn = document.getElementById('inputModeToggle');
   const visible = bodyType === 'table';
-  label.style.display = visible ? '' : 'none';
-  btn.style.display = visible ? '' : 'none';
+  label.classList.toggle('hidden', !visible);
+  btn.classList.toggle('hidden', !visible);
   btn.textContent = tableInputMode === 'grid' ? '테이블 입력' : '텍스트 입력';
 }
 
@@ -915,7 +916,7 @@ async function downloadAll(){
 // UI bindings
 document.querySelectorAll('.size-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');sizeKey=b.dataset.size;renderCard();});
 document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');themeKey=b.dataset.theme;document.getElementById('bgColor').value=themes[themeKey].bg;renderCard();});
-document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
+document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').classList.toggle('hidden', bgMode!=='image');renderCard();});
 document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
 document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;if(tableInputMode==='grid') syncGridFromText();renderCard();});
 /* table input mode is controlled by single toggle button */

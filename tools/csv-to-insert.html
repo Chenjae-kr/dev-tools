@@ -148,7 +148,7 @@
           </div>
         </div>
 
-        <div class="options-bar" style="border-top:none; padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Input</span>
           <div class="toggle-group">
             <button class="toggle-btn inputmode-btn active" data-input="csv">CSV</button>
@@ -161,18 +161,18 @@
           <div class="drop-icon">📄</div>
           <p class="drop-text">CSV/Excel 파일을 드래그 앤 드롭하거나<br>아래에 직접 텍스트를 붙여넣으세요</p>
           <button class="file-select-btn" onclick="document.getElementById('csvFileInput').click()">파일 선택</button>
-          <input type="file" id="csvFileInput" accept=".csv,.tsv,.txt,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none">
+          <input type="file" id="csvFileInput" accept=".csv,.tsv,.txt,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
         </div>
 
         <!-- File Badge -->
         <div class="csv-file-badge" id="csvFileBadge">
           <span class="badge-label">FILE</span>
           <span id="csvFileName"></span>
-          <span id="csvFileSize" style="color:var(--text-muted)"></span>
+          <span id="csvFileSize" class="text-muted"></span>
           <button class="file-clear-btn" onclick="clearFile()" title="파일 제거">✕</button>
         </div>
 
-        <p class="csv-divider" style="margin-top:12px">또는 직접 입력</p>
+        <p class="csv-divider" class="mt-10">또는 직접 입력</p>
 
         <!-- CSV Textarea -->
         <textarea class="csv-textarea" id="csvInput" placeholder="id,name,age,email
@@ -181,14 +181,14 @@
 3,Charlie,,charlie@example.com"></textarea>
 
         <!-- Markdown Textarea -->
-        <textarea class="csv-textarea" id="mdInput" style="display:none" placeholder="| user_id | username | age | email |
+        <textarea class="csv-textarea" id="mdInput" placeholder="| user_id | username | age | email |
 |---|---|---|---|
 | 1 | alice | 30 | alice@example.com |
 | 2 | bob | 25 | bob@example.com |"></textarea>
 
         <p class="csv-divider">컬럼 매핑 (생성 시 자동 인식)</p>
         <div class="mapping-wrap" id="mappingWrap">
-          <div class="drop-text" style="margin:0">아직 매핑이 없습니다. INSERT 생성을 누르면 컬럼 매핑 UI가 나타납니다.</div>
+          <div class="drop-text" >아직 매핑이 없습니다. INSERT 생성을 누르면 컬럼 매핑 UI가 나타납니다.</div>
         </div>
 
         <!-- Table Name -->
@@ -198,7 +198,7 @@
         </div>
 
         <!-- Delimiter -->
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Delimiter</span>
           <div class="toggle-group">
             <button class="toggle-btn delim-btn active" data-delim=",">콤마 (,)</button>
@@ -208,7 +208,7 @@
         </div>
 
         <!-- Dialect -->
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Dialect</span>
           <div class="dialect-group">
             <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
@@ -218,7 +218,7 @@
         </div>
 
         <!-- Mode + NULL -->
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Mode</span>
           <div class="toggle-group">
             <button class="toggle-btn mode-btn active" data-mode="individual">Individual</button>
@@ -236,16 +236,16 @@
           </div>
         </div>
 
-        <div class="options-bar" id="upsertKeysBar" style="border-top:none;padding-top:0;display:none;">
+        <div class="options-bar row-tight" id="upsertKeysBar" style="display:none;">
           <span class="options-label">Conflict Keys</span>
-          <input type="text" id="conflictKeys" class="table-name-input" placeholder="id 또는 id,email" style="flex:1;max-width:none;">
+          <input type="text" id="conflictKeys" class="table-name-input" placeholder="id 또는 id,email">
         </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Preview</span>
-          <input type="number" id="previewRows" class="table-name-input" value="10" min="1" max="100" style="max-width:90px">
+          <input type="number" id="previewRows" class="table-name-input input-xs" value="10" min="1" max="100">
           <span class="options-label">Chunk</span>
-          <input type="number" id="chunkSize" class="table-name-input" value="1000" min="1" style="max-width:110px">
+          <input type="number" id="chunkSize" class="table-name-input input-sm" value="1000" min="1">
         </div>
 
         <button class="generate-btn" id="generateBtn" onclick="generate()">
@@ -298,7 +298,7 @@ function refreshInputModeUI() {
 function renderMappingUI() {
   const wrap = document.getElementById('mappingWrap');
   if (!columnMappings.length) {
-    wrap.innerHTML = `<div class="drop-text" style="margin:0">아직 매핑이 없습니다. INSERT 생성을 누르면 컬럼 매핑 UI가 나타납니다.</div>`;
+    wrap.innerHTML = `<div class="drop-text" >아직 매핑이 없습니다. INSERT 생성을 누르면 컬럼 매핑 UI가 나타납니다.</div>`;
     return;
   }
 
