@@ -54,6 +54,13 @@ const TOOLS = [
   },
 
   {
+    category: 'Data/Format', href: 'data-converter.html', label: 'Data Convert', icon: 'CVT',
+    title: 'JSON ↔ Excel ↔ Markdown Converter',
+    desc: 'JSON, 엑셀(.xlsx/.xls), Markdown 테이블 간 데이터를 상호 변환합니다. 엑셀 출력은 파일 다운로드를 지원합니다.',
+    tags: ['JSON', 'Excel', 'Markdown', 'Converter'],
+    footer: 'JSON ↔ Excel ↔ Markdown',
+  },
+  {
     category: 'Data/Format', href: 'csv-column-profiler.html', label: 'CSV Profiler', icon: 'PROF',
     title: 'CSV/Excel Column Profiler',
     desc: '컬럼별 null 비율, 중복 건수, 타입 추정, 길이 통계를 빠르게 분석합니다.',
