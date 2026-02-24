@@ -18,11 +18,17 @@
 .main-grid > .output-panel{position:sticky;top:84px;align-self:start}
 .main-grid > .output-panel .panel{max-height:calc(100vh - 110px);overflow:auto}
 @media (max-width: 980px){.main-grid > .output-panel{position:static}.main-grid > .output-panel .panel{max-height:none;overflow:visible}}
-.setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2)}
-.setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
-.setting-group .options-bar{border-top:none !important;padding:4px 0 !important;gap:8px;flex-wrap:wrap}
+.setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
+.setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px}
+.setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
+.setting-group .options-label{min-width:88px}
+.control-grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%}
+.control-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+.quick-actions{display:flex;gap:8px;flex-wrap:wrap}
+.quick-actions .toggle-btn{padding:8px 10px}
 .table-dual{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width: 980px){.table-dual{grid-template-columns:1fr}}
+@media (max-width: 980px){.table-dual{grid-template-columns:1fr}.control-grid-4{grid-template-columns:1fr 1fr}}
+@media (max-width: 640px){.control-grid-4,.control-grid-2{grid-template-columns:1fr}}
 .export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
 .export-btn{border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
 .export-btn.save{background:linear-gradient(135deg,#1d7a4c,#1fbf75);color:#fff;border-color:rgba(31,191,117,.45)}
@@ -97,11 +103,11 @@
           <input id="labelText" class="table-name-input" placeholder="2026년 IPO 예상 주요 기업" value="2026년 IPO 예상 주요 기업">
         </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">H1 Size%</span><input id="h1Scale" type="number" value="100" min="60" max="180" class="table-name-input small">
-          <span class="options-label">H2 Size%</span><input id="h2Scale" type="number" value="100" min="60" max="180" class="table-name-input small">
-          <span class="options-label">Sub Size%</span><input id="subScale" type="number" value="100" min="60" max="180" class="table-name-input small">
-          <span class="options-label">Top Y%</span><input id="titleY" type="number" value="8" min="2" max="30" class="table-name-input small">
+        <div class="control-grid-4">
+          <input id="h1Scale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="H1 Size%">
+          <input id="h2Scale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="H2 Size%">
+          <input id="subScale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="Sub Size%">
+          <input id="titleY" type="number" value="8" min="2" max="30" class="table-name-input" placeholder="Top Y%">
         </div>
         </div>
 
@@ -147,15 +153,17 @@
 
           <div class="options-bar" style="border-top:none;padding-top:0;">
             <span class="options-label">Quick Edit</span>
-            <button class="toggle-btn" onclick="buildTableTemplate()">템플릿 생성</button>
-            <button class="toggle-btn" onclick="addTableRow()">행 +1</button>
-            <button class="toggle-btn" onclick="addTableCol()">열 +1</button>
-            <button class="toggle-btn" onclick="removeTableRow()">행 -1</button>
-            <button class="toggle-btn" onclick="removeTableCol()">열 -1</button>
+            <div class="quick-actions">
+              <button class="toggle-btn" onclick="buildTableTemplate()">템플릿</button>
+              <button class="toggle-btn" onclick="addTableRow()">행 +</button>
+              <button class="toggle-btn" onclick="removeTableRow()">행 -</button>
+              <button class="toggle-btn" onclick="addTableCol()">열 +</button>
+              <button class="toggle-btn" onclick="removeTableCol()">열 -</button>
+            </div>
           </div>
-          <div class="options-bar" style="border-top:none;padding-top:0;">
-            <span class="options-label">Rows</span><input id="tblRows" type="number" value="4" min="1" max="30" class="table-name-input small">
-            <span class="options-label">Cols</span><input id="tblCols" type="number" value="3" min="1" max="10" class="table-name-input small">
+          <div class="control-grid-2">
+            <input id="tblRows" type="number" value="4" min="1" max="30" class="table-name-input" placeholder="Rows">
+            <input id="tblCols" type="number" value="3" min="1" max="10" class="table-name-input" placeholder="Cols">
           </div>
         </div>
 
