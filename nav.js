@@ -152,8 +152,10 @@ function syncToolHeaderFromRegistry() {
 
   const h1 = header.querySelector('h1');
   const p = header.querySelector('p');
-  if (h1) h1.textContent = meta.title || meta.label || h1.textContent;
+  const titleText = meta.title || meta.label || h1?.textContent || '';
+  if (h1) h1.textContent = titleText;
   if (p) p.textContent = `// ${meta.desc || ''}`;
+  if (titleText) document.title = `${titleText} | Dev Tools`;
   return true;
 }
 
