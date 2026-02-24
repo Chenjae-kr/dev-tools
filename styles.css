@@ -716,6 +716,30 @@ body::before {
 .table-name-input::placeholder { color: var(--text-muted); }
 
 /* ─── Shared UI Utilities ───────────────────────────────── */
+.setting-group {
+  margin: 10px 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface2);
+}
+.setting-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.setting-group .options-bar {
+  border-top: none;
+  padding: 6px 0;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.setting-group .options-label { min-width: 88px; }
+
 .row-tight { border-top: none !important; padding-top: 0 !important; gap: 8px; flex-wrap: wrap; }
 .mt-8 { margin-top: 8px; }
 .input-xs { max-width: 90px; }

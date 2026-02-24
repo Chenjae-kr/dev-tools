@@ -11,9 +11,6 @@
 <style>
 .canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
 #wmCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
-.setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
-.setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:10px;text-transform:uppercase}
-.setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
 .hidden{display:none !important}
 </style>
 </head>
@@ -49,14 +46,14 @@
               </div>
             </div>
             <div class="options-bar">
-              <span class="options-label">Color</span><input id="wmColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
-              <span class="options-label">Size%</span><input id="wmTextSize" type="number" value="5" min="1" max="20" class="table-name-input" style="max-width:70px;">
+              <span class="options-label">Color</span><input id="wmColor" type="color" value="#ffffff" class="table-name-input input-xs color-input">
+              <span class="options-label">Size%</span><input id="wmTextSize" type="number" value="5" min="1" max="20" class="table-name-input input-xs">
             </div>
           </div>
 
           <div id="wmImageWrap" class="hidden">
             <div class="options-bar"><input id="wmImageInput" type="file" accept="image/png,image/*"></div>
-            <div class="options-bar"><span class="options-label">Scale%</span><input id="wmImgScale" type="number" value="18" min="5" max="80" class="table-name-input" style="max-width:70px;"></div>
+            <div class="options-bar"><span class="options-label">Scale%</span><input id="wmImgScale" type="number" value="18" min="5" max="80" class="table-name-input input-xs"></div>
           </div>
 
           <div class="options-bar">
@@ -70,9 +67,9 @@
             </div>
           </div>
           <div class="options-bar">
-            <span class="options-label">Margin(px)</span><input id="wmMargin" type="number" value="24" min="0" max="200" class="table-name-input" style="max-width:80px;">
-            <span class="options-label">Opacity%</span><input id="wmOpacity" type="number" value="60" min="1" max="100" class="table-name-input" style="max-width:80px;">
-            <span class="options-label">Rotate°</span><input id="wmRotate" type="number" value="0" min="-180" max="180" class="table-name-input" style="max-width:80px;">
+            <span class="options-label">Margin(px)</span><input id="wmMargin" type="number" value="24" min="0" max="200" class="table-name-input input-xs">
+            <span class="options-label">Opacity%</span><input id="wmOpacity" type="number" value="60" min="1" max="100" class="table-name-input input-xs">
+            <span class="options-label">Rotate°</span><input id="wmRotate" type="number" value="0" min="-180" max="180" class="table-name-input input-xs">
           </div>
         </div>
 
@@ -85,7 +82,7 @@
               <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
               <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
             </div>
-            <span class="options-label">Quality</span><input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input" style="max-width:80px;">
+            <span class="options-label">Quality</span><input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input input-xs">
             <button class="generate-btn" onclick="downloadOut()">⬇ 다운로드</button>
           </div>
         </div>

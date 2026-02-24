@@ -18,10 +18,6 @@
 .main-grid > .output-panel{position:sticky;top:84px;align-self:start}
 .main-grid > .output-panel .panel{max-height:calc(100vh - 110px);overflow:auto}
 @media (max-width: 980px){.main-grid > .output-panel{position:static}.main-grid > .output-panel .panel{max-height:none;overflow:visible}}
-.setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
-.setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px}
-.setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
-.setting-group .options-label{min-width:88px}
 .control-grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%}
 .control-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
 .quick-actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -72,13 +68,13 @@
             </div>
           </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Background</span>
           <div class="toggle-group">
             <button class="toggle-btn bgmode-btn active" data-bgmode="color">단색</button>
             <button class="toggle-btn bgmode-btn" data-bgmode="image">이미지</button>
           </div>
-          <input id="bgColor" type="color" value="#0b122b" class="table-name-input small" style="padding:4px 6px;">
+          <input id="bgColor" type="color" value="#0b122b" class="table-name-input small color-input">
           <input id="bgImageInput" type="file" accept="image/*" style="display:none">
         </div>
         </div>
@@ -86,7 +82,7 @@
         <div class="setting-group">
           <div class="setting-title">Headline & Subtitle</div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Headline Line 1</span>
+        <div class="options-bar row-tight"><span class="options-label">Headline Line 1</span>
           <div class="toggle-group">
             <button class="toggle-btn headvis-btn active" data-head="on">ON</button>
             <button class="toggle-btn headvis-btn" data-head="off">OFF</button>
@@ -94,16 +90,16 @@
         </div>
         <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목 1줄"></textarea>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Headline Line 2</span></div>
+        <div class="options-bar row-tight"><span class="options-label">Headline Line 2</span></div>
         <textarea id="titleText2" class="input-area" placeholder="카드뉴스 제목 2줄"></textarea>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Headline Color</span>
-          <span class="options-label">L1</span><input id="titleColor1" type="color" value="#111111" class="table-name-input small" style="padding:4px 6px;">
-          <span class="options-label">L2</span><input id="titleColor2" type="color" value="#d41414" class="table-name-input small" style="padding:4px 6px;">
+          <span class="options-label">L1</span><input id="titleColor1" type="color" value="#111111" class="table-name-input small color-input">
+          <span class="options-label">L2</span><input id="titleColor2" type="color" value="#d41414" class="table-name-input small color-input">
         </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Subtitle</span>
+        <div class="options-bar row-tight"><span class="options-label">Subtitle</span>
           <div class="toggle-group">
             <button class="toggle-btn subvis-btn active" data-sub="on">ON</button>
             <button class="toggle-btn subvis-btn" data-sub="off">OFF</button>
@@ -111,7 +107,7 @@
         </div>
         <textarea id="subTitleText" class="input-area" placeholder="소제목/요약"></textarea>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Label Banner</span>
           <input id="labelText" class="table-name-input" placeholder="2026년 IPO 예상 주요 기업" value="2026년 IPO 예상 주요 기업">
         </div>
@@ -126,7 +122,7 @@
 
         <div class="setting-group">
           <div class="setting-title">Body</div>
-          <div class="options-bar" style="border-top:none;padding-top:0;">
+          <div class="options-bar row-tight">
           <span class="options-label">Body Type</span>
           <div class="toggle-group">
             <button class="toggle-btn bodytype-btn active" data-body="text">Text</button>
@@ -138,12 +134,12 @@
         </div>
 
         <div id="bodyTextWrap">
-          <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Body Text</span></div>
+          <div class="options-bar row-tight"><span class="options-label">Body Text</span></div>
           <textarea id="bodyText" class="input-area" placeholder="본문 텍스트 (줄바꿈 지원)"></textarea>
         </div>
 
         <div id="bodyTableWrap" class="hidden">
-          <div class="options-bar" style="border-top:none;padding-top:0;">
+          <div class="options-bar row-tight">
             <span class="options-label" id="tblSepLabel">구분자</span>
             <div class="toggle-group" id="tblSepGroup">
               <button class="toggle-btn tblsep-btn active" data-sep="auto">AUTO</button>
@@ -161,7 +157,7 @@
             <div id="tableGridWrap" style="overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)"></div>
           </div>
 
-          <div class="options-bar" style="border-top:none;padding-top:0;">
+          <div class="options-bar row-tight">
             <span class="options-label">Quick Edit</span>
             <div class="quick-actions">
               <button class="toggle-btn" onclick="buildTableTemplate()">템플릿</button>
@@ -178,9 +174,9 @@
         </div>
 
         <div id="bodyImageWrap" class="hidden">
-          <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Body Image</span>
+          <div class="options-bar row-tight"><span class="options-label">Body Image</span>
             <input id="bodyImageInput" type="file" accept="image/*"></div>
-          <div class="options-bar" style="border-top:none;padding-top:0;">
+          <div class="options-bar row-tight">
             <span class="options-label">Fit</span>
             <div class="toggle-group">
               <button class="toggle-btn imgfit-btn active" data-fit="cover">Cover</button>
@@ -188,32 +184,32 @@
             </div>
             <span class="options-label">Zoom%</span><input id="imgZoom" type="number" value="100" min="50" max="250" class="table-name-input small">
           </div>
-          <div class="options-bar" style="border-top:none;padding-top:0;">
+          <div class="options-bar row-tight">
             <span class="options-label">X%</span><input id="imgPosX" type="number" value="50" min="0" max="100" class="table-name-input small">
             <span class="options-label">Y%</span><input id="imgPosY" type="number" value="50" min="0" max="100" class="table-name-input small">
           </div>
         </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Body Size%</span><input id="bodyScale" type="number" value="100" min="60" max="180" class="table-name-input small">
         </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Body BG</span>
           <div class="toggle-group">
             <button class="toggle-btn bodybgmode-btn active" data-bgmode="solid">Color</button>
             <button class="toggle-btn bodybgmode-btn" data-bgmode="image">Image</button>
           </div>
-          <input id="bodyBgColor" type="color" value="#ffffff" class="table-name-input small" style="padding:4px 6px;max-width:120px">
+          <input id="bodyBgColor" type="color" value="#ffffff" class="table-name-input small input-sm color-input">
           <span class="options-label">Opacity%</span>
-          <input id="bodyBgOpacity" type="number" value="100" min="0" max="100" class="table-name-input small" style="max-width:90px">
+          <input id="bodyBgOpacity" type="number" value="100" min="0" max="100" class="table-name-input small input-xs">
           <input id="bodyBgImageInput" type="file" accept="image/*" style="display:none">
         </div>
         </div>
 
         <div class="setting-group">
           <div class="setting-title">Footer & Paging</div>
-          <div class="options-bar" style="border-top:none;padding-top:0;">
+          <div class="options-bar row-tight">
             <span class="options-label">Footer Source</span>
             <input id="sourceText" class="table-name-input" value="출처: 관련 자료" placeholder="출처: ...">
             <div class="toggle-group">
@@ -221,7 +217,7 @@
               <button class="toggle-btn sourcevis-btn" data-source="off">OFF</button>
             </div>
           </div>
-          <div class="options-bar" style="border-top:none;padding-top:0;">
+          <div class="options-bar row-tight">
             <span class="options-label">Watermark</span>
             <input id="brandText" class="table-name-input" value="@instagram" placeholder="@your_brand">
             <div class="toggle-group">
@@ -235,7 +231,7 @@
             </div>
           </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">Pages</span>
           <input id="pageCount" type="number" value="1" min="1" max="20" class="table-name-input small">
           <button class="toggle-btn" onclick="prevPage()">◀</button>
@@ -246,7 +242,7 @@
 
         <div class="setting-group">
           <div class="setting-title">Export</div>
-          <div class="options-bar" style="border-top:none;padding-top:0;">
+          <div class="options-bar row-tight">
             <span class="options-label">Format</span>
             <div class="toggle-group">
               <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
