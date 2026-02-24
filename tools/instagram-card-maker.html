@@ -54,11 +54,25 @@
           <input id="bgImageInput" type="file" accept="image/*" style="display:none">
         </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Title</span></div>
-        <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목"></textarea>
+        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Headline Line 1</span></div>
+        <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목 1줄"></textarea>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Headline Line 2</span></div>
+        <textarea id="titleText2" class="input-area" placeholder="카드뉴스 제목 2줄"></textarea>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Headline Color</span>
+          <span class="options-label">L1</span><input id="titleColor1" type="color" value="#111111" class="table-name-input small" style="padding:4px 6px;">
+          <span class="options-label">L2</span><input id="titleColor2" type="color" value="#d41414" class="table-name-input small" style="padding:4px 6px;">
+        </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Subtitle</span></div>
         <textarea id="subTitleText" class="input-area" placeholder="소제목/요약"></textarea>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Label Banner</span>
+          <input id="labelText" class="table-name-input" placeholder="2026년 IPO 예상 주요 기업" value="2026년 IPO 예상 주요 기업">
+        </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
           <span class="options-label">Body Type</span>
@@ -82,6 +96,15 @@
         <div id="bodyImageWrap" class="hidden">
           <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Body Image</span>
             <input id="bodyImageInput" type="file" accept="image/*"></div>
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Footer Source</span>
+          <input id="sourceText" class="table-name-input" value="출처: 관련 자료" placeholder="출처: ...">
+        </div>
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Watermark</span>
+          <input id="brandText" class="table-name-input" value="@flow.itself" placeholder="@your_brand">
         </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
@@ -120,7 +143,7 @@ const themes = {
 let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
 let page=1, pages=[{}], bodyType='text';
 
-function newPage(){ return {title:'',subtitle:'',bodyType:'text',bodyText:'',tableText:'',bodyImageData:''}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@flow.itself',bodyType:'text',bodyText:'',tableText:'',bodyImageData:''}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -134,9 +157,13 @@ function setBodyUI(){
 function fillInputsFromPage(){
   const p=current();
   document.getElementById('titleText').value=p.title||'';
+  document.getElementById('titleText2').value=p.title2||'';
   document.getElementById('subTitleText').value=p.subtitle||'';
+  document.getElementById('labelText').value=p.label||'';
   document.getElementById('bodyText').value=p.bodyText||'';
   document.getElementById('tableText').value=p.tableText||'';
+  document.getElementById('sourceText').value=p.source||'출처: 관련 자료';
+  document.getElementById('brandText').value=p.brand||'@flow.itself';
   bodyType=p.bodyType||'text';
   document.querySelectorAll('.bodytype-btn').forEach(b=>b.classList.toggle('active', b.dataset.body===bodyType));
   setBodyUI();
@@ -146,8 +173,12 @@ function savePage(){
   pages[page-1]={
     ...(pages[page-1]||newPage()),
     title:document.getElementById('titleText').value,
+    title2:document.getElementById('titleText2').value,
     subtitle:document.getElementById('subTitleText').value,
+    label:document.getElementById('labelText').value,
     bodyType,
+    source:document.getElementById('sourceText').value,
+    brand:document.getElementById('brandText').value,
     bodyText:document.getElementById('bodyText').value,
     tableText:document.getElementById('tableText').value,
   };
@@ -201,19 +232,29 @@ function renderCard(){
   ctx.fillStyle=th.box; ctx.fillRect(panelX,panelY,panelW,panelH);
   ctx.strokeStyle='rgba(0,0,0,0.16)'; ctx.lineWidth=2; ctx.strokeRect(panelX,panelY,panelW,panelH);
 
-  // title lines
-  const titleLines=(p.title||'').split('\n').filter(Boolean);
+  // title lines + subtitle + label banner
+  const t1=(p.title||'').trim();
+  const t2=(p.title2||'').trim();
   const subLines=(p.subtitle||'').split('\n').filter(Boolean);
+  const titleColor1=document.getElementById('titleColor1').value;
+  const titleColor2=document.getElementById('titleColor2').value;
 
   let y=panelY+Math.floor(panelH*0.08);
-  titleLines.slice(0,2).forEach((line,idx)=>{
-    const fs=fit(ctx,line,panelW-60,Math.floor(h*0.055));
-    ctx.font=`900 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
-    ctx.fillStyle= idx===1 ? th.accent : th.text;
+  if (t1) {
+    const fs1=fit(ctx,t1,panelW-60,Math.floor(h*0.055));
+    ctx.font=`900 ${fs1}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+    ctx.fillStyle=titleColor1;
     ctx.textAlign='center';
-    ctx.fillText(line,panelX+panelW/2,y);
-    y += Math.floor(fs*1.1);
-  });
+    ctx.fillText(t1,panelX+panelW/2,y);
+    y += Math.floor(fs1*1.08);
+  }
+  if (t2) {
+    const fs2=fit(ctx,t2,panelW-60,Math.floor(h*0.06));
+    ctx.font=`900 ${fs2}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+    ctx.fillStyle=titleColor2;
+    ctx.fillText(t2,panelX+panelW/2,y);
+    y += Math.floor(fs2*1.1);
+  }
 
   subLines.slice(0,2).forEach(line=>{
     const fs=fit(ctx,line,panelW-100,Math.floor(h*0.03));
@@ -223,7 +264,26 @@ function renderCard(){
     y += Math.floor(fs*1.2);
   });
 
-  y += Math.floor(h*0.02);
+  const label=(p.label||'').trim();
+  if (label) {
+    const lw=Math.min(panelW*0.72, Math.max(panelW*0.34, ctx.measureText(label).width + 40));
+    const lh=Math.floor(h*0.05);
+    const lx=panelX + (panelW-lw)/2;
+    const ly=y;
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(lx,ly,lw,lh);
+    ctx.strokeStyle='rgba(0,0,0,0.35)';
+    ctx.setLineDash([6,4]);
+    ctx.strokeRect(lx,ly,lw,lh);
+    ctx.setLineDash([]);
+    ctx.fillStyle='#222';
+    ctx.font=`700 ${Math.floor(lh*0.44)}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+    ctx.textAlign='center';
+    ctx.fillText(label, lx+lw/2, ly+Math.floor(lh*0.67));
+    y += lh + Math.floor(h*0.016);
+  } else {
+    y += Math.floor(h*0.02);
+  }
   const contentX=panelX+24, contentY=y, contentW=panelW-48, contentH=panelY+panelH-y-28;
 
   // body by type
@@ -285,9 +345,12 @@ function renderCard(){
   }
 
   // footer
-  ctx.fillStyle='rgba(0,0,0,0.75)'; ctx.fillRect(panelX,panelY+panelH-26,panelW,26);
-  ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.font='600 16px sans-serif'; ctx.fillText('출처: 관련 자료', panelX+10,panelY+panelH-8);
-  ctx.textAlign='right'; ctx.fillText(`@card ${page}/${pages.length}`, panelX+panelW-10,panelY+panelH-8);
+  const source = (p.source || '출처: 관련 자료').trim();
+  const brand = (p.brand || '@flow.itself').trim();
+  const fh = 34;
+  ctx.fillStyle='rgba(5,10,25,0.9)'; ctx.fillRect(panelX,panelY+panelH-fh,panelW,fh);
+  ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.font='600 16px Pretendard, sans-serif'; ctx.fillText(source, panelX+12,panelY+panelH-11);
+  ctx.textAlign='right'; ctx.font='700 18px JetBrains Mono, sans-serif'; ctx.fillText(`${brand}  ${page}/${pages.length}`, panelX+panelW-12,panelY+panelH-11);
 }
 
 function downloadCurrent(){ savePage(); renderCard(); const a=document.createElement('a'); a.href=getCanvas().toDataURL('image/png'); a.download=`card_${page}_${sizeKey.replace(':','x')}.png`; a.click(); }
@@ -299,7 +362,7 @@ document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.query
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
 document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
 
-['bgColor','titleText','subTitleText','bodyText','tableText','pageCount'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
+['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','sourceText','brandText','bodyText','tableText','pageCount'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
 
 document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
 document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
@@ -307,7 +370,11 @@ document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=
 // init
 pages[0]={
   title:'📈 새해 코스피는 내가 이끈다!',
-  subtitle:'케이뱅크 상장, 공모가 확정',
+  title2:'케이뱅크 상장, 공모가 확정',
+  subtitle:'신규 상장 시장 전망 2026',
+  label:'2026년 IPO 예상 주요 기업',
+  source:'출처: 관련 언론보도',
+  brand:'@flow.itself',
   bodyType:'table',
   bodyText:'',
   tableText:'기업명,예상기업가치,주요 사업\n무신사,8조원 이상,패션 플랫폼\n한화에너지,5조원 이상,에너지 발전·공급\n케이뱅크,3조 3,673억,인터넷전문은행',
