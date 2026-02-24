@@ -33,7 +33,7 @@
 <div class="container">
   <div class="tool-header">
     <h1>Mock <span>Data Generator</span></h1>
-    <p>// 컬럼 스키마로 테스트 데이터(CSV / JSON / SQL INSERT) 생성</p>
+    <p>// 컬럼 스키마(DSL/SQL DDL)로 테스트 데이터(CSV / JSON / SQL INSERT) 생성</p>
   </div>
 
   <div class="main-grid">
@@ -41,6 +41,14 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title"><div class="dot"></div>SCHEMA INPUT</div>
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Schema</span>
+          <div class="toggle-group">
+            <button class="toggle-btn schema-btn active" data-schema="dsl">DSL</button>
+            <button class="toggle-btn schema-btn" data-schema="ddl">SQL DDL</button>
+          </div>
         </div>
 
         <textarea id="schemaInput" class="mock-textarea" placeholder="id:int
@@ -93,12 +101,28 @@ is_active:bool</textarea>
 
 <script>
 let outputFormat = 'csv';
+let schemaMode = 'dsl';
 
 document.querySelectorAll('.fmt-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     outputFormat = btn.dataset.fmt;
+  });
+});
+
+document.querySelectorAll('.schema-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.schema-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    schemaMode = btn.dataset.schema;
+
+    const ta = document.getElementById('schemaInput');
+    if (schemaMode === 'ddl') {
+      ta.placeholder = `CREATE TABLE users (\n  id INT PRIMARY KEY,\n  name VARCHAR(100),\n  email VARCHAR(200),\n  age INT,\n  created_at DATE,\n  is_active BOOLEAN\n);`;
+    } else {
+      ta.placeholder = `id:int\nname:name\nemail:email\nage:int(20,60)\ncreated_at:date\nis_active:bool`;
+    }
   });
 });
 
@@ -115,15 +139,55 @@ function rng(seed) {
   };
 }
 
+function mapDDLTypeToMockType(typeRaw) {
+  const t = String(typeRaw || '').toLowerCase();
+  if (/(int|number|bigint|smallint|tinyint)/.test(t)) return 'int';
+  if (/(float|double|decimal|numeric|real)/.test(t)) return 'float';
+  if (/(bool|bit)/.test(t)) return 'bool';
+  if (/(datetime|timestamp)/.test(t)) return 'datetime';
+  if (/date/.test(t)) return 'date';
+  if (/(uuid|uniqueidentifier)/.test(t)) return 'uuid';
+  if (/email/.test(t)) return 'email';
+  return 'string';
+}
+
+function parseDDL(text) {
+  const m = text.match(/create\s+table\s+([`"\[]?)([\w.]+)\1\s*\(([^]*?)\)\s*;/i)
+    || text.match(/create\s+table\s+([`"\[]?)([\w.]+)\1\s*\(([^]*?)\)/i);
+  if (!m) throw new Error('CREATE TABLE DDL을 찾을 수 없습니다.');
+
+  const table = m[2].split('.').pop();
+  const body = m[3];
+  const parts = body.split(/,(?![^()]*\))/).map(s => s.trim()).filter(Boolean);
+
+  const cols = [];
+  for (const line of parts) {
+    if (/^(primary\s+key|foreign\s+key|constraint|unique|key|index)\b/i.test(line)) continue;
+    const mm = line.match(/^([`"\[]?)([\w]+)\1\s+([\w]+(?:\s*\([^)]*\))?)/i);
+    if (!mm) continue;
+    const name = mm[2];
+    const dtype = mm[3];
+    cols.push({ name, rawType: mapDDLTypeToMockType(dtype) });
+  }
+
+  if (!cols.length) throw new Error('DDL에서 컬럼을 파싱하지 못했습니다.');
+  return { cols, table };
+}
+
 function parseSchema(text) {
+  if (schemaMode === 'ddl') {
+    return parseDDL(text);
+  }
+
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   if (!lines.length) throw new Error('스키마를 입력해주세요.');
 
-  return lines.map(line => {
+  const cols = lines.map(line => {
     const [name, rawType] = line.split(':').map(x => (x || '').trim());
     if (!name || !rawType) throw new Error(`스키마 오류: ${line}`);
     return { name, rawType };
   });
+  return { cols, table: null };
 }
 
 function pick(arr, rnd) { return arr[Math.floor(rnd() * arr.length)]; }
@@ -204,7 +268,10 @@ function generateMock() {
   const output = document.getElementById('outputPanel');
 
   try {
-    const cols = parseSchema(schemaText);
+    const parsedSchema = parseSchema(schemaText);
+    const cols = parsedSchema.cols;
+    const effectiveTable = parsedSchema.table || tableName;
+    if (parsedSchema.table) document.getElementById('tableName').value = parsedSchema.table;
     const rnd = rng(seed);
     const rows = [];
 
@@ -226,7 +293,7 @@ function generateMock() {
       text = rows.map(r => {
         const c = cols.map(x => x.name).join(', ');
         const v = cols.map(x => escapeSQL(r[x.name])).join(', ');
-        return `INSERT INTO ${tableName} (${c}) VALUES (${v});`;
+        return `INSERT INTO ${effectiveTable} (${c}) VALUES (${v});`;
       }).join('\n');
     }
 
