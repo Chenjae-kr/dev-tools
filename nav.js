@@ -108,15 +108,21 @@ function closeMobileMenu() {
 }
 
 function toggleNavGroup(idx) {
-  const isMobile = window.innerWidth <= 768;
-  if (!isMobile) return;
-
   const menu = document.querySelector(`.nav-menu[data-menu="${idx}"]`);
   if (!menu) return;
-  menu.classList.toggle('open');
 
-  const btn = menu.querySelector('.nav-menu-btn');
-  if (btn) btn.setAttribute('aria-expanded', menu.classList.contains('open') ? 'true' : 'false');
+  const willOpen = !menu.classList.contains('open');
+  document.querySelectorAll('.nav-menu').forEach(m => {
+    m.classList.remove('open');
+    const b = m.querySelector('.nav-menu-btn');
+    if (b) b.setAttribute('aria-expanded', 'false');
+  });
+
+  if (willOpen) {
+    menu.classList.add('open');
+    const btn = menu.querySelector('.nav-menu-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+  }
 }
 
 // ─── Init after DOM ──────────────────────────────────────
@@ -136,6 +142,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const menuBtn = document.getElementById('mobileMenuBtn');
     if (nav && nav.classList.contains('nav-open') && !nav.contains(e.target)) {
       closeMobileMenu();
+    }
+
+    // Close desktop dropdown when clicking outside nav menus
+    if (!e.target.closest('.nav-menu')) {
+      document.querySelectorAll('.nav-menu').forEach(m => {
+        m.classList.remove('open');
+        const b = m.querySelector('.nav-menu-btn');
+        if (b) b.setAttribute('aria-expanded', 'false');
+      });
     }
   });
 

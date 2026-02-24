@@ -142,7 +142,7 @@ body::before {
   gap: 8px;
   flex: 1;
   padding: 0 14px;
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .nav-tools::-webkit-scrollbar { display: none; }
