@@ -27,7 +27,7 @@ function renderNav() {
     const links = grouped.map(item => {
       const active = filename === item.href ? ' active' : '';
       const href = inTools ? item.href : 'tools/' + item.href;
-      return `<a class="nav-item${active}" href="${href}"><span class="nav-item-dot"></span>${item.label}</a>`;
+      return `<a class="nav-item${active}" href="${href}"><span class="nav-item-dot"></span>${item.title || item.label}</a>`;
     }).join('');
 
     const hasActive = grouped.some(item => filename === item.href);
