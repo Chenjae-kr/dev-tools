@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Formatter | Dev Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.json-key     { color: #7c6aff; }
+.json-str     { color: #f0a050; }
+.json-num     { color: #4fffb0; }
+.json-bool    { color: #ff6a6a; }
+.json-null    { color: #888; }
+.json-bracket { color: var(--text-dim); }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+.status-ok  { background: color-mix(in srgb, #4fffb0 12%, transparent); color: #4fffb0; border: 1px solid color-mix(in srgb, #4fffb0 30%, transparent); }
+.status-err { background: color-mix(in srgb, #ff6a6a 12%, transparent); color: #ff6a6a; border: 1px solid color-mix(in srgb, #ff6a6a 30%, transparent); }
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.json-stats { font-size: 11px; color: var(--text-muted); }
+.json-stats span { color: var(--text-dim); font-weight: 600; margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<script>renderNav();</script>
+
+<div class="container">
+  <div class="tool-header">
+    <h1>JSON <span>Formatter</span></h1>
+    <p>// JSON 데이터를 자동 정렬하고 구문 오류를 검사합니다</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT: Input Panel -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot"></div>
+            JSON INPUT
+          </div>
+        </div>
+
+        <textarea class="ddl-textarea" id="jsonInput" placeholder='{
+  "name": "example",
+  "version": 1,
+  "active": true,
+  "tags": ["dev", "tools"],
+  "meta": null
+}'></textarea>
+
+        <!-- Mode -->
+        <div class="options-bar">
+          <span class="options-label">Mode</span>
+          <div class="toggle-group">
+            <button class="toggle-btn active" data-mode="format">Format</button>
+            <button class="toggle-btn" data-mode="minify">Minify</button>
+          </div>
+        </div>
+
+        <!-- Indent (only shown for format mode) -->
+        <div class="options-bar" id="indentBar">
+          <span class="options-label">Indent</span>
+          <div class="toggle-group">
+            <button class="toggle-btn" data-indent="1">1</button>
+            <button class="toggle-btn active" data-indent="2">2</button>
+            <button class="toggle-btn" data-indent="4">4</button>
+            <button class="toggle-btn" data-indent="tab">Tab</button>
+          </div>
+          <span class="options-label">정렬</span>
+          <div class="toggle-group">
+            <button class="toggle-btn" data-sort="on">키 정렬</button>
+            <button class="toggle-btn active" data-sort="off">원본 순서</button>
+          </div>
+        </div>
+
+        <button class="generate-btn" id="formatBtn" onclick="format()">
+          ⚡ 변환하기
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Output Panel -->
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">⬅</div>
+          <p>JSON을 입력하고<br>변환하기 버튼을 누르세요</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// JSON Formatter — Format · Minify · Validate · Syntax Highlight</footer>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+let mode       = 'format';
+let indentVal  = 2;
+let sortKeys   = false;
+
+// ─── Mode toggle ─────────────────────────────────────────
+document.querySelectorAll('[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    mode = btn.dataset.mode;
+    document.getElementById('indentBar').style.display = mode === 'minify' ? 'none' : '';
+  });
+});
+
+// ─── Indent toggle ────────────────────────────────────────
+document.querySelectorAll('[data-indent]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-indent]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    indentVal = btn.dataset.indent === 'tab' ? '\t' : parseInt(btn.dataset.indent);
+  });
+});
+
+// ─── Sort keys toggle ─────────────────────────────────────
+document.querySelectorAll('[data-sort]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-sort]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sortKeys = btn.dataset.sort === 'on';
+  });
+});
+
+// ─── Syntax Highlighter ───────────────────────────────────
+function highlight(json) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return json.replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|[{}\[\],])/g,
+    match => {
+      if (/^"/.test(match)) {
+        if (/:$/.test(match)) return `<span class="json-key">${esc(match)}</span>`;
+        return `<span class="json-str">${esc(match)}</span>`;
+      }
+      if (/true|false/.test(match)) return `<span class="json-bool">${match}</span>`;
+      if (/null/.test(match))       return `<span class="json-null">${match}</span>`;
+      if (/[{}\[\]]/.test(match))   return `<span class="json-bracket">${esc(match)}</span>`;
+      return `<span class="json-num">${match}</span>`;
+    }
+  );
+}
+
+// ─── Sorted JSON stringify ────────────────────────────────
+function sortedStringify(val, indent, depth) {
+  if (val === null)                  return 'null';
+  if (typeof val !== 'object')       return JSON.stringify(val);
+  if (Array.isArray(val)) {
+    if (val.length === 0) return '[]';
+    const items = val.map(v => pad(depth + 1, indent) + sortedStringify(v, indent, depth + 1));
+    return '[\n' + items.join(',\n') + '\n' + pad(depth, indent) + ']';
+  }
+  const keys = Object.keys(val).sort();
+  if (keys.length === 0) return '{}';
+  const items = keys.map(k =>
+    pad(depth + 1, indent) + JSON.stringify(k) + ': ' + sortedStringify(val[k], indent, depth + 1)
+  );
+  return '{\n' + items.join(',\n') + '\n' + pad(depth, indent) + '}';
+}
+
+function pad(depth, indent) {
+  if (indent === '\t') return '\t'.repeat(depth);
+  return ' '.repeat(depth * indent);
+}
+
+// ─── Stats ────────────────────────────────────────────────
+function countStats(obj) {
+  let keys = 0, arr = 0, depth = 0;
+  function walk(v, d) {
+    if (d > depth) depth = d;
+    if (Array.isArray(v)) { arr++; v.forEach(i => walk(i, d + 1)); }
+    else if (v && typeof v === 'object') { keys += Object.keys(v).length; Object.values(v).forEach(i => walk(i, d + 1)); }
+  }
+  walk(obj, 0);
+  return { keys, arr, depth };
+}
+
+// ─── Main Format ──────────────────────────────────────────
+function format() {
+  const raw    = document.getElementById('jsonInput').value.trim();
+  const output = document.getElementById('outputPanel');
+  const btn    = document.getElementById('formatBtn');
+
+  if (!raw) {
+    output.innerHTML = `<div class="error-msg">⚠ JSON을 입력해주세요.</div>`;
+    return;
+  }
+
+  btn.textContent = '⏳ 변환 중...';
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    try {
+      const parsed = JSON.parse(raw);
+
+      let result;
+      if (mode === 'minify') {
+        result = JSON.stringify(parsed);
+      } else if (sortKeys) {
+        result = sortedStringify(parsed, indentVal, 0);
+      } else {
+        result = JSON.stringify(parsed, null, indentVal);
+      }
+
+      const { keys, arr, depth } = countStats(parsed);
+      const blockId = `json_${Date.now()}`;
+      const indentLabel = indentVal === '\t' ? 'Tab' : `${indentVal} spaces`;
+      const modeLabel   = mode === 'minify' ? 'Minify' : `Format · ${indentLabel}${sortKeys ? ' · sorted' : ''}`;
+
+      const highlighted = highlight(result);
+
+      output.innerHTML = `
+        <div class="panel sql-block">
+          <div class="sql-block-header">
+            <span class="sql-type-badge badge-select">JSON</span>
+            <span class="sql-dialect-tag">${modeLabel}</span>
+            <button class="copy-btn" id="copy_${blockId}" onclick="copyOutput('${blockId}')">COPY</button>
+          </div>
+          <div class="status-bar">
+            <span class="status-badge status-ok">✓ Valid JSON</span>
+            <span class="json-stats">
+              <span>SIZE</span>${formatBytes(new TextEncoder().encode(result).length)}
+              &nbsp;&nbsp;<span>KEYS</span>${keys}
+              &nbsp;&nbsp;<span>ARRAYS</span>${arr}
+              &nbsp;&nbsp;<span>DEPTH</span>${depth}
+            </span>
+          </div>
+          <pre class="sql-code" id="${blockId}">${highlighted}</pre>
+        </div>`;
+
+    } catch (e) {
+      // Try to extract error position
+      const msg = e.message;
+      const posMatch = msg.match(/position (\d+)/i);
+      let hint = '';
+      if (posMatch) {
+        const pos = parseInt(posMatch[1]);
+        const around = raw.substring(Math.max(0, pos - 20), pos + 20);
+        hint = `\n\n오류 위치 부근: ...${around}...`;
+      }
+      output.innerHTML = `
+        <div class="panel sql-block">
+          <div class="sql-block-header">
+            <span class="sql-type-badge badge-delete">JSON</span>
+            <span class="sql-dialect-tag">Parse Error</span>
+          </div>
+          <div class="status-bar">
+            <span class="status-badge status-err">✗ Invalid JSON</span>
+          </div>
+          <div class="error-msg" style="border-radius:0;">❌ ${e.message}${hint}</div>
+        </div>`;
+    }
+
+    btn.textContent = '⚡ 변환하기';
+    btn.classList.remove('loading');
+  }, 50);
+}
+
+function copyOutput(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
+    const btn = document.getElementById(`copy_${id}`);
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  return (b / 1024).toFixed(1) + ' KB';
+}
+
+// Ctrl/Cmd + Enter
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') format();
+});
+</script>
+</body>
+</html>

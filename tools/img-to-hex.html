@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image → Hex | Dev Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  margin-bottom: 16px;
+  position: relative;
+}
+.drop-zone:hover,
+.drop-zone.dragover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  color: var(--accent);
+}
+.drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.drop-zone-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+  display: block;
+}
+.drop-zone-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+.file-preview {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface2);
+  border-radius: 6px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.file-preview.visible { display: flex; }
+.file-preview img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.file-preview-info {
+  flex: 1;
+  min-width: 0;
+}
+.file-preview-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.file-preview-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.file-preview-clear {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  transition: border-color .2s, color .2s;
+}
+.file-preview-clear:hover {
+  border-color: var(--accent3);
+  color: var(--accent3);
+}
+.hex-output {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--text);
+  word-break: break-all;
+}
+.hex-addr  { color: var(--text-muted); }
+.hex-byte  { color: var(--accent); }
+.hex-sep   { color: var(--border); }
+.hex-kw    { color: var(--accent2); }
+.hex-str   { color: #f0a050; }
+.hex-num   { color: var(--accent3); }
+.out-meta {
+  display: flex;
+  gap: 16px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.out-meta span { color: var(--text-dim); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<script>renderNav();</script>
+
+<div class="container">
+  <div class="tool-header">
+    <h1>Image <span>→</span> Hex</h1>
+    <p>// 이미지 파일을 Hex Dump · C Array · Python bytes · Base64로 변환합니다</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT: Input Panel -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot"></div>
+            IMAGE INPUT
+          </div>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*">
+          <span class="drop-zone-icon">🖼</span>
+          <div>이미지를 드래그하거나 클릭하여 업로드</div>
+          <div class="drop-zone-hint">PNG · JPG · GIF · WEBP · BMP · SVG · ICO 등</div>
+        </div>
+
+        <!-- File preview -->
+        <div class="file-preview" id="filePreview">
+          <img id="previewImg" src="" alt="preview">
+          <div class="file-preview-info">
+            <div class="file-preview-name" id="previewName">—</div>
+            <div class="file-preview-meta" id="previewMeta">—</div>
+          </div>
+          <button class="file-preview-clear" onclick="clearFile()">✕ 제거</button>
+        </div>
+
+        <!-- Output Format -->
+        <div class="options-bar">
+          <span class="options-label">Format</span>
+          <div class="dialect-group">
+            <button class="dialect-btn active" data-fmt="hexdump">Hex Dump</button>
+            <button class="dialect-btn" data-fmt="c">C Array</button>
+            <button class="dialect-btn" data-fmt="python">Python</button>
+            <button class="dialect-btn" data-fmt="base64">Base64</button>
+          </div>
+        </div>
+
+        <!-- Bytes per line (hidden for base64) -->
+        <div class="options-bar" id="bplBar">
+          <span class="options-label">Bytes/Line</span>
+          <div class="toggle-group">
+            <button class="toggle-btn" data-bpl="8">8</button>
+            <button class="toggle-btn active" data-bpl="16">16</button>
+            <button class="toggle-btn" data-bpl="32">32</button>
+          </div>
+          <span class="options-label" id="asciiLabel">ASCII</span>
+          <div class="toggle-group" id="asciiGroup">
+            <button class="toggle-btn active" data-ascii="on">표시</button>
+            <button class="toggle-btn" data-ascii="off">숨김</button>
+          </div>
+        </div>
+
+        <!-- Variable name (shown for C/Python) -->
+        <div class="options-bar" id="varNameBar" style="display:none;">
+          <span class="options-label">변수명</span>
+          <input type="text" id="varName" class="table-name-input" placeholder="image_data" value="image_data">
+        </div>
+
+        <button class="generate-btn" id="generateBtn" onclick="convert()" disabled>
+          ⚡ 변환하기
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Output Panel -->
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">⬅</div>
+          <p>이미지를 업로드하고<br>변환하기 버튼을 누르세요</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// Image → Hex — supports Hex Dump · C Array · Python bytes · Base64</footer>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+let selectedFmt   = 'hexdump';
+let bytesPerLine  = 16;
+let showAscii     = true;
+let currentFile   = null;
+let currentBytes  = null;
+
+// ─── File Input ───────────────────────────────────────────
+const fileInput = document.getElementById('fileInput');
+const dropZone  = document.getElementById('dropZone');
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) loadFile(e.target.files[0]);
+});
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+function loadFile(file) {
+  currentFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    currentBytes = new Uint8Array(ev.target.result);
+    showPreview(file, ev.target.result);
+    document.getElementById('generateBtn').disabled = false;
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showPreview(file, arrayBuffer) {
+  const blob = new Blob([arrayBuffer], { type: file.type });
+  const url  = URL.createObjectURL(blob);
+  document.getElementById('previewImg').src = url;
+  document.getElementById('previewName').textContent = file.name;
+  document.getElementById('previewMeta').textContent =
+    `${file.type || 'unknown'} · ${formatSize(file.size)}`;
+  document.getElementById('filePreview').classList.add('visible');
+}
+
+function clearFile() {
+  currentFile  = null;
+  currentBytes = null;
+  fileInput.value = '';
+  document.getElementById('filePreview').classList.remove('visible');
+  document.getElementById('previewImg').src = '';
+  document.getElementById('generateBtn').disabled = true;
+  document.getElementById('outputPanel').innerHTML = `
+    <div class="panel">
+      <div class="empty-state">
+        <div class="icon">⬅</div>
+        <p>이미지를 업로드하고<br>변환하기 버튼을 누르세요</p>
+      </div>
+    </div>`;
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024)        return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+// ─── Format toggle ────────────────────────────────────────
+document.querySelectorAll('[data-fmt]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-fmt]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedFmt = btn.dataset.fmt;
+    const isHexdump = selectedFmt === 'hexdump';
+    const isCoded   = selectedFmt === 'c' || selectedFmt === 'python';
+    const isBase64  = selectedFmt === 'base64';
+
+    document.getElementById('bplBar').style.display     = isBase64 ? 'none' : '';
+    document.getElementById('asciiLabel').style.display = isHexdump ? '' : 'none';
+    document.getElementById('asciiGroup').style.display = isHexdump ? '' : 'none';
+    document.getElementById('varNameBar').style.display = isCoded   ? '' : 'none';
+  });
+});
+
+// ─── Bytes/line toggle ────────────────────────────────────
+document.querySelectorAll('[data-bpl]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-bpl]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    bytesPerLine = parseInt(btn.dataset.bpl);
+  });
+});
+
+// ─── ASCII toggle ─────────────────────────────────────────
+document.querySelectorAll('[data-ascii]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-ascii]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    showAscii = btn.dataset.ascii === 'on';
+  });
+});
+
+// ─── Converters ───────────────────────────────────────────
+function toHexDump(bytes, bpl, ascii) {
+  const lines = [];
+  const total  = bytes.length;
+  const addrW  = total.toString(16).length;
+
+  for (let i = 0; i < total; i += bpl) {
+    const chunk  = bytes.slice(i, i + bpl);
+    const addr   = `<span class="hex-addr">${i.toString(16).padStart(Math.max(addrW, 8), '0')}</span>`;
+    const sep1   = `<span class="hex-sep">  </span>`;
+
+    const hexParts = [];
+    for (let j = 0; j < bpl; j++) {
+      if (j < chunk.length) {
+        const b = chunk[j];
+        hexParts.push(`<span class="hex-byte">${b.toString(16).padStart(2, '0')}</span>`);
+      } else {
+        hexParts.push('  ');
+      }
+      if (j === Math.floor(bpl / 2) - 1) hexParts.push('<span class="hex-sep"> </span>');
+    }
+
+    let line = addr + sep1 + hexParts.join(' ');
+
+    if (ascii) {
+      const printable = Array.from(chunk).map(b =>
+        (b >= 32 && b < 127) ? String.fromCharCode(b) : '.'
+      ).join('');
+      const pad = (bpl - chunk.length);
+      const extraPad = ' '.repeat(pad * 3 + (pad > 0 && pad > Math.floor(bpl / 2) ? 1 : 0));
+      line += extraPad + `  <span class="hex-sep">|</span>${escHtml(printable)}<span class="hex-sep">|</span>`;
+    }
+
+    lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+function toCArray(bytes, bpl, varName) {
+  const name = varName || 'image_data';
+  const total = bytes.length;
+  const lines = [];
+
+  lines.push(`<span class="hex-kw">const</span> <span class="hex-kw">uint8_t</span> <span class="hex-str">${escHtml(name)}</span>[] = {`);
+
+  for (let i = 0; i < total; i += bpl) {
+    const chunk = bytes.slice(i, i + bpl);
+    const hex   = Array.from(chunk).map((b, j) => {
+      const isLast = (i + j === total - 1);
+      return `<span class="hex-byte">0x${b.toString(16).padStart(2, '0')}</span>${isLast ? '' : ','}`;
+    }).join(' ');
+    const addrCmt = `<span class="hex-addr"> /* 0x${i.toString(16).padStart(8, '0')} */</span>`;
+    lines.push(`    ${hex}${addrCmt}`);
+  }
+
+  lines.push(`};`);
+  lines.push(`<span class="hex-kw">const</span> <span class="hex-kw">size_t</span> <span class="hex-str">${escHtml(name)}</span>_len = <span class="hex-num">${total}</span>;`);
+  return lines.join('\n');
+}
+
+function toPython(bytes, bpl, varName) {
+  const name  = varName || 'image_data';
+  const total = bytes.length;
+  const lines = [];
+
+  lines.push(`<span class="hex-str">${escHtml(name)}</span> = <span class="hex-kw">bytes</span>([`);
+  for (let i = 0; i < total; i += bpl) {
+    const chunk  = bytes.slice(i, i + bpl);
+    const isLast = i + bpl >= total;
+    const hex    = Array.from(chunk).map((b, j) => {
+      const itemLast = isLast && j === chunk.length - 1;
+      return `<span class="hex-byte">0x${b.toString(16).padStart(2, '0')}</span>${itemLast ? '' : ','}`;
+    }).join(' ');
+    const cmt = `  <span class="hex-addr"># 0x${i.toString(16).padStart(8, '0')}</span>`;
+    lines.push(`    ${hex}${cmt}`);
+  }
+  lines.push(`])`);
+  lines.push(`<span class="hex-addr"># length: ${total} bytes</span>`);
+  return lines.join('\n');
+}
+
+function toBase64(bytes) {
+  // chunk to avoid stack overflow on large arrays
+  let binary = '';
+  const chunkSize = 8192;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  const b64 = btoa(binary);
+  // wrap at 76 chars
+  const wrapped = b64.match(/.{1,76}/g) || [b64];
+  return wrapped.join('\n');
+}
+
+function escHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ─── Main Convert ─────────────────────────────────────────
+function convert() {
+  if (!currentBytes) return;
+
+  const btn    = document.getElementById('generateBtn');
+  const output = document.getElementById('outputPanel');
+  const varName = document.getElementById('varName').value.trim() || 'image_data';
+
+  btn.textContent = '⏳ 변환 중...';
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    try {
+      const bytes = currentBytes;
+      let htmlContent = '';
+      let fmtLabel   = '';
+      let blockId    = `hex_${Date.now()}`;
+
+      switch (selectedFmt) {
+        case 'hexdump':
+          htmlContent = toHexDump(bytes, bytesPerLine, showAscii);
+          fmtLabel    = `Hex Dump · ${bytesPerLine} bytes/line${showAscii ? ' · ASCII' : ''}`;
+          break;
+        case 'c':
+          htmlContent = toCArray(bytes, bytesPerLine, varName);
+          fmtLabel    = `C Array · ${bytesPerLine} bytes/line`;
+          break;
+        case 'python':
+          htmlContent = toPython(bytes, bytesPerLine, varName);
+          fmtLabel    = `Python bytes · ${bytesPerLine} bytes/line`;
+          break;
+        case 'base64':
+          htmlContent = escHtml(toBase64(bytes));
+          fmtLabel    = 'Base64';
+          break;
+      }
+
+      output.innerHTML = `
+        <div class="panel sql-block">
+          <div class="sql-block-header">
+            <span class="sql-type-badge badge-insert">HEX</span>
+            <span class="sql-dialect-tag">${escHtml(fmtLabel)}</span>
+            <button class="copy-btn" id="copy_${blockId}" onclick="copyOutput('${blockId}')">COPY ALL</button>
+          </div>
+          <div class="out-meta">
+            <div><span>FILE</span> ${escHtml(currentFile.name)}</div>
+            <div><span>TYPE</span> ${escHtml(currentFile.type || 'unknown')}</div>
+            <div><span>SIZE</span> ${formatSize(bytes.length)}</div>
+            <div><span>BYTES</span> ${bytes.length.toLocaleString()}</div>
+          </div>
+          <pre class="sql-code hex-output" id="${blockId}">${htmlContent}</pre>
+        </div>`;
+
+    } catch (e) {
+      output.innerHTML = `<div class="error-msg">❌ 변환 오류\n${e.message}</div>`;
+    }
+
+    btn.textContent = '⚡ 변환하기';
+    btn.classList.remove('loading');
+  }, 50);
+}
+
+function copyOutput(id) {
+  const el = document.getElementById(id);
+  const raw = el.innerText || el.textContent;
+  navigator.clipboard.writeText(raw).then(() => {
+    const btn = document.getElementById(`copy_${id}`);
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY ALL'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// Ctrl/Cmd + Enter
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !document.getElementById('generateBtn').disabled) {
+    convert();
+  }
+});
+</script>
+</body>
+</html>

@@ -10,17 +10,25 @@
 
 // ─── Render nav at current script position ───────────────
 function renderNav() {
-  const page = window.location.pathname.split('/').pop() || 'index.html';
+  const pathname = window.location.pathname;
+  const filename = pathname.split('/').pop() || 'index.html';
+  // Detect if current page is inside the tools/ subdirectory
+  const pathParts = pathname.split('/').filter(Boolean);
+  const inTools   = pathParts.length >= 2 && pathParts[pathParts.length - 2] === 'tools';
 
   const items = TOOLS.map(item => {
-    const active = page === item.href ? ' active' : '';
-    return `<a class="nav-item${active}" href="${item.href}"><span class="nav-item-dot"></span>${item.label}</a>`;
+    const active = filename === item.href ? ' active' : '';
+    // Compute correct relative href based on current location
+    const href   = inTools ? item.href : 'tools/' + item.href;
+    return `<a class="nav-item${active}" href="${href}"><span class="nav-item-dot"></span>${item.label}</a>`;
   }).join('');
+
+  const brandHref = inTools ? '../index.html' : 'index.html';
 
   document.write(`
 <nav class="topnav">
   <div class="nav-inner container">
-    <a class="nav-brand" href="index.html">
+    <a class="nav-brand" href="${brandHref}">
       <div class="nav-logo">DEV</div>
       <span class="nav-brand-name">Dev<em>Tools</em></span>
     </a>

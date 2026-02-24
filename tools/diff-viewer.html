@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diff Viewer | Dev Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 900px) { .diff-grid { grid-template-columns: 1fr; } }
+
+.diff-textarea {
+  width: 100%;
+  min-height: 280px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 12px;
+  resize: vertical;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color .2s;
+}
+.diff-textarea:focus { border-color: var(--accent); }
+.diff-panel-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Diff output */
+.diff-line {
+  display: flex;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+}
+.diff-line-num {
+  min-width: 48px;
+  color: var(--text-muted);
+  text-align: right;
+  padding-right: 12px;
+  user-select: none;
+  border-right: 1px solid var(--border);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+.diff-line-content { flex: 1; overflow-x: auto; }
+.diff-add  { background: color-mix(in srgb, #4fffb0 10%, transparent); color: #4fffb0; }
+.diff-add .diff-line-num  { color: #4fffb0; opacity: .6; }
+.diff-del  { background: color-mix(in srgb, #ff6a6a 10%, transparent); color: #ff6a6a; }
+.diff-del .diff-line-num  { color: #ff6a6a; opacity: .6; }
+.diff-ctx  { color: var(--text-dim); }
+.diff-hunk {
+  background: color-mix(in srgb, var(--accent2) 8%, transparent);
+  color: var(--accent2);
+  padding: 2px 12px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  margin: 4px 0;
+  border-left: 3px solid var(--accent2);
+}
+.diff-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+.diff-summary {
+  display: flex;
+  gap: 16px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.diff-summary .add-count { color: #4fffb0; font-weight: 700; }
+.diff-summary .del-count { color: #ff6a6a; font-weight: 700; }
+.diff-output-wrap {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 600px;
+}
+.diff-identical {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+<script>renderNav();</script>
+
+<div class="container">
+  <div class="tool-header">
+    <h1>Diff <span>Viewer</span></h1>
+    <p>// 두 텍스트 또는 소스 코드의 변경 사항을 한눈에 비교합니다</p>
+  </div>
+
+  <!-- Input area: two side-by-side textareas -->
+  <div class="panel" style="margin-bottom:16px;">
+    <div class="panel-header">
+      <div class="panel-title"><div class="dot"></div>INPUT</div>
+    </div>
+    <div class="diff-grid">
+      <div>
+        <div class="diff-panel-label">◀ 원본 (ORIGINAL)</div>
+        <textarea class="diff-textarea" id="originalInput" placeholder="원본 텍스트를 여기에 붙여넣으세요..."></textarea>
+      </div>
+      <div>
+        <div class="diff-panel-label">▶ 변경 (MODIFIED)</div>
+        <textarea class="diff-textarea" id="modifiedInput" placeholder="변경된 텍스트를 여기에 붙여넣으세요..."></textarea>
+      </div>
+    </div>
+
+    <div class="options-bar">
+      <span class="options-label">Context</span>
+      <div class="toggle-group">
+        <button class="toggle-btn" data-ctx="0">없음</button>
+        <button class="toggle-btn active" data-ctx="3">3줄</button>
+        <button class="toggle-btn" data-ctx="5">5줄</button>
+        <button class="toggle-btn" data-ctx="-1">전체</button>
+      </div>
+      <span class="options-label">무시</span>
+      <div class="toggle-group">
+        <button class="toggle-btn active" data-trim="on">공백 무시</button>
+        <button class="toggle-btn" data-trim="off">공백 포함</button>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="diffBtn" onclick="runDiff()">
+      ⚡ 비교하기
+    </button>
+  </div>
+
+  <!-- Output -->
+  <div id="outputPanel">
+    <div class="panel">
+      <div class="diff-empty">
+        <div style="font-size:32px;margin-bottom:12px;">↕</div>
+        원본과 변경 텍스트를 입력하고 비교하기 버튼을 누르세요
+      </div>
+    </div>
+  </div>
+
+  <footer>// Diff Viewer — line-by-line text comparison</footer>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+let contextLines = 3;
+let trimWhitespace = true;
+
+document.querySelectorAll('[data-ctx]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-ctx]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    contextLines = parseInt(btn.dataset.ctx);
+  });
+});
+
+document.querySelectorAll('[data-trim]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-trim]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    trimWhitespace = btn.dataset.trim === 'on';
+  });
+});
+
+// ─── LCS-based Line Diff ──────────────────────────────────
+function computeLCS(a, b) {
+  const m = a.length, n = b.length;
+  // Use Myers diff for efficiency — simplified two-array DP
+  const dp = Array.from({ length: m + 1 }, () => new Uint32Array(n + 1));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+  // Backtrack
+  const ops = []; // 'eq' | 'add' | 'del'
+  let i = m, j = n;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+      ops.push({ type: 'eq', val: a[i - 1] }); i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      ops.push({ type: 'add', val: b[j - 1] }); j--;
+    } else {
+      ops.push({ type: 'del', val: a[i - 1] }); i--;
+    }
+  }
+  return ops.reverse();
+}
+
+// ─── Render diff HTML ─────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderDiff(ops, ctx) {
+  // Assign line numbers
+  let oldLine = 1, newLine = 1;
+  const lines = ops.map(op => {
+    const o = { ...op };
+    if (op.type === 'eq')  { o.oldN = oldLine++; o.newN = newLine++; }
+    if (op.type === 'del') { o.oldN = oldLine++;  o.newN = null; }
+    if (op.type === 'add') { o.oldN = null; o.newN = newLine++; }
+    return o;
+  });
+
+  let html = '';
+  let addCount = 0, delCount = 0;
+
+  if (ctx === -1) {
+    // Show everything
+    lines.forEach(l => {
+      if (l.type === 'add') addCount++;
+      if (l.type === 'del') delCount++;
+      html += renderLine(l);
+    });
+  } else {
+    // Only show changed lines ± context
+    const changed = new Set();
+    lines.forEach((l, i) => { if (l.type !== 'eq') changed.add(i); });
+
+    const visible = new Set();
+    changed.forEach(i => {
+      for (let k = Math.max(0, i - ctx); k <= Math.min(lines.length - 1, i + ctx); k++) {
+        visible.add(k);
+      }
+    });
+
+    let lastVisible = -1;
+    const sorted = [...visible].sort((a, b) => a - b);
+    sorted.forEach(i => {
+      if (lastVisible !== -1 && i > lastVisible + 1) {
+        html += `<div class="diff-hunk">@@ skipped ${i - lastVisible - 1} lines @@</div>`;
+      }
+      const l = lines[i];
+      if (l.type === 'add') addCount++;
+      if (l.type === 'del') delCount++;
+      html += renderLine(l);
+      lastVisible = i;
+    });
+  }
+
+  return { html, addCount, delCount };
+}
+
+function renderLine(l) {
+  const sign    = l.type === 'add' ? '+' : l.type === 'del' ? '−' : ' ';
+  const cls     = l.type === 'add' ? 'diff-add' : l.type === 'del' ? 'diff-del' : 'diff-ctx';
+  const oldNum  = l.oldN != null ? String(l.oldN) : '';
+  const newNum  = l.newN != null ? String(l.newN) : '';
+  const numStr  = `${oldNum.padStart(4,' ')} ${newNum.padStart(4,' ')}`;
+  return `<div class="diff-line ${cls}"><span class="diff-line-num">${numStr}</span><span class="diff-line-content">${sign} ${escHtml(l.val)}</span></div>`;
+}
+
+// ─── Main ─────────────────────────────────────────────────
+function runDiff() {
+  const origRaw = document.getElementById('originalInput').value;
+  const modRaw  = document.getElementById('modifiedInput').value;
+  const output  = document.getElementById('outputPanel');
+  const btn     = document.getElementById('diffBtn');
+
+  btn.textContent = '⏳ 비교 중...';
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    const normalise = s => trimWhitespace ? s.trimEnd() : s;
+    const origLines = origRaw.split('\n').map(normalise);
+    const modLines  = modRaw.split('\n').map(normalise);
+
+    const ops = computeLCS(origLines, modLines);
+    const hasChanges = ops.some(o => o.type !== 'eq');
+
+    if (!hasChanges) {
+      output.innerHTML = `
+        <div class="panel">
+          <div class="diff-identical">✓ 두 텍스트가 동일합니다</div>
+        </div>`;
+    } else {
+      const { html, addCount, delCount } = renderDiff(ops, contextLines);
+      const blockId = `diff_${Date.now()}`;
+      output.innerHTML = `
+        <div class="panel sql-block">
+          <div class="sql-block-header">
+            <span class="sql-type-badge badge-select">DIFF</span>
+            <span class="sql-dialect-tag">${origLines.length} → ${modLines.length} lines</span>
+            <button class="copy-btn" id="copy_${blockId}" onclick="copyDiff('${blockId}')">COPY PATCH</button>
+          </div>
+          <div class="diff-summary">
+            <span><span class="add-count">+${addCount}</span> 추가</span>
+            <span><span class="del-count">−${delCount}</span> 삭제</span>
+            <span>${origLines.length}줄 → ${modLines.length}줄</span>
+          </div>
+          <div class="diff-output-wrap" id="${blockId}">${html}</div>
+        </div>`;
+    }
+
+    btn.textContent = '⚡ 비교하기';
+    btn.classList.remove('loading');
+  }, 50);
+}
+
+function copyDiff(id) {
+  const el = document.getElementById(id);
+  const raw = el.innerText || el.textContent;
+  navigator.clipboard.writeText(raw).then(() => {
+    const btn = document.getElementById(`copy_${id}`);
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY PATCH'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// Ctrl/Cmd + Enter
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runDiff();
+});
+</script>
+</body>
+</html>
