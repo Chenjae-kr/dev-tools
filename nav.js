@@ -9,7 +9,7 @@
 })();
 
 // ─── Render nav at current script position ───────────────
-function renderNav() {
+function getRouteInfo() {
   const pathname = window.location.pathname;
   const filename = pathname.split('/').pop() || 'index.html';
   const toolsIdx = pathname.indexOf('/tools/');
@@ -17,6 +17,11 @@ function renderNav() {
   const appBase = inTools ? pathname.slice(0, toolsIdx) : '';
   const toolsRoot = inTools ? `${appBase}/tools/` : 'tools/';
   const currentToolPath = inTools ? pathname.slice(toolsIdx + '/tools/'.length) : filename;
+  return { pathname, filename, inTools, appBase, toolsRoot, currentToolPath };
+}
+
+function renderNav() {
+  const { pathname, filename, inTools, appBase, toolsRoot, currentToolPath } = getRouteInfo();
 
   const categories = (typeof TOOL_CATEGORIES !== 'undefined' && TOOL_CATEGORIES.length)
     ? TOOL_CATEGORIES
@@ -134,9 +139,27 @@ function toggleNavGroup(idx) {
   }
 }
 
+function syncToolHeaderFromRegistry() {
+  if (!Array.isArray(window.TOOLS)) return;
+  const { inTools, currentToolPath } = getRouteInfo();
+  if (!inTools) return;
+
+  const meta = window.TOOLS.find(t => t.href === currentToolPath);
+  if (!meta) return;
+
+  const header = document.querySelector('.tool-header');
+  if (!header) return;
+
+  const h1 = header.querySelector('h1');
+  const p = header.querySelector('p');
+  if (h1) h1.textContent = meta.title || meta.label || h1.textContent;
+  if (p) p.textContent = `// ${meta.desc || ''}`;
+}
+
 // ─── Init after DOM ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
   updateThemeIcon();
+  syncToolHeaderFromRegistry();
 
   document.addEventListener('click', function (e) {
     // Close kebab when clicking outside
