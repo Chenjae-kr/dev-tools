@@ -124,8 +124,8 @@
               <button class="toggle-btn tblmode-btn active" data-mode="text">텍스트 입력</button>
               <button class="toggle-btn tblmode-btn" data-mode="grid">테이블 입력</button>
             </div>
-            <span class="options-label">구분자</span>
-            <div class="toggle-group">
+            <span class="options-label" id="tblSepLabel">구분자</span>
+            <div class="toggle-group" id="tblSepGroup">
               <button class="toggle-btn tblsep-btn active" data-sep="auto">AUTO</button>
               <button class="toggle-btn tblsep-btn" data-sep="tab">TAB</button>
               <button class="toggle-btn tblsep-btn" data-sep="comma">CSV</button>
@@ -380,14 +380,20 @@ function setTableInputUI(){
   const textWrap = document.getElementById('tableTextWrap');
   const gridWrap = document.getElementById('tableGridWrap');
   const dual = document.getElementById('tableDual');
+  const sepLabel = document.getElementById('tblSepLabel');
+  const sepGroup = document.getElementById('tblSepGroup');
   dual.style.gridTemplateColumns = '1fr';
 
   if (tableInputMode === 'grid') {
     textWrap.classList.add('hidden');
     gridWrap.classList.remove('hidden');
+    if (sepLabel) sepLabel.classList.add('hidden');
+    if (sepGroup) sepGroup.classList.add('hidden');
   } else {
     textWrap.classList.remove('hidden');
     gridWrap.classList.add('hidden');
+    if (sepLabel) sepLabel.classList.remove('hidden');
+    if (sepGroup) sepGroup.classList.remove('hidden');
   }
 }
 
