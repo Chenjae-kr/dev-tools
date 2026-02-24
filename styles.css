@@ -1143,9 +1143,9 @@ footer {
   color: var(--text-muted);
   line-height: 1.45;
   flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .card-tags {
