@@ -419,12 +419,14 @@ function setTableInputUI(){
 
 function renderTableGrid(head, body){
   const wrap = document.getElementById('tableGridWrap');
-  const cols = head.length;
+  const cols = Math.max(1, head.length);
 
-  const th = `<tr>${head.map((h,i)=>`<th><input data-r="0" data-c="${i}" value="${String(h||'').replace(/"/g,'&quot;')}" class="table-name-input" style="min-width:140px"></th>`).join('')}</tr>`;
-  const tr = body.map((r,ri)=>`<tr>${Array.from({length:cols},(_,ci)=>`<td><input data-r="${ri+1}" data-c="${ci}" value="${String((r&&r[ci])||'').replace(/"/g,'&quot;')}" class="table-name-input" style="min-width:140px"></td>`).join('')}</tr>`).join('');
+  const th = `<tr>${head.map((h,i)=>`<th style="padding:4px"><input data-r="0" data-c="${i}" value="${String(h||'').replace(/"/g,'&quot;')}" class="table-name-input" style="width:100%;min-width:0"></th>`).join('')}</tr>`;
+  const tr = body.map((r,ri)=>`<tr>${Array.from({length:cols},(_,ci)=>`<td style="padding:4px"><input data-r="${ri+1}" data-c="${ci}" value="${String((r&&r[ci])||'').replace(/"/g,'&quot;')}" class="table-name-input" style="width:100%;min-width:0"></td>`).join('')}</tr>`).join('');
 
-  wrap.innerHTML = `<table style="border-collapse:collapse;min-width:100%;width:max-content"><thead>${th}</thead><tbody>${tr}</tbody></table>`;
+  const colWidth = (100 / cols).toFixed(4);
+  const colgroup = `<colgroup>${Array.from({length:cols},()=>`<col style="width:${colWidth}%">`).join('')}</colgroup>`;
+  wrap.innerHTML = `<table style="width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0">${colgroup}<thead>${th}</thead><tbody>${tr}</tbody></table>`;
 
   wrap.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>syncTextFromGrid(false)));
   document.getElementById('tblCols').value = cols;
