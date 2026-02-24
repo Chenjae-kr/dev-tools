@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DDL → CRUD SQL Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #151820;
+    --surface2: #1c2030;
+    --border: #2a2f40;
+    --accent: #4fffb0;
+    --accent2: #7c6aff;
+    --accent3: #ff6a6a;
+    --text: #e8ecf5;
+    --text-muted: #5a6080;
+    --text-dim: #8892aa;
+    --mysql: #f0a000;
+    --oracle: #e04040;
+    --postgres: #336dc8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,255,176,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,255,176,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 44px; height: 44px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--bg);
+    flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(79,255,176,0.3);
+  }
+
+  .header-text h1 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .header-text span {
+    color: var(--accent);
+  }
+
+  .header-text p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Main Layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Panel */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  /* DDL Input */
+  .ddl-textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 20px;
+    resize: none;
+    min-height: 280px;
+    tab-size: 2;
+  }
+
+  .ddl-textarea::placeholder { color: var(--text-muted); }
+
+  /* Options Bar */
+  .options-bar {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    background: var(--surface2);
+  }
+
+  .options-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .dialect-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .dialect-btn {
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .dialect-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .dialect-btn.active[data-dialect="mysql"] {
+    background: rgba(240,160,0,0.12);
+    border-color: var(--mysql);
+    color: var(--mysql);
+  }
+
+  .dialect-btn.active[data-dialect="oracle"] {
+    background: rgba(224,64,64,0.12);
+    border-color: var(--oracle);
+    color: var(--oracle);
+  }
+
+  .dialect-btn.active[data-dialect="postgresql"] {
+    background: rgba(51,109,200,0.15);
+    border-color: var(--postgres);
+    color: var(--postgres);
+  }
+
+  /* CRUD Toggles */
+  .crud-group {
+    display: flex;
+    gap: 6px;
+  }
+
+  .crud-toggle {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .crud-toggle:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .crud-toggle.active {
+    background: rgba(124,106,255,0.15);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  /* Generate Button */
+  .generate-btn {
+    width: calc(100% - 40px);
+    margin: 0 20px 20px;
+    padding: 14px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .generate-btn:hover {
+    background: #6fffbe;
+    box-shadow: 0 0 30px rgba(79,255,176,0.4);
+    transform: translateY(-1px);
+  }
+
+  .generate-btn:active { transform: translateY(0); }
+
+  .generate-btn.loading {
+    background: var(--surface2);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  /* Output Panel */
+  .output-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* SQL Block */
+  .sql-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    animation: fadeSlideIn 0.3s ease forwards;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  @keyframes fadeSlideIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .sql-block-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .sql-type-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 5px;
+  }
+
+  .badge-insert { background: rgba(79,255,176,0.12); color: var(--accent); }
+  .badge-select { background: rgba(124,106,255,0.12); color: var(--accent2); }
+  .badge-update { background: rgba(240,160,0,0.12); color: var(--mysql); }
+  .badge-delete { background: rgba(255,106,106,0.12); color: var(--accent3); }
+
+  .sql-dialect-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--accent); color: var(--accent); }
+
+  .sql-code {
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--text);
+  }
+
+  /* Syntax highlight */
+  .kw { color: #7c6aff; font-weight: 600; }
+  .tbl { color: #4fffb0; }
+  .col { color: #e8ecf5; }
+  .val { color: #ff9d5c; }
+  .cmt { color: #3a4060; font-style: italic; }
+  .ph { color: #ff6a6a; }
+
+  /* Empty state */
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .empty-state .icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+
+  .empty-state p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  /* Table info chip */
+  .table-info {
+    padding: 8px 20px;
+    background: rgba(79,255,176,0.05);
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .table-info span { color: var(--text-muted); }
+
+  /* Error */
+  .error-msg {
+    padding: 16px 20px;
+    background: rgba(255,106,106,0.08);
+    border: 1px solid rgba(255,106,106,0.3);
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent3);
+    line-height: 1.6;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* Select all checkbox */
+  .all-toggle {
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: 'JetBrains Mono', monospace;
+    background: none;
+    border: none;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .all-toggle:hover { color: var(--accent); }
+
+  footer {
+    text-align: center;
+    padding: 40px 0 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-inner">
+      <div class="logo-mark">SQL</div>
+      <div class="header-text">
+        <h1>DDL <span>→</span> CRUD Generator</h1>
+        <p>// paste your CREATE TABLE statement and generate queries instantly</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <!-- LEFT: Input Panel -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot"></div>
+            DDL INPUT
+          </div>
+        </div>
+
+        <textarea class="ddl-textarea" id="ddlInput" placeholder="CREATE TABLE users (
+  user_id     NUMBER(10)    NOT NULL,
+  username    VARCHAR2(50)  NOT NULL,
+  email       VARCHAR2(100) NOT NULL,
+  created_at  DATE          DEFAULT SYSDATE,
+  is_active   NUMBER(1)     DEFAULT 1,
+  CONSTRAINT pk_users PRIMARY KEY (user_id)
+);"></textarea>
+
+        <!-- Dialect -->
+        <div class="options-bar">
+          <span class="options-label">Dialect</span>
+          <div class="dialect-group">
+            <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
+            <button class="dialect-btn" data-dialect="oracle">Oracle</button>
+            <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+          </div>
+        </div>
+
+        <!-- CRUD -->
+        <div class="options-bar" style="border-top:none; padding-top: 0;">
+          <span class="options-label">CRUD</span>
+          <div class="crud-group">
+            <button class="crud-toggle active" data-crud="INSERT">INSERT</button>
+            <button class="crud-toggle active" data-crud="SELECT">SELECT</button>
+            <button class="crud-toggle active" data-crud="UPDATE">UPDATE</button>
+            <button class="crud-toggle active" data-crud="DELETE">DELETE</button>
+          </div>
+          <button class="all-toggle" id="allToggle">전체해제</button>
+        </div>
+
+        <button class="generate-btn" id="generateBtn" onclick="generate()">
+          ⚡ SQL 생성
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Output Panel -->
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">⬅</div>
+          <p>DDL을 입력하고<br>SQL 생성 버튼을 누르세요</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// DDL CRUD Generator — supports MySQL · Oracle · PostgreSQL</footer>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+let selectedDialect = 'mysql';
+let selectedCrud = new Set(['INSERT', 'SELECT', 'UPDATE', 'DELETE']);
+
+// ─── Dialect toggle ──────────────────────────────────────
+document.querySelectorAll('.dialect-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.dialect-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedDialect = btn.dataset.dialect;
+  });
+});
+
+// ─── CRUD toggle ─────────────────────────────────────────
+document.querySelectorAll('.crud-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const type = btn.dataset.crud;
+    if (selectedCrud.has(type)) {
+      selectedCrud.delete(type);
+      btn.classList.remove('active');
+    } else {
+      selectedCrud.add(type);
+      btn.classList.add('active');
+    }
+  });
+});
+
+const allToggleBtn = document.getElementById('allToggle');
+allToggleBtn.addEventListener('click', () => {
+  const allActive = selectedCrud.size === 4;
+  if (allActive) {
+    selectedCrud.clear();
+    document.querySelectorAll('.crud-toggle').forEach(b => b.classList.remove('active'));
+    allToggleBtn.textContent = '전체선택';
+  } else {
+    ['INSERT','SELECT','UPDATE','DELETE'].forEach(t => selectedCrud.add(t));
+    document.querySelectorAll('.crud-toggle').forEach(b => b.classList.add('active'));
+    allToggleBtn.textContent = '전체해제';
+  }
+});
+
+// ─── DDL Parser ──────────────────────────────────────────
+function parseDDL(ddl) {
+  // Remove comments
+  ddl = ddl.replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+
+  const tableMatch = ddl.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"\[]?(\w+)[`"\]]?\s*\(/i);
+  if (!tableMatch) throw new Error('CREATE TABLE 구문을 찾을 수 없습니다.\n올바른 DDL 형식으로 입력해주세요.');
+
+  const tableName = tableMatch[1];
+
+  // Extract body between first ( and matching )
+  let depth = 0, start = -1, end = -1;
+  for (let i = 0; i < ddl.length; i++) {
+    if (ddl[i] === '(') { if (depth === 0) start = i; depth++; }
+    else if (ddl[i] === ')') { depth--; if (depth === 0) { end = i; break; } }
+  }
+  if (start === -1 || end === -1) throw new Error('괄호 구조를 파싱할 수 없습니다.');
+
+  const body = ddl.substring(start + 1, end);
+  const lines = splitColumns(body);
+
+  const columns = [];
+  const primaryKeys = [];
+
+  // Check for table-level PK constraint
+  const pkMatch = body.match(/(?:CONSTRAINT\s+\w+\s+)?PRIMARY\s+KEY\s*\(([^)]+)\)/i);
+  if (pkMatch) {
+    pkMatch[1].split(',').forEach(c => primaryKeys.push(c.trim().replace(/[`"[\]]/g, '')));
+  }
+
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) return;
+
+    // Skip constraint lines
+    if (/^(?:CONSTRAINT|PRIMARY\s+KEY|UNIQUE|INDEX|KEY|CHECK|FOREIGN)/i.test(line)) return;
+
+    // Parse column: name type [options]
+    const colMatch = line.match(/^[`"[\s]?(\w+)[`"[\s]?\s+(\S+(?:\s*\([^)]+\))?)(.*)?$/);
+    if (!colMatch) return;
+
+    const colName = colMatch[1];
+    const colType = colMatch[2];
+    const rest = colMatch[3] || '';
+
+    const isNotNull = /NOT\s+NULL/i.test(rest);
+    const hasDefault = /DEFAULT/i.test(rest);
+    const isColPK = /PRIMARY\s+KEY/i.test(rest);
+    const isAutoInc = /AUTO_INCREMENT|AUTOINCREMENT|GENERATED\s+ALWAYS/i.test(rest);
+
+    if (isColPK) primaryKeys.push(colName);
+
+    columns.push({ name: colName, type: colType, isNotNull, hasDefault, isAutoInc: isAutoInc || isColPK });
+  });
+
+  if (columns.length === 0) throw new Error('컬럼을 파싱할 수 없습니다.');
+
+  // Mark PKs
+  columns.forEach(c => { if (primaryKeys.includes(c.name)) c.isPK = true; });
+
+  return { tableName, columns, primaryKeys };
+}
+
+function splitColumns(body) {
+  const parts = [];
+  let depth = 0, current = '';
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    else if (ch === ',' && depth === 0) {
+      parts.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+  if (current.trim()) parts.push(current.trim());
+  return parts;
+}
+
+// ─── SQL Generators ──────────────────────────────────────
+function getPlaceholder(col, dialect, index) {
+  if (dialect === 'oracle') return `:${col.name}`;
+  if (dialect === 'postgresql') return `$${index}`;
+  return `?`; // MySQL/default — named shown in comment
+}
+
+function quote(name, dialect) {
+  if (dialect === 'mysql') return `\`${name}\``;
+  if (dialect === 'oracle') return name.toUpperCase();
+  return `"${name}"`;
+}
+
+function generateInsert(tableName, columns, dialect) {
+  const insertCols = columns.filter(c => !c.isAutoInc);
+  const tbl = quote(tableName, dialect);
+  const cols = insertCols.map(c => quote(c.name, dialect)).join(',\n           ');
+  const vals = insertCols.map((c, i) => getPlaceholder(c, dialect, i + 1)).join(',\n           ');
+
+  let sql = `<span class="cmt">-- INSERT: ${tableName}에 새 행 삽입</span>\n`;
+  sql += `<span class="kw">INSERT INTO</span> <span class="tbl">${tbl}</span> (\n`;
+  sql += `           ${insertCols.map(c => `<span class="col">${quote(c.name, dialect)}</span>`).join(',\n           ')}\n`;
+  sql += `)\n<span class="kw">VALUES</span> (\n`;
+  sql += `           ${insertCols.map((c, i) => `<span class="ph">${getPlaceholder(c, dialect, i + 1)}</span> <span class="cmt">-- ${c.name}</span>`).join(',\n           ')}\n`;
+  sql += `);`;
+  return sql;
+}
+
+function generateSelect(tableName, columns, dialect) {
+  const tbl = quote(tableName, dialect);
+  const pkCols = columns.filter(c => c.isPK);
+  const allCols = columns.map(c => `    <span class="col">${quote(c.name, dialect)}</span>`).join(',\n');
+
+  let sql = `<span class="cmt">-- SELECT ALL: 전체 목록 조회</span>\n`;
+  sql += `<span class="kw">SELECT</span>\n${allCols}\n`;
+  sql += `<span class="kw">FROM</span>   <span class="tbl">${tbl}</span>\n`;
+  sql += `<span class="kw">ORDER BY</span> <span class="col">${pkCols.length ? quote(pkCols[0].name, dialect) : quote(columns[0].name, dialect)}</span> <span class="kw">DESC</span>;\n`;
+
+  if (pkCols.length > 0) {
+    sql += `\n<span class="cmt">-- SELECT ONE: PK로 단건 조회</span>\n`;
+    sql += `<span class="kw">SELECT</span>\n${allCols}\n`;
+    sql += `<span class="kw">FROM</span>   <span class="tbl">${tbl}</span>\n`;
+    sql += `<span class="kw">WHERE</span>  ${pkCols.map((c, i) => `<span class="col">${quote(c.name, dialect)}</span> <span class="kw">=</span> <span class="ph">${getPlaceholder(c, dialect, i + 1)}</span>`).join('\n   <span class="kw">AND</span> ')};`;
+  }
+  return sql;
+}
+
+function generateUpdate(tableName, columns, dialect) {
+  const tbl = quote(tableName, dialect);
+  const pkCols = columns.filter(c => c.isPK);
+  const updateCols = columns.filter(c => !c.isPK && !c.isAutoInc);
+
+  if (updateCols.length === 0) return `<span class="cmt">-- UPDATE: PK 외 수정 가능한 컬럼이 없습니다.</span>`;
+
+  let sql = `<span class="cmt">-- UPDATE: PK로 행 수정</span>\n`;
+  sql += `<span class="kw">UPDATE</span> <span class="tbl">${tbl}</span>\n`;
+  sql += `<span class="kw">SET</span>    `;
+  sql += updateCols.map((c, i) =>
+    `<span class="col">${quote(c.name, dialect)}</span> <span class="kw">=</span> <span class="ph">${getPlaceholder(c, dialect, i + 1)}</span>`
+  ).join(',\n       ');
+  sql += `\n<span class="kw">WHERE</span>  `;
+  if (pkCols.length > 0) {
+    sql += pkCols.map((c, i) =>
+      `<span class="col">${quote(c.name, dialect)}</span> <span class="kw">=</span> <span class="ph">${getPlaceholder(c, dialect, updateCols.length + i + 1)}</span>`
+    ).join('\n   <span class="kw">AND</span> ');
+  } else {
+    sql += `<span class="cmt">/* PK 컬럼을 지정하세요 */</span>`;
+  }
+  sql += `;`;
+  return sql;
+}
+
+function generateDelete(tableName, columns, dialect) {
+  const tbl = quote(tableName, dialect);
+  const pkCols = columns.filter(c => c.isPK);
+
+  let sql = `<span class="cmt">-- DELETE: PK로 행 삭제</span>\n`;
+  sql += `<span class="kw">DELETE FROM</span> <span class="tbl">${tbl}</span>\n`;
+  sql += `<span class="kw">WHERE</span>  `;
+  if (pkCols.length > 0) {
+    sql += pkCols.map((c, i) =>
+      `<span class="col">${quote(c.name, dialect)}</span> <span class="kw">=</span> <span class="ph">${getPlaceholder(c, dialect, i + 1)}</span>`
+    ).join('\n   <span class="kw">AND</span> ');
+  } else {
+    sql += `<span class="cmt">/* PK 컬럼을 지정하세요 */</span>`;
+  }
+  sql += `;`;
+  return sql;
+}
+
+// ─── Main Generate ────────────────────────────────────────
+function generate() {
+  const ddl = document.getElementById('ddlInput').value.trim();
+  const output = document.getElementById('outputPanel');
+  const btn = document.getElementById('generateBtn');
+
+  if (!ddl) {
+    output.innerHTML = `<div class="error-msg">⚠ DDL을 입력해주세요.</div>`;
+    return;
+  }
+  if (selectedCrud.size === 0) {
+    output.innerHTML = `<div class="error-msg">⚠ 생성할 CRUD 타입을 1개 이상 선택해주세요.</div>`;
+    return;
+  }
+
+  btn.textContent = '⏳ 생성 중...';
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    try {
+      const { tableName, columns, primaryKeys } = parseDDL(ddl);
+
+      const generators = {
+        INSERT: () => generateInsert(tableName, columns, selectedDialect),
+        SELECT: () => generateSelect(tableName, columns, selectedDialect),
+        UPDATE: () => generateUpdate(tableName, columns, selectedDialect),
+        DELETE: () => generateDelete(tableName, columns, selectedDialect),
+      };
+
+      const badgeClass = { INSERT: 'badge-insert', SELECT: 'badge-select', UPDATE: 'badge-update', DELETE: 'badge-delete' };
+      const dialectLabel = { mysql: 'MySQL', oracle: 'Oracle', postgresql: 'PostgreSQL' };
+      const colSummary = columns.map(c => `${c.name}${c.isPK ? ' [PK]' : ''}`).join(' · ');
+
+      let html = '';
+
+      ['INSERT', 'SELECT', 'UPDATE', 'DELETE'].forEach((type, blockIdx) => {
+        if (!selectedCrud.has(type)) return;
+        const sqlHtml = generators[type]();
+        const id = `block_${type}_${Date.now()}`;
+        html += `
+          <div class="panel sql-block" style="animation-delay: ${blockIdx * 0.08}s">
+            <div class="sql-block-header">
+              <span class="sql-type-badge ${badgeClass[type]}">${type}</span>
+              <span class="sql-dialect-tag">${dialectLabel[selectedDialect]}</span>
+              <button class="copy-btn" id="copy_${id}" onclick="copySQL('${id}')">COPY</button>
+            </div>
+            <div class="table-info">
+              <span>TABLE</span> ${tableName}
+              <span style="margin-left:8px">COLUMNS</span> ${columns.length}
+              ${primaryKeys.length ? `<span style="margin-left:8px">PK</span> ${primaryKeys.join(', ')}` : ''}
+            </div>
+            <pre class="sql-code" id="${id}">${sqlHtml}</pre>
+          </div>`;
+      });
+
+      output.innerHTML = html;
+
+    } catch (e) {
+      output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
+    }
+
+    btn.textContent = '⚡ SQL 생성';
+    btn.classList.remove('loading');
+  }, 200);
+}
+
+function copySQL(id) {
+  const el = document.getElementById(id);
+  const rawText = el.innerText || el.textContent;
+  navigator.clipboard.writeText(rawText).then(() => {
+    const btn = document.getElementById(`copy_${id}`);
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// Enter shortcut: Ctrl/Cmd + Enter to generate
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generate();
+});
+</script>
+</body>
+</html>
