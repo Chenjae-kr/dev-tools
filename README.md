@@ -1,96 +1,100 @@
 # Dev Tools
 
 개발 작업을 빠르게 처리하는 웹 기반 유틸리티 모음입니다.
-빌드 도구, 패키지 매니저, 인터넷 연결 없이 브라우저에서 바로 실행됩니다.
+대부분 빌드 없이 브라우저에서 바로 실행됩니다.
 
 ## 실행 방법
 
-별도의 설치나 빌드가 필요 없습니다.
-
 ```bash
-# 로컬 서버 실행 (선택 사항)
 python -m http.server 8080
 # 또는
 npx serve .
 ```
 
-`index.html`을 브라우저에서 열거나, 각 `.html` 파일을 직접 열어도 동작합니다.
-
-> **분리망(오프라인) 환경**: 폰트를 포함한 모든 리소스가 로컬에 번들되어 있어 인터넷 없이도 정상 작동합니다.
+`index.html`을 열면 됩니다.
 
 ---
 
-## 도구 목록
+## 도구 목록 (최신)
 
-| 도구 | 파일 | 설명 |
-|------|------|------|
-| **CSV → INSERT** | `tools/csv-to-insert.html` | CSV 파일을 INSERT SQL로 변환. 드래그 앤 드롭, 구분자 자동 감지 |
-| **DDL → CRUD** | `tools/ddl-crud.html` | CREATE TABLE DDL → INSERT / SELECT / UPDATE / DELETE 쿼리 자동 생성 |
-| **MD → INSERT** | `tools/md-to-insert.html` | 마크다운 테이블 → INSERT SQL 변환 |
-| **IMG → HEX** | `tools/img-to-hex.html` | 이미지 파일 → Hex Dump / C Array / Python bytes / Base64 변환 |
-| **Diff Viewer** | `tools/diff-viewer.html` | 두 텍스트/코드의 변경 사항을 줄 단위로 비교 |
-| **SQL → ERD** | `tools/sql-erd.html` | SQL DDL → ERD(테이블 관계도) 자동 시각화. SVG 내보내기 지원 |
-| **JSON Format** | `tools/json-formatter.html` | JSON 포매팅 / 미니파이 / 구문 검증 |
+### SQL/DB
+- **JSON ↔ SQL CRUD** (`tools/json-sql-crud.html`)
+- **Table Data → INSERT/UPSERT SQL** (`tools/csv-to-insert.html`)  
+  - CSV / Excel / Markdown 통합
+- **DDL → CRUD** (`tools/ddl-crud.html`)
+- **SQL → ERD** (`tools/sql-erd.html`)
+- **SQL Formatter + Lint** (`tools/sql-formatter.html`)
+- **SQL Test Data Seeder** (`tools/sql-seeder-generator.html`)
+
+### Data/Format
+- **CSV Column Profiler** (`tools/csv-column-profiler.html`)
+- **JSON Formatter / Validator** (`tools/json-formatter.html`)
+- **Mock Data Generator** (`tools/mock-data-generator.html`)
+- **Image → Hex Converter** (`tools/img-to-hex.html`)
+- **URL Encoder / Decoder** (`tools/url-encoder.html`)
+
+### Text/Compare
+- **Diff Viewer** (`tools/diff-viewer.html`)  
+  - Text/JSON 비교 + unified patch copy
+
+### Utility
+- **Data Masker (PII)** (`tools/data-masker.html`)
+- **Cron Builder & Humanize** (`tools/cron-builder.html`)
+
+> `tools/md-to-insert.html`은 통합 도구(`csv-to-insert.html?mode=md`)로 리다이렉트됩니다.
 
 ---
 
 ## 프로젝트 구조
 
-```
+```text
 dev-tools/
-├── index.html          # 홈 (도구 목록 카드)
-├── tools.js            # 도구 레지스트리 (단일 소스)
-├── nav.js              # 공통 네비게이션 + 테마
-├── styles.css          # 공통 스타일시트
-├── fonts/              # 로컬 폰트 (오프라인 지원)
-│   ├── jetbrains-mono-latin-*.woff2
-│   └── syne-latin-*.woff2
+├── index.html
+├── tools.js
+├── nav.js
+├── ui-utils.js
+├── styles.css
 └── tools/
+    ├── json-sql-crud.html
     ├── csv-to-insert.html
     ├── ddl-crud.html
-    ├── diff-viewer.html
-    ├── img-to-hex.html
+    ├── sql-erd.html
+    ├── sql-formatter.html
+    ├── sql-seeder-generator.html
+    ├── csv-column-profiler.html
     ├── json-formatter.html
-    ├── md-to-insert.html
-    └── sql-erd.html
+    ├── mock-data-generator.html
+    ├── img-to-hex.html
+    ├── url-encoder.html
+    ├── diff-viewer.html
+    ├── data-masker.html
+    ├── cron-builder.html
+    └── md-to-insert.html (redirect)
 ```
 
 ---
 
-## 새 도구 추가 방법
+## 새 도구 추가
 
-1. `tools/` 디렉토리에 새 `.html` 파일 생성
-2. `<head>`에 `styles.css` 링크
-3. `<body>` 첫 스크립트로 `nav.js` 로드 후 `renderNav()` 호출
-4. `tools.js`의 `TOOLS` 배열에 항목 등록
-
-기존 도구(`ddl-crud.html`, `md-to-insert.html`)를 패턴 참고용으로 사용하세요.
-
----
-
-## 아키텍처
-
-### 테마 시스템
-
-- `localStorage` 키: `devtools-theme` (`dark` / `light`)
-- `<html>` 엘리먼트의 `data-theme` 속성으로 적용
-- CSS 커스텀 프로퍼티(`--bg`, `--text`, `--accent` 등)로 자동 전환
-
-### SQL Dialect 지원
-
-MySQL · Oracle · PostgreSQL · MyBatis 4가지 방언을 `.dialect-btn` 토글로 선택합니다.
-
-### 공통 단축키
-
-| 단축키 | 동작 |
-|--------|------|
-| `Ctrl + Enter` | 쿼리 / 변환 실행 |
+1. `tools/`에 새 HTML 파일 생성
+2. 공통 스크립트 로드:
+   - `tools.js`
+   - `nav.js`
+   - `ui-utils.js`
+3. `<body>` 상단에서 `renderNav()` 호출
+4. `tools.js`의 `TOOLS`에 항목 추가 (`category` 포함)
 
 ---
 
-## 기술 스택
+## 참고
 
-- **Vanilla HTML / CSS / JavaScript** — 프레임워크 없음
-- **폰트**: JetBrains Mono, Syne (로컬 woff2 번들)
-- **빌드 도구**: 없음
-- **외부 의존성**: 없음 (완전 오프라인 동작)
+- 공통 UI 헬퍼: `ui-utils.js`
+  - `escHtml`, `showError`, `copyElementText`, `renderSqlBlock`
+- 테마: `localStorage`의 `devtools-theme` (`dark`/`light`)
+- 공통 단축키: 대부분 `Ctrl/Cmd + Enter`
+
+## 의존성
+
+- 기본은 Vanilla HTML/CSS/JS
+- `csv-to-insert.html`의 Excel 파싱은 **SheetJS CDN** 사용
+  - 오프라인 완전 지원이 필요하면 SheetJS를 로컬 번들로 교체하세요.
