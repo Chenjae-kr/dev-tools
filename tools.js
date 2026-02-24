@@ -96,4 +96,13 @@ const TOOLS = [
     tags:   ['Cron', 'Schedule', 'Humanize', 'Preset'],
     footer: 'Cron → Build · Explain',
   },
+  {
+    href:   'mock-data-generator.html',
+    label:  'Mock Data',
+    icon:   'MOCK',
+    title:  'Mock Data Generator',
+    desc:   '컬럼 스키마를 기반으로 테스트 데이터를 생성합니다. CSV/JSON/SQL INSERT 출력, seed 기반 재현 가능한 랜덤 데이터 지원.',
+    tags:   ['CSV', 'JSON', 'SQL INSERT', 'Seeded Random'],
+    footer: 'Schema → Mock Data',
+  },
 ];

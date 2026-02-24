@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Data Generator | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.mock-textarea {
+  width: 100%;
+  min-height: 180px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 14px 20px;
+  resize: vertical;
+}
+.small-input {
+  max-width: 100px;
+}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+
+<div class="container">
+  <div class="tool-header">
+    <h1>Mock <span>Data Generator</span></h1>
+    <p>// 컬럼 스키마로 테스트 데이터(CSV / JSON / SQL INSERT) 생성</p>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><div class="dot"></div>SCHEMA INPUT</div>
+        </div>
+
+        <textarea id="schemaInput" class="mock-textarea" placeholder="id:int
+name:name
+email:email
+age:int(20,60)
+created_at:date
+is_active:bool">id:int
+name:name
+email:email
+age:int(20,60)
+created_at:date
+is_active:bool</textarea>
+
+        <div class="options-bar">
+          <span class="options-label">Rows</span>
+          <input id="rowCount" class="table-name-input small-input" type="number" min="1" max="5000" value="20">
+
+          <span class="options-label">Format</span>
+          <div class="toggle-group">
+            <button class="toggle-btn fmt-btn active" data-fmt="csv">CSV</button>
+            <button class="toggle-btn fmt-btn" data-fmt="json">JSON</button>
+            <button class="toggle-btn fmt-btn" data-fmt="sql">SQL</button>
+          </div>
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Table</span>
+          <input id="tableName" class="table-name-input" value="mock_table" placeholder="mock_table">
+          <span class="options-label">Seed</span>
+          <input id="seed" class="table-name-input small-input" type="number" value="42">
+        </div>
+
+        <button class="generate-btn" onclick="generateMock()">⚡ GENERATE</button>
+      </div>
+    </div>
+
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">🧪</div>
+          <p>스키마를 작성하고 GENERATE를 눌러주세요</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// Mock Data Generator — schema to test dataset</footer>
+</div>
+
+<script>
+let outputFormat = 'csv';
+
+document.querySelectorAll('.fmt-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    outputFormat = btn.dataset.fmt;
+  });
+});
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// seeded random
+function rng(seed) {
+  let t = seed >>> 0;
+  return function() {
+    t += 0x6D2B79F5;
+    let x = Math.imul(t ^ (t >>> 15), 1 | t);
+    x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function parseSchema(text) {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (!lines.length) throw new Error('스키마를 입력해주세요.');
+
+  return lines.map(line => {
+    const [name, rawType] = line.split(':').map(x => (x || '').trim());
+    if (!name || !rawType) throw new Error(`스키마 오류: ${line}`);
+    return { name, rawType };
+  });
+}
+
+function pick(arr, rnd) { return arr[Math.floor(rnd() * arr.length)]; }
+
+function generateValue(col, i, rnd) {
+  const t = col.rawType.toLowerCase();
+
+  if (t.startsWith('int(')) {
+    const m = t.match(/int\((\d+)\s*,\s*(\d+)\)/);
+    if (m) {
+      const min = Number(m[1]), max = Number(m[2]);
+      return Math.floor(rnd() * (max - min + 1)) + min;
+    }
+  }
+  if (t === 'int') return Math.floor(rnd() * 1000) + 1;
+  if (t === 'float') return (rnd() * 1000).toFixed(2);
+  if (t === 'bool' || t === 'boolean') return rnd() > 0.5;
+  if (t === 'date') {
+    const start = new Date('2020-01-01').getTime();
+    const end = new Date('2026-12-31').getTime();
+    const d = new Date(start + Math.floor(rnd() * (end - start)));
+    return d.toISOString().slice(0,10);
+  }
+  if (t === 'datetime') {
+    const start = new Date('2020-01-01').getTime();
+    const end = new Date('2026-12-31').getTime();
+    const d = new Date(start + Math.floor(rnd() * (end - start)));
+    return d.toISOString().replace('T',' ').slice(0,19);
+  }
+  if (t === 'uuid') {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.floor(rnd() * 16);
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  if (t === 'name') {
+    const first = ['김','이','박','최','정','강','조','윤','장','임'];
+    const last = ['민준','서준','도윤','지우','서연','지민','하은','예준','윤서','현우'];
+    return pick(first, rnd) + pick(last, rnd);
+  }
+  if (t === 'email') {
+    return `user${i+1}@example.com`;
+  }
+  if (t.startsWith('enum(')) {
+    const inner = t.slice(5, -1);
+    const vals = inner.split(',').map(v => v.trim()).filter(Boolean);
+    return pick(vals, rnd);
+  }
+  if (t === 'lorem') {
+    const words = ['lorem','ipsum','dolor','sit','amet','consectetur','adipisicing','elit'];
+    const n = 5 + Math.floor(rnd() * 8);
+    return Array.from({length:n}, () => pick(words, rnd)).join(' ');
+  }
+
+  // fallback string
+  return `${col.name}_${i+1}`;
+}
+
+function escapeCSV(val) {
+  const s = String(val ?? '');
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function escapeSQL(val) {
+  if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
+  if (val === null || val === undefined) return 'NULL';
+  if (/^-?\d+(\.\d+)?$/.test(String(val))) return String(val);
+  return `'${String(val).replace(/'/g, "''")}'`;
+}
+
+function generateMock() {
+  const schemaText = document.getElementById('schemaInput').value;
+  const rowCount = Math.max(1, Math.min(5000, parseInt(document.getElementById('rowCount').value || '20', 10)));
+  const seed = parseInt(document.getElementById('seed').value || '42', 10);
+  const tableName = (document.getElementById('tableName').value || 'mock_table').trim();
+  const output = document.getElementById('outputPanel');
+
+  try {
+    const cols = parseSchema(schemaText);
+    const rnd = rng(seed);
+    const rows = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const row = {};
+      cols.forEach(col => { row[col.name] = generateValue(col, i, rnd); });
+      rows.push(row);
+    }
+
+    let text = '';
+    if (outputFormat === 'csv') {
+      text += cols.map(c => c.name).join(',') + '\n';
+      rows.forEach(r => {
+        text += cols.map(c => escapeCSV(r[c.name])).join(',') + '\n';
+      });
+    } else if (outputFormat === 'json') {
+      text = JSON.stringify(rows, null, 2);
+    } else {
+      text = rows.map(r => {
+        const c = cols.map(x => x.name).join(', ');
+        const v = cols.map(x => escapeSQL(r[x.name])).join(', ');
+        return `INSERT INTO ${tableName} (${c}) VALUES (${v});`;
+      }).join('\n');
+    }
+
+    const blockId = 'mock_' + Date.now();
+    output.innerHTML = `
+      <div class="panel sql-block">
+        <div class="sql-block-header">
+          <span class="sql-type-badge badge-insert">MOCK</span>
+          <span class="sql-dialect-tag">${outputFormat.toUpperCase()} · ${rowCount} rows</span>
+          <button class="copy-btn" id="copy_${blockId}" onclick="copyOut('${blockId}')">COPY</button>
+        </div>
+        <pre class="sql-code" id="${blockId}">${escHtml(text)}</pre>
+      </div>`;
+  } catch (e) {
+    output.innerHTML = `<div class="error-msg">❌ ${escHtml(e.message)}</div>`;
+  }
+}
+
+function copyOut(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
+    const btn = document.getElementById(`copy_${id}`);
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1200);
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateMock();
+});
+</script>
+</body>
+</html>
