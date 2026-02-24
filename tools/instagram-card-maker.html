@@ -117,7 +117,11 @@
 
         <div id="bodyTableWrap" class="hidden">
           <div class="options-bar" style="border-top:none;padding-top:0;">
-            <span class="options-label">Table Data</span>
+            <span class="options-label">Input Mode</span>
+            <div class="toggle-group">
+              <button class="toggle-btn tblmode-btn active" data-mode="text">구분자 입력</button>
+              <button class="toggle-btn tblmode-btn" data-mode="grid">테이블 입력</button>
+            </div>
             <span class="options-label">구분자</span>
             <div class="toggle-group">
               <button class="toggle-btn tblsep-btn active" data-sep="auto">AUTO</button>
@@ -126,7 +130,13 @@
               <button class="toggle-btn tblsep-btn" data-sep="pipe">|</button>
             </div>
           </div>
-          <textarea id="tableText" class="input-area" placeholder="기업명	예상가치	주요사업\n케이뱅크	3조 3,673억	인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |"></textarea>
+
+          <div id="tableTextWrap">
+            <textarea id="tableText" class="input-area" placeholder="기업명	예상가치	주요사업\n케이뱅크	3조 3,673억	인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |"></textarea>
+          </div>
+
+          <div id="tableGridWrap" class="hidden" style="overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)"></div>
+
           <div class="options-bar" style="border-top:none;padding-top:0;">
             <span class="options-label">Quick Edit</span>
             <button class="toggle-btn" onclick="buildTableTemplate()">템플릿 생성</button>
@@ -134,6 +144,8 @@
             <button class="toggle-btn" onclick="addTableCol()">열 +1</button>
             <button class="toggle-btn" onclick="removeTableRow()">행 -1</button>
             <button class="toggle-btn" onclick="removeTableCol()">열 -1</button>
+            <button class="toggle-btn" onclick="syncGridFromText()">텍스트→표</button>
+            <button class="toggle-btn" onclick="syncTextFromGrid()">표→텍스트</button>
           </div>
           <div class="options-bar" style="border-top:none;padding-top:0;">
             <span class="options-label">Rows</span><input id="tblRows" type="number" value="4" min="1" max="30" class="table-name-input small">
@@ -224,6 +236,7 @@ let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
 let page=1, pages=[{}], bodyType='text';
 let exportFormat='png';
 let tableSepMode='auto';
+let tableInputMode='text';
 
 function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
@@ -361,6 +374,57 @@ function parseCsvTable(text){
   return {head:normalized[0], body:normalized.slice(1)};
 }
 
+function setTableInputUI(){
+  document.getElementById('tableTextWrap').classList.toggle('hidden', tableInputMode !== 'text');
+  document.getElementById('tableGridWrap').classList.toggle('hidden', tableInputMode !== 'grid');
+}
+
+function renderTableGrid(head, body){
+  const wrap = document.getElementById('tableGridWrap');
+  const cols = head.length;
+  const rows = body.length;
+
+  const th = `<tr>${head.map((h,i)=>`<th><input data-r="0" data-c="${i}" value="${String(h||'').replace(/"/g,'&quot;')}" class="table-name-input" style="min-width:120px"></th>`).join('')}</tr>`;
+  const tr = body.map((r,ri)=>`<tr>${Array.from({length:cols},(_,ci)=>`<td><input data-r="${ri+1}" data-c="${ci}" value="${String((r&&r[ci])||'').replace(/"/g,'&quot;')}" class="table-name-input" style="min-width:120px"></td>`).join('')}</tr>`).join('');
+
+  wrap.innerHTML = `<table style="border-collapse:collapse;width:100%"><thead>${th}</thead><tbody>${tr}</tbody></table>`;
+
+  wrap.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>syncTextFromGrid(false)));
+}
+
+function syncGridFromText(){
+  const t = parseCsvTable(document.getElementById('tableText').value || '');
+  if(!t) return;
+  renderTableGrid(t.head, t.body);
+  renderCard();
+}
+
+function syncTextFromGrid(doRender=true){
+  const wrap = document.getElementById('tableGridWrap');
+  const inputs = [...wrap.querySelectorAll('input[data-r]')];
+  if(!inputs.length) return;
+
+  const head = [];
+  const bodyMap = new Map();
+  for(const el of inputs){
+    const r = parseInt(el.dataset.r,10);
+    const c = parseInt(el.dataset.c,10);
+    if(r===0) head[c]=el.value;
+    else {
+      if(!bodyMap.has(r)) bodyMap.set(r, []);
+      bodyMap.get(r)[c]=el.value;
+    }
+  }
+  const body = [...bodyMap.keys()].sort((a,b)=>a-b).map(k=>{
+    const row = bodyMap.get(k);
+    while(row.length<head.length) row.push('');
+    return row;
+  });
+
+  document.getElementById('tableText').value = serializeTableData(head, body);
+  if (doRender) renderCard();
+}
+
 function serializeTableData(head, body){
   const mode = tableSepMode === 'auto' ? 'tab' : tableSepMode;
   if (mode === 'pipe') {
@@ -380,6 +444,7 @@ function serializeTableData(head, body){
 }
 
 function tableToMatrix(){
+  if (tableInputMode === 'grid') syncTextFromGrid(false);
   const t = parseCsvTable(document.getElementById('tableText').value || '');
   if (!t) return null;
   return { head:[...t.head], body:t.body.map(r=>[...r]) };
@@ -391,6 +456,7 @@ function buildTableTemplate(){
   const head = Array.from({length: cols}, (_,i)=>`컬럼${i+1}`);
   const body = Array.from({length: rows}, (_,r)=>Array.from({length: cols}, (_,c)=>`${r+1}-${c+1}`));
   document.getElementById('tableText').value = serializeTableData(head, body);
+  if (tableInputMode === 'grid') syncGridFromText();
   renderCard();
 }
 
@@ -399,6 +465,7 @@ function addTableRow(){
   if (!m) return buildTableTemplate();
   m.body.push(Array.from({length:m.head.length}, ()=>''));
   document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  if (tableInputMode === 'grid') syncGridFromText();
   renderCard();
 }
 
@@ -408,6 +475,7 @@ function addTableCol(){
   m.head.push(`컬럼${m.head.length+1}`);
   m.body = m.body.map(r => [...r, '']);
   document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  if (tableInputMode === 'grid') syncGridFromText();
   renderCard();
 }
 
@@ -416,6 +484,7 @@ function removeTableRow(){
   if (!m || m.body.length <= 1) return;
   m.body.pop();
   document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  if (tableInputMode === 'grid') syncGridFromText();
   renderCard();
 }
 
@@ -425,6 +494,7 @@ function removeTableCol(){
   m.head.pop();
   m.body = m.body.map(r => r.slice(0, m.head.length));
   document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  if (tableInputMode === 'grid') syncGridFromText();
   renderCard();
 }
 
@@ -655,7 +725,15 @@ document.querySelectorAll('.size-btn').forEach(b=>b.onclick=()=>{document.queryS
 document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');themeKey=b.dataset.theme;document.getElementById('bgColor').value=themes[themeKey].bg;renderCard();});
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
 document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
-document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;renderCard();});
+document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;if(tableInputMode==='grid') syncGridFromText();renderCard();});
+document.querySelectorAll('.tblmode-btn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tblmode-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  tableInputMode=b.dataset.mode;
+  setTableInputUI();
+  if(tableInputMode==='grid') syncGridFromText();
+  else syncTextFromGrid(false);
+});
 document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
@@ -682,7 +760,7 @@ pages[0]={
   tableText:'기업명,예상기업가치,주요 사업\n무신사,8조원 이상,패션 플랫폼\n한화에너지,5조원 이상,에너지 발전·공급\n케이뱅크,3조 3,673억,인터넷전문은행',
   bodyImageData:''
 };
-fillInputsFromPage(); setBodyUI(); setPageLabel(); renderCard();
+fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); renderCard();
 </script>
 </body>
 </html>
