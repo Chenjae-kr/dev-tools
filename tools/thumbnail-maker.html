@@ -92,6 +92,8 @@
           <input id="textColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
           <span class="options-label">Stroke</span>
           <input id="strokeColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
+          <span class="options-label">Stroke Px</span>
+          <input id="strokeWidth" type="number" value="6" min="0" max="24" class="table-name-input" style="max-width:70px;">
         </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
@@ -149,17 +151,17 @@ let saveFormat = 'png';
 const ratios = { '1:1':[1200,1200], '16:9':[1600,900], '4:3':[1200,900], '3:2':[1500,1000] };
 const presets = {
   quote: {
-    ratio: '1:1', bgColor: '#5f6fdd', textColor: '#ffffff', strokeColor: '#ffffff', pad: 90, ov: 'none', ovStrength: 28,
+    ratio: '1:1', bgColor: '#5f6fdd', textColor: '#ffffff', strokeColor: '#ffffff', strokeWidth: 6, pad: 90, ov: 'none', ovStrength: 28,
     mainScale: 100, subScale: 100, mainY: 43, subY: 72,
     main: '블로그 썸네일\n3분 제작', sub: '3분만에 블로그 썸네일 만들기'
   },
   blog: {
-    ratio: '4:3', bgColor: '#2e3f8f', textColor: '#ffffff', strokeColor: '#ffffff', pad: 80, ov: 'gradient', ovStrength: 32,
+    ratio: '4:3', bgColor: '#2e3f8f', textColor: '#ffffff', strokeColor: '#ffffff', strokeWidth: 5, pad: 80, ov: 'gradient', ovStrength: 32,
     mainScale: 100, subScale: 95, mainY: 41, subY: 73,
     main: '실전 가이드\n핵심 요약', sub: '바로 적용 가능한 블로그 포스트 템플릿'
   },
   youtube: {
-    ratio: '16:9', bgColor: '#1c1f2a', textColor: '#ffffff', strokeColor: '#ffd24a', pad: 70, ov: 'vignette', ovStrength: 40,
+    ratio: '16:9', bgColor: '#1c1f2a', textColor: '#ffffff', strokeColor: '#ffd24a', strokeWidth: 6, pad: 70, ov: 'vignette', ovStrength: 40,
     mainScale: 110, subScale: 95, mainY: 42, subY: 74,
     main: '조회수 올리는\n썸네일', sub: '클릭을 부르는 타이틀 디자인'
   }
@@ -203,7 +205,7 @@ document.getElementById('bgImageInput').addEventListener('change', e=>{
   r.onload=ev=>{ const img=new Image(); img.onload=()=>{ bgImage=img; renderThumb(); }; img.src=ev.target.result; };
   r.readAsDataURL(f);
 });
-['bgColor','textColor','strokeColor','mainText','subText','pad','ovStrength','mainScale','subScale','mainY','subY'].forEach(id=>{
+['bgColor','textColor','strokeColor','strokeWidth','mainText','subText','pad','ovStrength','mainScale','subScale','mainY','subY'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>renderThumb());
 });
 
@@ -220,6 +222,7 @@ function applyPreset(name){
   document.getElementById('bgColor').value = p.bgColor;
   document.getElementById('textColor').value = p.textColor;
   document.getElementById('strokeColor').value = p.strokeColor || '#ffffff';
+  if (p.strokeWidth != null) document.getElementById('strokeWidth').value = p.strokeWidth;
   document.getElementById('pad').value = p.pad;
   document.getElementById('ovStrength').value = p.ovStrength;
   document.getElementById('mainText').value = p.main;
@@ -308,6 +311,7 @@ function renderThumb(){
   const sub=(document.getElementById('subText').value||'').trim();
   const color=document.getElementById('textColor').value;
   const strokeColor=document.getElementById('strokeColor').value;
+  const strokeBase = Math.max(0, Math.min(24, parseInt(document.getElementById('strokeWidth').value || '6', 10)));
   const mainScale = Math.max(50, Math.min(180, parseInt(document.getElementById('mainScale').value || '100', 10))) / 100;
   const subScale = Math.max(50, Math.min(180, parseInt(document.getElementById('subScale').value || '100', 10))) / 100;
   const mainYPct = Math.max(10, Math.min(85, parseInt(document.getElementById('mainY').value || '43', 10))) / 100;
@@ -341,14 +345,14 @@ function renderThumb(){
     const fs=fitFont(ctx,line,maxW,Math.floor(w*0.105*mainScale));
     ctx.font = `800 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     ctx.textAlign='center';
-    drawOutlinedText(ctx, line, w/2, y, color, strokeColor, Math.max(2, fs*0.06));
+    drawOutlinedText(ctx, line, w/2, y, color, strokeColor, strokeBase > 0 ? strokeBase : 0);
     y += fs*1.12;
   });
 
   const subFs = fitFont(ctx, sub.replace(/\n/g,' '), maxW, Math.floor(w*0.05*subScale));
   ctx.font = `700 ${subFs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
   ctx.textAlign='center';
-  drawOutlinedText(ctx, sub, w/2, h*subYPct, 'rgba(255,255,255,0.96)', strokeColor, Math.max(1, subFs*0.05));
+  drawOutlinedText(ctx, sub, w/2, h*subYPct, 'rgba(255,255,255,0.96)', strokeColor, strokeBase > 0 ? Math.max(1, Math.round(strokeBase*0.7)) : 0);
 }
 
 function downloadThumb(){
