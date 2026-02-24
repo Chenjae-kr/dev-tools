@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Text Extractor | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
+.setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:10px;text-transform:uppercase}
+.setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
+.input-area{width:100%;min-height:220px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;resize:vertical}
+.file-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);background:var(--surface)}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+<div class="container">
+  <div class="tool-header"><h1>HTML <span>Text Extractor</span></h1><p>// 사용자에게 보이는 텍스트만 추출</p></div>
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="dot"></div>INPUT</div></div>
+
+        <div class="setting-group">
+          <div class="setting-title">Source</div>
+          <div class="options-bar"><span class="options-label">Upload</span><input id="fileInput" class="file-input" type="file" accept=".html,.htm,text/html"></div>
+          <div class="options-bar"><span class="options-label">HTML</span><button class="toggle-btn" onclick="loadSample()">샘플</button></div>
+          <textarea id="htmlInput" class="input-area" placeholder="<html><body><h1>제목</h1><p>본문</p></body></html>"></textarea>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Extract</div>
+          <div class="options-bar">
+            <label class="options-label"><input type="checkbox" id="keepLines" checked> 줄바꿈 유지</label>
+            <button class="generate-btn" onclick="extractTextNow()">⚡ 추출</button>
+            <button class="toggle-btn" onclick="copyOut()">COPY</button>
+            <button class="toggle-btn" onclick="downloadOut()">⬇ .txt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel" id="outputPanel">
+      <div class="panel"><div class="empty-state"><div class="icon">TXT</div><p>HTML 입력 후 텍스트 추출</p></div></div>
+    </div>
+  </div>
+  <footer>// HTML Text Extractor</footer>
+</div>
+
+<script>
+let lastText='';
+const BLOCK_TAGS = new Set(['address','article','aside','blockquote','br','div','dl','fieldset','figcaption','figure','footer','form','h1','h2','h3','h4','h5','h6','header','hr','li','main','nav','ol','p','pre','section','table','tr','ul']);
+const SKIP_TAGS = new Set(['script','style','noscript','template','meta','link','head','title']);
+
+function loadSample(){
+  document.getElementById('htmlInput').value = `<!doctype html>\n<html><body><header><h1>오늘의 뉴스</h1></header><main><p>첫 번째 문장</p><p>두 번째 <strong>강조</strong> 문장</p><div hidden>숨김 텍스트</div><ul><li>항목 A</li><li>항목 B</li></ul></main></body></html>`;
+  extractTextNow();
+}
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{ document.getElementById('htmlInput').value = ev.target.result || ''; extractTextNow(); };
+  r.readAsText(f, 'utf-8');
+});
+
+function shouldSkipElement(el){
+  const tag = el.tagName.toLowerCase();
+  if (SKIP_TAGS.has(tag)) return true;
+  if (el.hasAttribute('hidden')) return true;
+  if ((el.getAttribute('aria-hidden')||'').toLowerCase() === 'true') return true;
+  const style = (el.getAttribute('style')||'').toLowerCase().replace(/\s+/g,'');
+  if (style.includes('display:none') || style.includes('visibility:hidden')) return true;
+  return false;
+}
+
+function extractVisibleText(html, keepLines=true){
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const out = [];
+
+  function walk(node){
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node;
+      if (shouldSkipElement(el)) return;
+      const tag = el.tagName.toLowerCase();
+      const isBlock = BLOCK_TAGS.has(tag);
+      if (isBlock && keepLines) out.push('\n');
+      [...el.childNodes].forEach(walk);
+      if (isBlock && keepLines) out.push('\n');
+      return;
+    }
+
+    if (node.nodeType === Node.TEXT_NODE) {
+      const txt = (node.nodeValue || '').replace(/\s+/g, ' ');
+      if (txt.trim()) out.push(txt);
+    }
+  }
+
+  walk(doc.body || doc.documentElement);
+  let text = out.join(keepLines ? '' : ' ');
+  text = text.replace(/[ \t]+\n/g,'\n').replace(/\n[ \t]+/g,'\n');
+  text = text.replace(/\n{3,}/g,'\n\n').replace(/[ ]{2,}/g,' ');
+  return text.trim();
+}
+
+function extractTextNow(){
+  const html = document.getElementById('htmlInput').value.trim();
+  if(!html){ UIUtils.showError('outputPanel', 'HTML 입력이 비어 있습니다.'); return; }
+  try {
+    const keepLines = document.getElementById('keepLines').checked;
+    const txt = extractVisibleText(html, keepLines);
+    lastText = txt;
+    const id = 'txt_' + Date.now();
+    document.getElementById('outputPanel').innerHTML = UIUtils.renderSqlBlock({
+      badge:'TEXT',
+      tag:`Extracted · ${txt.length} chars`,
+      copyBtnId:`copy_${id}`,
+      copyLabel:'COPY',
+      copyHandler:`UIUtils.copyElementText('${id}','copy_${id}','COPY')`,
+      bodyHtml:`<pre class="sql-code" id="${id}">${UIUtils.escHtml(txt)}</pre>`
+    });
+  } catch(e){
+    UIUtils.showError('outputPanel', e.message || String(e));
+  }
+}
+
+function copyOut(){ if(!lastText) return; navigator.clipboard.writeText(lastText); }
+function downloadOut(){
+  if(!lastText) return;
+  const blob = new Blob([lastText], { type:'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `extracted_${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>

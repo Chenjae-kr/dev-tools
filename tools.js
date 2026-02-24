@@ -90,6 +90,13 @@ const TOOLS = [
     footer: 'HTML → Tag Stats',
   },
   {
+    category: 'Data/Format', href: 'html-text-extractor.html', label: 'HTML Text', icon: 'TXT',
+    title: 'HTML Visible Text Extractor',
+    desc: 'HTML 파일/소스에서 사용자에게 보이는 텍스트만 추출합니다. 숨김 요소(script/style/hidden/aria-hidden)를 제외합니다.',
+    tags: ['HTML', 'Text', 'Extractor', 'Visible Text'],
+    footer: 'HTML → Visible Text',
+  },
+  {
     category: 'Data/Format', href: 'mock-data-generator.html', label: 'Mock Data', icon: 'MOCK',
     title: 'Mock Data Generator',
     desc: '컬럼 스키마(DSL 또는 SQL DDL)를 기반으로 테스트 데이터를 생성합니다. CSV/JSON/SQL INSERT 출력, seed 기반 재현 가능한 랜덤 데이터 지원.',
