@@ -27,6 +27,9 @@
 .quick-actions{display:flex;gap:8px;flex-wrap:wrap}
 .quick-actions .toggle-btn{padding:8px 10px}
 .table-dual{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.matrix-grid{display:grid;gap:8px;width:100%}
+.matrix-grid .matrix-cell input{width:100%;min-width:0}
+.matrix-grid .matrix-head input{font-weight:700}
 @media (max-width: 980px){.table-dual{grid-template-columns:1fr}.control-grid-4{grid-template-columns:1fr 1fr}}
 @media (max-width: 640px){.control-grid-4,.control-grid-2{grid-template-columns:1fr}}
 .export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
@@ -436,17 +439,23 @@ function setTableInputUI(){
 function renderTableGrid(head, body){
   const wrap = document.getElementById('tableGridWrap');
   const cols = Math.max(1, head.length);
+  const rows = Math.max(1, body.length);
 
-  const th = `<tr>${head.map((h,i)=>`<th style="padding:4px"><input data-r="0" data-c="${i}" value="${String(h||'').replace(/"/g,'&quot;')}" class="table-name-input" style="width:100%;min-width:0"></th>`).join('')}</tr>`;
-  const tr = body.map((r,ri)=>`<tr>${Array.from({length:cols},(_,ci)=>`<td style="padding:4px"><input data-r="${ri+1}" data-c="${ci}" value="${String((r&&r[ci])||'').replace(/"/g,'&quot;')}" class="table-name-input" style="width:100%;min-width:0"></td>`).join('')}</tr>`).join('');
+  const headerCells = head.map((h,i)=>
+    `<div class="matrix-cell matrix-head"><input data-r="0" data-c="${i}" value="${String(h||'').replace(/"/g,'&quot;')}" class="table-name-input"></div>`
+  ).join('');
 
-  const colWidth = (100 / cols).toFixed(4);
-  const colgroup = `<colgroup>${Array.from({length:cols},()=>`<col style="width:${colWidth}%">`).join('')}</colgroup>`;
-  wrap.innerHTML = `<table style="width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0">${colgroup}<thead>${th}</thead><tbody>${tr}</tbody></table>`;
+  const bodyCells = Array.from({length:rows},(_,ri)=>
+    Array.from({length:cols},(_,ci)=>
+      `<div class="matrix-cell"><input data-r="${ri+1}" data-c="${ci}" value="${String(((body[ri]&&body[ri][ci])||'')).replace(/"/g,'&quot;')}" class="table-name-input"></div>`
+    ).join('')
+  ).join('');
+
+  wrap.innerHTML = `<div class="matrix-grid" style="grid-template-columns:repeat(${cols}, minmax(0, 1fr));">${headerCells}${bodyCells}</div>`;
 
   wrap.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>syncTextFromGrid(false)));
   document.getElementById('tblCols').value = cols;
-  document.getElementById('tblRows').value = body.length;
+  document.getElementById('tblRows').value = rows;
 }
 
 function syncGridFromText(doRender=true){
