@@ -187,20 +187,22 @@ function runFormatLint() {
   const warns = lintSQL(formatted);
 
   const blockId = 'sql_block_' + Date.now();
-  output.innerHTML = `
-    <div class="panel sql-block">
-      <div class="sql-block-header">
-        <span class="sql-type-badge badge-insert">SQL</span>
-        <span class="sql-dialect-tag">Formatted · Linted</span>
-        <button class="copy-btn" id="copy_${blockId}" onclick="copySQL('${blockId}')">COPY</button>
-      </div>
-      <pre class="sql-code" id="${blockId}">${escHtml(formatted)}</pre>
-      <div class="warn-box">
-        ${warns.length
-          ? warns.map(w => `<div class="warn-item">⚠ ${escHtml(w)}</div>`).join('')
-          : `<div class="warn-ok">✓ 위험 패턴이 감지되지 않았습니다.</div>`}
-      </div>
+  const bodyHtml = `
+    <pre class="sql-code" id="${blockId}">${escHtml(formatted)}</pre>
+    <div class="warn-box">
+      ${warns.length
+        ? warns.map(w => `<div class="warn-item">⚠ ${escHtml(w)}</div>`).join('')
+        : `<div class="warn-ok">✓ 위험 패턴이 감지되지 않았습니다.</div>`}
     </div>`;
+
+  output.innerHTML = UIUtils.renderSqlBlock({
+    badge: 'SQL',
+    tag: 'Formatted · Linted',
+    copyBtnId: `copy_${blockId}`,
+    copyLabel: 'COPY',
+    copyHandler: `copySQL('${blockId}')`,
+    bodyHtml,
+  });
 }
 
 function copySQL(id) {

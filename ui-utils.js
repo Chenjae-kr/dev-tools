@@ -35,10 +35,36 @@
     return copyTextWithFeedback(el.innerText || el.textContent || '', btn, defaultLabel);
   }
 
+  function renderSqlBlock({
+    badge = 'SQL',
+    tag = '',
+    copyBtnId = '',
+    copyLabel = 'COPY',
+    copyHandler = '',
+    extraHeaderHtml = '',
+    bodyHtml = '',
+  } = {}) {
+    const copyBtn = copyBtnId && copyHandler
+      ? `<button class="copy-btn" id="${escHtml(copyBtnId)}" onclick="${copyHandler}">${escHtml(copyLabel)}</button>`
+      : '';
+
+    return `
+      <div class="panel sql-block">
+        <div class="sql-block-header">
+          <span class="sql-type-badge badge-insert">${escHtml(badge)}</span>
+          <span class="sql-dialect-tag">${escHtml(tag)}</span>
+          ${copyBtn}
+          ${extraHeaderHtml}
+        </div>
+        ${bodyHtml}
+      </div>`;
+  }
+
   window.UIUtils = {
     escHtml,
     showError,
     copyTextWithFeedback,
     copyElementText,
+    renderSqlBlock,
   };
 })();

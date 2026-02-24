@@ -345,20 +345,22 @@ function runDiff() {
       } else {
         const { html, addCount, delCount } = renderDiff(ops, contextLines);
         const blockId = `diff_${Date.now()}`;
-        output.innerHTML = `
-          <div class="panel sql-block">
-            <div class="sql-block-header">
-              <span class="sql-type-badge badge-select">DIFF</span>
-              <span class="sql-dialect-tag">${origLines.length} → ${modLines.length} lines · ${diffMode.toUpperCase()}</span>
-              <button class="copy-btn" id="copy_${blockId}" onclick="copyDiff('${blockId}')">COPY PATCH</button>
-            </div>
-            <div class="diff-summary">
-              <span><span class="add-count">+${addCount}</span> 추가</span>
-              <span><span class="del-count">−${delCount}</span> 삭제</span>
-              <span>${origLines.length}줄 → ${modLines.length}줄</span>
-            </div>
-            <div class="diff-output-wrap" id="${blockId}">${html}</div>
-          </div>`;
+        const bodyHtml = `
+          <div class="diff-summary">
+            <span><span class="add-count">+${addCount}</span> 추가</span>
+            <span><span class="del-count">−${delCount}</span> 삭제</span>
+            <span>${origLines.length}줄 → ${modLines.length}줄</span>
+          </div>
+          <div class="diff-output-wrap" id="${blockId}">${html}</div>`;
+
+        output.innerHTML = UIUtils.renderSqlBlock({
+          badge: 'DIFF',
+          tag: `${origLines.length} → ${modLines.length} lines · ${diffMode.toUpperCase()}`,
+          copyBtnId: `copy_${blockId}`,
+          copyLabel: 'COPY PATCH',
+          copyHandler: `copyDiff('${blockId}')`,
+          bodyHtml,
+        });
       }
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ ${escHtml(e.message)}</div>`;

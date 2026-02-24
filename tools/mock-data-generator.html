@@ -231,15 +231,14 @@ function generateMock() {
     }
 
     const blockId = 'mock_' + Date.now();
-    output.innerHTML = `
-      <div class="panel sql-block">
-        <div class="sql-block-header">
-          <span class="sql-type-badge badge-insert">MOCK</span>
-          <span class="sql-dialect-tag">${outputFormat.toUpperCase()} · ${rowCount} rows</span>
-          <button class="copy-btn" id="copy_${blockId}" onclick="copyOut('${blockId}')">COPY</button>
-        </div>
-        <pre class="sql-code" id="${blockId}">${escHtml(text)}</pre>
-      </div>`;
+    output.innerHTML = UIUtils.renderSqlBlock({
+      badge: 'MOCK',
+      tag: `${outputFormat.toUpperCase()} · ${rowCount} rows`,
+      copyBtnId: `copy_${blockId}`,
+      copyLabel: 'COPY',
+      copyHandler: `copyOut('${blockId}')`,
+      bodyHtml: `<pre class="sql-code" id="${blockId}">${escHtml(text)}</pre>`,
+    });
   } catch (e) {
     output.innerHTML = `<div class="error-msg">❌ ${escHtml(e.message)}</div>`;
   }
