@@ -277,27 +277,27 @@ function renderThumb(){
   const maxW=w-pad*2;
   const mainLines=main.split('\n').filter(Boolean);
   let y=h*0.43;
-  mainLines.forEach((line,idx)=>{
+  mainLines.forEach((line)=>{
     const fs=fitFont(ctx,line,maxW,Math.floor(w*0.105));
     ctx.font = `800 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     ctx.textAlign='center';
-    ctx.lineWidth=Math.max(1,Math.floor(fs*0.06));
+    ctx.lineJoin='round';
+    ctx.miterLimit=2;
+    ctx.lineWidth=Math.max(2,Math.floor(fs*0.06));
     ctx.strokeStyle=strokeColor;
-    ctx.globalAlpha=0.95;
     ctx.strokeText(line,w/2,y);
-    ctx.globalAlpha=1;
-    ctx.fillText(line,w/2,y+ (idx===0?0:6));
+    ctx.fillText(line,w/2,y);
     y += fs*1.12;
   });
 
   const subFs = fitFont(ctx, sub.replace(/\n/g,' '), maxW, Math.floor(w*0.05));
   ctx.font = `700 ${subFs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
   ctx.fillStyle='rgba(255,255,255,0.96)';
+  ctx.lineJoin='round';
+  ctx.miterLimit=2;
   ctx.lineWidth=Math.max(1,Math.floor(subFs*0.055));
   ctx.strokeStyle=strokeColor;
-  ctx.globalAlpha=0.95;
   ctx.strokeText(sub,w/2,h*0.72);
-  ctx.globalAlpha=1;
   ctx.fillText(sub,w/2,h*0.72);
 }
 
