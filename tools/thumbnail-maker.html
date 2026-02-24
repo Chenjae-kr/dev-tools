@@ -245,6 +245,27 @@ function fitFont(ctx,text,maxW,start){
   return s;
 }
 
+function drawOutlinedText(ctx, text, x, y, fillColor, strokeColor, outlinePx) {
+  const o = Math.max(0, Math.round(outlinePx));
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+
+  if (o > 0) {
+    ctx.fillStyle = strokeColor;
+    for (let dy = -o; dy <= o; dy++) {
+      for (let dx = -o; dx <= o; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        if (dx*dx + dy*dy <= o*o) ctx.fillText(text, x + dx, y + dy);
+      }
+    }
+  }
+
+  ctx.fillStyle = fillColor;
+  ctx.fillText(text, x, y);
+}
+
 function renderThumb(){
   const [w,h]=ratios[ratio];
   const pad=parseInt(document.getElementById('pad').value||'90',10);
@@ -281,24 +302,14 @@ function renderThumb(){
     const fs=fitFont(ctx,line,maxW,Math.floor(w*0.105));
     ctx.font = `800 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     ctx.textAlign='center';
-    ctx.lineJoin='round';
-    ctx.miterLimit=2;
-    ctx.lineWidth=Math.max(2,Math.floor(fs*0.06));
-    ctx.strokeStyle=strokeColor;
-    ctx.strokeText(line,w/2,y);
-    ctx.fillText(line,w/2,y);
+    drawOutlinedText(ctx, line, w/2, y, color, strokeColor, Math.max(2, fs*0.06));
     y += fs*1.12;
   });
 
   const subFs = fitFont(ctx, sub.replace(/\n/g,' '), maxW, Math.floor(w*0.05));
   ctx.font = `700 ${subFs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,0.96)';
-  ctx.lineJoin='round';
-  ctx.miterLimit=2;
-  ctx.lineWidth=Math.max(1,Math.floor(subFs*0.055));
-  ctx.strokeStyle=strokeColor;
-  ctx.strokeText(sub,w/2,h*0.72);
-  ctx.fillText(sub,w/2,h*0.72);
+  ctx.textAlign='center';
+  drawOutlinedText(ctx, sub, w/2, h*0.72, 'rgba(255,255,255,0.96)', strokeColor, Math.max(1, subFs*0.05));
 }
 
 function downloadThumb(){
