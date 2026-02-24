@@ -101,8 +101,15 @@
         </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
-          <button class="generate-btn" onclick="renderThumb()">⚡ RENDER</button>
-          <button class="generate-btn" onclick="downloadThumb()">⬇ PNG 다운로드</button>
+          <span class="options-label">Save As</span>
+          <div class="toggle-group">
+            <button class="toggle-btn fmt-btn active" data-fmt="png">PNG</button>
+            <button class="toggle-btn fmt-btn" data-fmt="jpeg">JPG</button>
+            <button class="toggle-btn fmt-btn" data-fmt="webp">WEBP</button>
+          </div>
+          <span class="options-label">Quality</span>
+          <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input" style="max-width:70px;">
+          <button class="generate-btn" onclick="downloadThumb()">⬇ 다운로드</button>
         </div>
       </div>
     </div>
@@ -123,6 +130,7 @@ let ratio = '1:1';
 let bgMode = 'color';
 let bgImage = null;
 let overlayMode = 'none';
+let saveFormat = 'png';
 
 const ratios = { '1:1':[1200,1200], '16:9':[1600,900], '4:3':[1200,900], '3:2':[1500,1000] };
 const presets = {
@@ -163,6 +171,12 @@ document.querySelectorAll('.preset-btn').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.preset-btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
   applyPreset(b.dataset.preset);
+});
+
+document.querySelectorAll('.fmt-btn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.fmt-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  saveFormat = b.dataset.fmt;
 });
 
 document.getElementById('bgImageInput').addEventListener('change', e=>{
@@ -314,9 +328,12 @@ function renderThumb(){
 
 function downloadThumb(){
   renderThumb();
+  const q = Math.max(1, Math.min(100, parseInt(document.getElementById('imgQuality').value || '92', 10))) / 100;
+  const mime = saveFormat === 'jpeg' ? 'image/jpeg' : (saveFormat === 'webp' ? 'image/webp' : 'image/png');
+  const ext = saveFormat === 'jpeg' ? 'jpg' : saveFormat;
   const a=document.createElement('a');
-  a.href=document.getElementById('thumbCanvas').toDataURL('image/png');
-  a.download=`thumbnail_${ratio.replace(':','x')}_${Date.now()}.png`;
+  a.href=document.getElementById('thumbCanvas').toDataURL(mime, q);
+  a.download=`thumbnail_${ratio.replace(':','x')}_${Date.now()}.${ext}`;
   a.click();
 }
 
