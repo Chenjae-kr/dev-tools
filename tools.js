@@ -7,6 +7,15 @@
 
 const TOOLS = [
   {
+    href:   'json-sql-crud.html',
+    label:  'JSON ↔ CRUD',
+    icon:   'JSQL',
+    title:  'JSON ↔ SQL CRUD Generator',
+    desc:   'JSON 샘플 객체를 기반으로 SELECT/INSERT/UPDATE/DELETE SQL 템플릿을 자동 생성합니다. PK 컬럼 지정과 MySQL/Oracle/PostgreSQL 방언 지원.',
+    tags:   ['JSON', 'CRUD', 'MySQL', 'Oracle', 'PostgreSQL'],
+    footer: 'JSON Object → SELECT · INSERT · UPDATE · DELETE',
+  },
+  {
     href:   'csv-to-insert.html',
     label:  'CSV → INSERT',
     icon:   'CSV',

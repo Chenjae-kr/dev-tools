@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON ↔ SQL CRUD | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.json-textarea {
+  width: 100%;
+  min-height: 220px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 14px 20px;
+  resize: vertical;
+}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+
+<div class="container">
+  <div class="tool-header">
+    <h1>JSON <span>↔ SQL CRUD</span></h1>
+    <p>// JSON 샘플에서 CRUD SQL 템플릿 생성</p>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><div class="dot"></div>INPUT</div>
+        </div>
+
+        <textarea id="jsonInput" class="json-textarea" placeholder='{"id": 1, "name": "Alice", "email": "alice@example.com", "age": 30}'>{
+  "id": 1,
+  "name": "Alice",
+  "email": "alice@example.com",
+  "age": 30,
+  "is_active": true
+}</textarea>
+
+        <div class="options-bar">
+          <span class="options-label">Table</span>
+          <input id="tableName" class="table-name-input" value="users" placeholder="users">
+          <span class="options-label">PK</span>
+          <input id="pkCols" class="table-name-input" value="id" placeholder="id 또는 id,tenant_id">
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Dialect</span>
+          <div class="dialect-group">
+            <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
+            <button class="dialect-btn" data-dialect="oracle">Oracle</button>
+            <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+          </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateCRUD()">⚡ GENERATE CRUD</button>
+      </div>
+    </div>
+
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">SQL</div>
+          <p>JSON과 테이블/PK를 입력 후 GENERATE</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// JSON → CRUD SQL template generator</footer>
+</div>
+
+<script>
+let selectedDialect = 'mysql';
+document.querySelectorAll('.dialect-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.dialect-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedDialect = btn.dataset.dialect;
+  });
+});
+
+const escHtml = UIUtils.escHtml;
+
+function quoteIdent(name) {
+  if (selectedDialect === 'mysql') return `\`${name}\``;
+  if (selectedDialect === 'oracle') return name.toUpperCase();
+  return `"${name}"`;
+}
+
+function toSqlValue(v) {
+  if (v === null || v === undefined) return 'NULL';
+  if (typeof v === 'number') return String(v);
+  if (typeof v === 'boolean') {
+    if (selectedDialect === 'postgresql') return v ? 'TRUE' : 'FALSE';
+    return v ? '1' : '0';
+  }
+  return `'${String(v).replace(/'/g, "''")}'`;
+}
+
+function generateCRUD() {
+  const out = document.getElementById('outputPanel');
+  const tableNameRaw = document.getElementById('tableName').value.trim() || 'my_table';
+  const pkRaw = document.getElementById('pkCols').value.trim();
+
+  try {
+    const parsed = JSON.parse(document.getElementById('jsonInput').value.trim() || '{}');
+    if (Array.isArray(parsed)) throw new Error('현재는 단일 객체 JSON만 지원합니다.');
+
+    const keys = Object.keys(parsed);
+    if (!keys.length) throw new Error('JSON 객체에 컬럼이 없습니다.');
+
+    const pkCols = pkRaw.split(',').map(s => s.trim()).filter(Boolean);
+    if (!pkCols.length) throw new Error('PK 컬럼을 1개 이상 입력해주세요.');
+
+    pkCols.forEach(pk => {
+      if (!keys.includes(pk)) throw new Error(`PK 컬럼 '${pk}'가 JSON 키에 없습니다.`);
+    });
+
+    const tbl = quoteIdent(tableNameRaw);
+    const cols = keys.map(quoteIdent);
+    const vals = keys.map(k => toSqlValue(parsed[k]));
+
+    const whereClause = pkCols.map(k => `${quoteIdent(k)} = ${toSqlValue(parsed[k])}`).join(' AND ');
+
+    const setCols = keys.filter(k => !pkCols.includes(k));
+    const updateSet = (setCols.length ? setCols : keys)
+      .map(k => `${quoteIdent(k)} = ${toSqlValue(parsed[k])}`).join(', ');
+
+    const selectSql = `SELECT ${cols.join(', ')}\nFROM ${tbl}\nWHERE ${whereClause};`;
+    const insertSql = `INSERT INTO ${tbl} (${cols.join(', ')})\nVALUES (${vals.join(', ')});`;
+    const updateSql = `UPDATE ${tbl}\nSET ${updateSet}\nWHERE ${whereClause};`;
+    const deleteSql = `DELETE FROM ${tbl}\nWHERE ${whereClause};`;
+
+    const sql = [
+      '-- SELECT', selectSql,
+      '',
+      '-- INSERT', insertSql,
+      '',
+      '-- UPDATE', updateSql,
+      '',
+      '-- DELETE', deleteSql
+    ].join('\n');
+
+    const blockId = 'crud_' + Date.now();
+    out.innerHTML = UIUtils.renderSqlBlock({
+      badge: 'CRUD',
+      tag: `${selectedDialect.toUpperCase()} · ${keys.length} columns`,
+      copyBtnId: `copy_${blockId}`,
+      copyLabel: 'COPY',
+      copyHandler: `copyCRUD('${blockId}')`,
+      bodyHtml: `<pre class="sql-code" id="${blockId}">${escHtml(sql)}</pre>`,
+    });
+  } catch (e) {
+    UIUtils.showError(out, e.message || String(e));
+  }
+}
+
+function copyCRUD(id) {
+  UIUtils.copyElementText(id, `copy_${id}`, 'COPY');
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateCRUD();
+});
+</script>
+</body>
+</html>
