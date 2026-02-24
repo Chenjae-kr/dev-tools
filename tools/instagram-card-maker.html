@@ -144,6 +144,18 @@
         <div id="bodyImageWrap" class="hidden">
           <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Body Image</span>
             <input id="bodyImageInput" type="file" accept="image/*"></div>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
+            <span class="options-label">Fit</span>
+            <div class="toggle-group">
+              <button class="toggle-btn imgfit-btn active" data-fit="cover">Cover</button>
+              <button class="toggle-btn imgfit-btn" data-fit="contain">Contain</button>
+            </div>
+            <span class="options-label">Zoom%</span><input id="imgZoom" type="number" value="100" min="50" max="250" class="table-name-input small">
+          </div>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
+            <span class="options-label">X%</span><input id="imgPosX" type="number" value="50" min="0" max="100" class="table-name-input small">
+            <span class="options-label">Y%</span><input id="imgPosY" type="number" value="50" min="0" max="100" class="table-name-input small">
+          </div>
         </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
@@ -213,7 +225,7 @@ let page=1, pages=[{}], bodyType='text';
 let exportFormat='png';
 let tableSepMode='auto';
 
-function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:''}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -239,6 +251,11 @@ function fillInputsFromPage(){
   document.getElementById('bodyScale').value=p.bodyScale ?? 100;
   document.getElementById('sourceText').value=p.source||'출처: 관련 자료';
   document.getElementById('brandText').value=p.brand||'@instagram';
+  document.getElementById('imgZoom').value=p.imgZoom ?? 100;
+  document.getElementById('imgPosX').value=p.imgPosX ?? 50;
+  document.getElementById('imgPosY').value=p.imgPosY ?? 50;
+  const fit = p.imgFit || 'cover';
+  document.querySelectorAll('.imgfit-btn').forEach(b=>b.classList.toggle('active', b.dataset.fit===fit));
   bodyType=p.bodyType||'text';
   document.querySelectorAll('.bodytype-btn').forEach(b=>b.classList.toggle('active', b.dataset.body===bodyType));
   setBodyUI();
@@ -259,6 +276,10 @@ function savePage(){
     subScale:parseInt(document.getElementById('subScale').value || '100',10),
     titleY:parseInt(document.getElementById('titleY').value || '8',10),
     bodyScale:parseInt(document.getElementById('bodyScale').value || '100',10),
+    imgFit:(document.querySelector('.imgfit-btn.active')?.dataset.fit || 'cover'),
+    imgZoom:parseInt(document.getElementById('imgZoom').value || '100',10),
+    imgPosX:parseInt(document.getElementById('imgPosX').value || '50',10),
+    imgPosY:parseInt(document.getElementById('imgPosY').value || '50',10),
     bodyText:document.getElementById('bodyText').value,
     tableText:document.getElementById('tableText').value,
   };
@@ -413,6 +434,35 @@ function drawCoverImage(ctx,w,h,img){
   ctx.drawImage(img,dx,dy,dw,dh);
 }
 
+function drawBodyImage(ctx, img, x, y, w, h, fit='cover', zoom=100, posX=50, posY=50){
+  const ir = img.width / img.height;
+  const cr = w / h;
+  let baseW, baseH;
+  if (fit === 'contain') {
+    if (ir > cr) { baseW = w; baseH = w / ir; }
+    else { baseH = h; baseW = h * ir; }
+  } else {
+    if (ir > cr) { baseH = h; baseW = h * ir; }
+    else { baseW = w; baseH = w / ir; }
+  }
+
+  const z = Math.max(50, Math.min(250, zoom)) / 100;
+  const dw = baseW * z;
+  const dh = baseH * z;
+
+  const px = Math.max(0, Math.min(100, posX)) / 100;
+  const py = Math.max(0, Math.min(100, posY)) / 100;
+  const dx = x + (w - dw) * px;
+  const dy = y + (h - dh) * py;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.drawImage(img, dx, dy, dw, dh);
+  ctx.restore();
+}
+
 function drawBg(ctx,w,h){
   const th=themes[themeKey];
   if(bgMode==='image' && bgImage){
@@ -541,16 +591,19 @@ function renderCard(){
   } else if(p.bodyType==='image'){
     if(p.bodyImageData){
       const img=new Image();
-      img.onload=()=>{ drawCoverImage(ctx,contentW,contentH,img); };
-      // draw framed image immediately on separate temp
-      const tmp=new Image();
-      tmp.onload=()=>{
-        const ir=tmp.width/tmp.height, cr=contentW/contentH; let dw=contentW,dh=contentH,dx=contentX,dy=contentY;
-        if(ir>cr){dh=contentH;dw=contentH*ir;dx=contentX+(contentW-dw)/2;} else {dw=contentW;dh=contentW/ir;dy=contentY+(contentH-dh)/2;}
-        ctx.drawImage(tmp,dx,dy,dw,dh);
-        ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.strokeRect(contentX,contentY,contentW,contentH);
+      img.onload=()=>{
+        drawBodyImage(
+          ctx, img,
+          contentX, contentY, contentW, contentH,
+          p.imgFit || 'cover',
+          p.imgZoom ?? 100,
+          p.imgPosX ?? 50,
+          p.imgPosY ?? 50
+        );
+        ctx.strokeStyle='rgba(0,0,0,0.3)';
+        ctx.strokeRect(contentX,contentY,contentW,contentH);
       };
-      tmp.src=p.bodyImageData;
+      img.src=p.bodyImageData;
     } else {
       ctx.fillStyle='rgba(0,0,0,0.06)'; ctx.fillRect(contentX,contentY,contentW,contentH);
       ctx.fillStyle='#666'; ctx.font=`600 ${Math.floor(h*0.024)}px sans-serif`; ctx.textAlign='center';
@@ -603,9 +656,10 @@ document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.query
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
 document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
 document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;renderCard();});
+document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
-['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
+['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
 
 document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
 document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
