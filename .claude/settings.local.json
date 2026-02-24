@@ -10,7 +10,9 @@
       "Bash(ls:*)",
       "Bash(/c/proj/dev-tools/diff-viewer.html:*)",
       "Bash(printf:*)",
-      "Bash(/tmp/gen_diff.js:*)"
+      "Bash(/tmp/gen_diff.js:*)",
+      "Bash(wc:*)",
+      "Bash(git -C /c/proj/dev-tools log --oneline --max-count=10)"
     ]
   }
 }
