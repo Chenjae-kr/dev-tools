@@ -14,6 +14,9 @@
 .input-area{width:100%;background:transparent;border:1px solid var(--border);outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:72px;border-radius:8px}
 .small{max-width:90px}
 .hidden{display:none}
+.main-grid > .output-panel{position:sticky;top:84px;align-self:start}
+.main-grid > .output-panel .panel{max-height:calc(100vh - 110px);overflow:auto}
+@media (max-width: 980px){.main-grid > .output-panel{position:static}.main-grid > .output-panel .panel{max-height:none;overflow:visible}}
 .setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2)}
 .setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
 .setting-group .options-bar{border-top:none !important;padding:4px 0 !important;gap:8px;flex-wrap:wrap}
