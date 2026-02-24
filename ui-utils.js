@@ -7,12 +7,26 @@
       .replace(/>/g, '&gt;');
   }
 
+  function renderResultMessage(kind = 'error', message = '') {
+    const icon = kind === 'success' ? '✅' : kind === 'info' ? 'ℹ️' : '⚠️';
+    const cls = `result-msg ${kind}`;
+    return `<div class="${cls}"><span class="result-msg-icon">${icon}</span><span class="result-msg-text">${escHtml(message)}</span></div>`;
+  }
+
   function showError(targetElOrId, message) {
     const el = typeof targetElOrId === 'string'
       ? document.getElementById(targetElOrId)
       : targetElOrId;
     if (!el) return;
-    el.innerHTML = `<div class="error-msg">❌ ${escHtml(message)}</div>`;
+    el.innerHTML = renderResultMessage('error', message);
+  }
+
+  function showSuccess(targetElOrId, message) {
+    const el = typeof targetElOrId === 'string'
+      ? document.getElementById(targetElOrId)
+      : targetElOrId;
+    if (!el) return;
+    el.innerHTML = renderResultMessage('success', message);
   }
 
   function copyTextWithFeedback(text, btnEl, defaultLabel = 'COPY', copiedLabel = '✓ COPIED', ms = 1400) {
@@ -118,5 +132,7 @@
     wireTextFileInput,
     downloadTextFile,
     resetFields,
+    renderResultMessage,
+    showSuccess,
   };
 })();

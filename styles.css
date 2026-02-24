@@ -838,10 +838,11 @@ body::before {
   padding: 12px 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   border-bottom: 1px solid var(--border);
   background: var(--surface2);
 }
+.sql-block-header .copy-btn:first-of-type { margin-left: auto; }
 
 .sql-type-badge {
   font-family: 'JetBrains Mono', monospace;
@@ -935,16 +936,34 @@ body::before {
 .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
 .empty-state p { font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; }
 
-/* ─── Error Message ──────────────────────────────────────── */
+/* ─── Result Messages (Success/Error/Info) ─────────────── */
+.result-msg,
 .error-msg {
-  padding: 16px 20px;
-  background: rgba(255,106,106,0.08);
-  border: 1px solid rgba(255,106,106,0.3);
+  padding: 14px 16px;
   border-radius: 10px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  color: var(--accent3);
   line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.result-msg-icon { font-size: 14px; line-height: 1.2; opacity: .9; }
+.result-msg.error,
+.error-msg {
+  background: rgba(255,106,106,0.08);
+  border: 1px solid rgba(255,106,106,0.3);
+  color: var(--accent3);
+}
+.result-msg.success {
+  background: rgba(79,255,176,0.10);
+  border: 1px solid rgba(79,255,176,0.35);
+  color: var(--accent);
+}
+.result-msg.info {
+  background: rgba(124,106,255,0.10);
+  border: 1px solid rgba(124,106,255,0.35);
+  color: #b9abff;
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────── */
@@ -961,6 +980,35 @@ footer {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   color: var(--text-muted);
+}
+
+/* ─── Global Back-to-Top Button ─────────────────────────── */
+.to-top-btn {
+  position: fixed;
+  right: 18px;
+  bottom: 20px;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: all .18s ease;
+}
+.to-top-btn.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.to-top-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ══════════════════════════════════════════════════════════

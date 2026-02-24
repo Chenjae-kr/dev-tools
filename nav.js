@@ -193,4 +193,23 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
+
+  // Global back-to-top button
+  if (!document.querySelector('.to-top-btn')) {
+    const btn = document.createElement('button');
+    btn.className = 'to-top-btn';
+    btn.type = 'button';
+    btn.title = '맨 위로';
+    btn.setAttribute('aria-label', '맨 위로');
+    btn.textContent = '↑';
+    document.body.appendChild(btn);
+
+    const sync = () => btn.classList.toggle('show', window.scrollY > 280);
+    window.addEventListener('scroll', sync, { passive: true });
+    sync();
+
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
 });
