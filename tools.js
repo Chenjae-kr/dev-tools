@@ -5,6 +5,7 @@
 const TOOL_CATEGORIES = [
   'SQL/DB',
   'Data/Format',
+  'Image',
   'Text/Compare',
   'Utility',
 ];
@@ -96,14 +97,14 @@ const TOOLS = [
     footer: 'URL → Encode · Decode · Parse',
   },
   {
-    category: 'Data/Format', href: 'thumbnail-maker.html', label: 'Thumbnail', icon: 'THMB',
+    category: 'Image', href: 'thumbnail-maker.html', label: 'Thumbnail', icon: 'THMB',
     title: 'Blog Thumbnail Maker',
     desc: '블로그 썸네일을 빠르게 제작합니다. 이미지 비율 선택, 배경 단색/이미지, 텍스트 입력 및 PNG 다운로드를 지원합니다.',
     tags: ['Thumbnail', 'Canvas', 'Ratio', 'PNG'],
     footer: 'Text + Background → Thumbnail PNG',
   },
   {
-    category: 'Data/Format', href: 'instagram-card-maker.html', label: 'Insta Card', icon: 'CARD',
+    category: 'Image', href: 'instagram-card-maker.html', label: 'Insta Card', icon: 'CARD',
     title: 'Instagram Card News Maker',
     desc: '인스타 카드뉴스를 제작합니다. 비율 선택, 배경 단색/이미지, 제목/항목 구성, 다중 페이지 PNG 내보내기를 지원합니다.',
     tags: ['Instagram', 'Card News', 'Canvas', 'Multi Page'],
