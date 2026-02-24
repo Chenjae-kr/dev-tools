@@ -32,8 +32,11 @@ function renderNav() {
       <div class="nav-logo">DEV</div>
       <span class="nav-brand-name">Dev<em>Tools</em></span>
     </a>
-    <div class="nav-tools">${items}</div>
+    <div class="nav-tools" id="navTools">${items}</div>
     <div class="nav-actions">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()" title="메뉴 열기" aria-label="메뉴 열기" aria-expanded="false">
+        <span class="mobile-menu-icon"></span>
+      </button>
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="다크/라이트 모드 전환">☀</button>
       <div class="kebab-wrap">
         <button class="kebab-btn" id="kebabBtn" onclick="toggleKebab()" title="바로가기">⋮</button>
@@ -68,14 +71,61 @@ function toggleKebab() {
   document.getElementById('kebabDropdown').classList.toggle('open');
 }
 
+// ─── Mobile Menu ─────────────────────────────────────────
+function toggleMobileMenu() {
+  const nav = document.querySelector('.topnav');
+  const btn = document.getElementById('mobileMenuBtn');
+  const isOpen = nav.classList.toggle('nav-open');
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  btn.setAttribute('title', isOpen ? '메뉴 닫기' : '메뉴 열기');
+  // Close kebab if open
+  document.getElementById('kebabDropdown').classList.remove('open');
+}
+
+function closeMobileMenu() {
+  const nav = document.querySelector('.topnav');
+  const btn = document.getElementById('mobileMenuBtn');
+  if (nav) nav.classList.remove('nav-open');
+  if (btn) {
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('title', '메뉴 열기');
+  }
+}
+
 // ─── Init after DOM ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
   updateThemeIcon();
+
   document.addEventListener('click', function (e) {
+    // Close kebab when clicking outside
     const wrap = document.querySelector('.kebab-wrap');
     const dropdown = document.getElementById('kebabDropdown');
     if (wrap && dropdown && !wrap.contains(e.target)) {
       dropdown.classList.remove('open');
     }
+
+    // Close mobile menu when clicking outside topnav
+    const nav = document.querySelector('.topnav');
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    if (nav && nav.classList.contains('nav-open') && !nav.contains(e.target)) {
+      closeMobileMenu();
+    }
   });
+
+  // Close mobile menu on resize to desktop width
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 768) {
+      closeMobileMenu();
+    }
+  });
+
+  // Close mobile menu when a nav item is clicked
+  const navTools = document.getElementById('navTools');
+  if (navTools) {
+    navTools.addEventListener('click', function (e) {
+      if (e.target.closest('.nav-item')) {
+        closeMobileMenu();
+      }
+    });
+  }
 });

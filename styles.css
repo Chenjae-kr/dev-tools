@@ -302,6 +302,127 @@ body::before {
   flex-shrink: 0;
 }
 
+/* ─── Mobile Menu Button ─────────────────────────────────── */
+.mobile-menu-btn {
+  display: none;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  align-items: center; justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.mobile-menu-btn:hover {
+  background: var(--surface2);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(79,255,176,0.15);
+}
+
+[data-theme="light"] .mobile-menu-btn:hover { box-shadow: 0 0 10px rgba(0,184,122,0.15); }
+
+/* Animated hamburger icon */
+.mobile-menu-icon,
+.mobile-menu-icon::before,
+.mobile-menu-icon::after {
+  display: block;
+  width: 16px;
+  height: 2px;
+  background: var(--text-dim);
+  border-radius: 2px;
+  transition: all 0.25s ease;
+}
+
+.mobile-menu-icon { position: relative; }
+
+.mobile-menu-icon::before,
+.mobile-menu-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+.mobile-menu-icon::before { top: -5px; }
+.mobile-menu-icon::after  { top: 5px; }
+
+.mobile-menu-btn:hover .mobile-menu-icon,
+.mobile-menu-btn:hover .mobile-menu-icon::before,
+.mobile-menu-btn:hover .mobile-menu-icon::after {
+  background: var(--text);
+}
+
+/* Animate to X when open */
+.topnav.nav-open .mobile-menu-icon {
+  background: transparent;
+}
+
+.topnav.nav-open .mobile-menu-icon::before {
+  top: 0;
+  transform: rotate(45deg);
+  background: var(--accent);
+}
+
+.topnav.nav-open .mobile-menu-icon::after {
+  top: 0;
+  transform: rotate(-45deg);
+  background: var(--accent);
+}
+
+/* ─── Mobile Nav Drawer ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+  }
+
+  .nav-tools {
+    display: none;
+    position: absolute;
+    top: var(--nav-h);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    z-index: 99;
+    overflow: visible;
+    animation: none;
+  }
+
+  .topnav.nav-open .nav-tools {
+    display: flex;
+    animation: mobileNavSlideIn 0.2s ease forwards;
+  }
+
+  .nav-tools .nav-item {
+    padding: 11px 14px;
+    font-size: 13px;
+    background: var(--surface);
+    border-color: var(--border);
+    border-radius: 10px;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .nav-tools .nav-item:hover {
+    background: var(--surface2);
+  }
+}
+
+[data-theme="light"] .topnav.nav-open .nav-tools {
+  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+}
+
+@keyframes mobileNavSlideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ─── Tool Header ────────────────────────────────────────── */
 .tool-header {
   padding: 28px 0 20px;
