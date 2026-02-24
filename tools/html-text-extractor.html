@@ -61,11 +61,9 @@ function loadSample(){
   extractTextNow();
 }
 
-document.getElementById('fileInput').addEventListener('change', e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=ev=>{ document.getElementById('htmlInput').value = ev.target.result || ''; extractTextNow(); };
-  r.readAsText(f, 'utf-8');
+UIUtils.wireTextFileInput('fileInput', (text) => {
+  document.getElementById('htmlInput').value = text;
+  extractTextNow();
 });
 
 function shouldSkipElement(el){
@@ -131,12 +129,7 @@ function extractTextNow(){
 function copyOut(){ if(!lastText) return; navigator.clipboard.writeText(lastText); }
 function downloadOut(){
   if(!lastText) return;
-  const blob = new Blob([lastText], { type:'text/plain;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `extracted_${Date.now()}.txt`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  UIUtils.downloadTextFile(lastText, `extracted_${Date.now()}.txt`, 'text/plain;charset=utf-8');
 }
 </script>
 </body>

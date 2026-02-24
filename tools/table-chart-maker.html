@@ -7,6 +7,7 @@
 <script src="../tools.js"></script>
 <script src="../nav.js"></script>
 <script src="../image-tools-utils.js"></script>
+<script src="../ui-utils.js"></script>
 <link rel="stylesheet" href="../styles.css">
 <style>
 .setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
@@ -253,19 +254,22 @@ function loadSample(){
   }
 }
 
-document.getElementById('fileInput').addEventListener('change', e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader(); r.onload=ev=>{ document.getElementById('sourceText').value = ev.target.result || ''; renderChart(); }; r.readAsText(f,'utf-8');
+UIUtils.wireTextFileInput('fileInput', (text) => {
+  document.getElementById('sourceText').value = text;
+  renderChart();
 });
-document.querySelectorAll('.src-btn').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.src-btn').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active'); sourceType=b.dataset.src;
-  document.getElementById('sourceText').placeholder = sourceType==='json'
-    ? '[{"label":"A","value":40},{"label":"B","value":30}]'
-    : 'label,value\nA,40\nB,30';
+
+UIUtils.bindToggleGroup('.src-btn', {
+  onChange: (btn) => {
+    sourceType = btn.dataset.src;
+    document.getElementById('sourceText').placeholder = sourceType==='json'
+      ? '[{"label":"A","value":40},{"label":"B","value":30}]'
+      : 'label,value\nA,40\nB,30';
+  }
 });
-document.querySelectorAll('.type-btn').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.type-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); chartType=b.dataset.type; renderChart(); });
-document.querySelectorAll('.fmt-btn').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.fmt-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); exportFormat=b.dataset.fmt; });
+
+UIUtils.bindToggleGroup('.type-btn', { onChange: (btn) => { chartType = btn.dataset.type; renderChart(); } });
+UIUtils.bindToggleGroup('.fmt-btn', { onChange: (btn) => { exportFormat = btn.dataset.fmt; } });
 ['sourceText','chartTitle','seriesColor','outW','outH','fontScale','bgColor'].forEach(id=>document.getElementById(id).addEventListener('input', ()=>renderChart()));
 
 loadSample();

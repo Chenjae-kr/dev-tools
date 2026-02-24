@@ -60,11 +60,50 @@
       </div>`;
   }
 
+  function bindToggleGroup(selector, { activeClass = 'active', onChange } = {}) {
+    const buttons = [...document.querySelectorAll(selector)];
+    function setActive(btn) {
+      buttons.forEach(b => b.classList.remove(activeClass));
+      btn.classList.add(activeClass);
+      if (typeof onChange === 'function') onChange(btn);
+    }
+    buttons.forEach(btn => btn.addEventListener('click', () => setActive(btn)));
+    return {
+      buttons,
+      get active() { return buttons.find(b => b.classList.contains(activeClass)); },
+      setBy(predicate) { const target = buttons.find(predicate); if (target) setActive(target); },
+    };
+  }
+
+  function wireTextFileInput(inputId, onLoad, encoding = 'utf-8') {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.addEventListener('change', e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => onLoad && onLoad(ev.target.result || '', file);
+      reader.readAsText(file, encoding);
+    });
+  }
+
+  function downloadTextFile(text, filename = 'output.txt', mime = 'text/plain;charset=utf-8') {
+    const blob = new Blob([String(text ?? '')], { type: mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   window.UIUtils = {
     escHtml,
     showError,
     copyTextWithFeedback,
     copyElementText,
     renderSqlBlock,
+    bindToggleGroup,
+    wireTextFileInput,
+    downloadTextFile,
   };
 })();

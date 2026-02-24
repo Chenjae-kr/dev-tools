@@ -6,6 +6,7 @@
 <title>HTML Tag Analyzer | Dev Tools</title>
 <script src="../tools.js"></script>
 <script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
 <link rel="stylesheet" href="../styles.css">
 <style>
 .setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
@@ -91,11 +92,9 @@ function loadSample(){
   analyze();
 }
 
-document.getElementById('fileInput').addEventListener('change', e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=ev=>{ document.getElementById('htmlInput').value = ev.target.result || ''; analyze(); };
-  r.readAsText(f,'utf-8');
+UIUtils.wireTextFileInput('fileInput', (text) => {
+  document.getElementById('htmlInput').value = text;
+  analyze();
 });
 
 document.getElementById('htmlInput').addEventListener('input', ()=>{ selectedTag=null; analyze(); });
