@@ -64,7 +64,19 @@
           </div>
         </div>
 
-        <button class="generate-btn" onclick="generateCRUD()">⚡ GENERATE CRUD</button>
+        <div class="options-bar" style="border-top:none; padding-top:0;">
+          <span class="options-label">Queries</span>
+          <div class="crud-group">
+            <button class="crud-toggle active" data-crud="CREATE">CREATE</button>
+            <button class="crud-toggle active" data-crud="INSERT">INSERT</button>
+            <button class="crud-toggle active" data-crud="SELECT">SELECT</button>
+            <button class="crud-toggle active" data-crud="UPDATE">UPDATE</button>
+            <button class="crud-toggle active" data-crud="DELETE">DELETE</button>
+          </div>
+          <button class="all-toggle" id="allToggle">전체해제</button>
+        </div>
+
+        <button class="generate-btn" onclick="generateCRUD()">⚡ SQL 생성</button>
       </div>
     </div>
 
@@ -83,12 +95,31 @@
 
 <script>
 let selectedDialect = 'mysql';
+let selectedCrud = new Set(['CREATE','INSERT','SELECT','UPDATE','DELETE']);
+
 document.querySelectorAll('.dialect-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.dialect-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedDialect = btn.dataset.dialect;
   });
+});
+
+document.querySelectorAll('.crud-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const t = btn.dataset.crud;
+    if (selectedCrud.has(t)) { selectedCrud.delete(t); btn.classList.remove('active'); }
+    else { selectedCrud.add(t); btn.classList.add('active'); }
+    document.getElementById('allToggle').textContent = selectedCrud.size === 5 ? '전체해제' : '전체선택';
+  });
+});
+
+document.getElementById('allToggle').addEventListener('click', () => {
+  const allOn = selectedCrud.size === 5;
+  if (allOn) selectedCrud.clear();
+  else ['CREATE','INSERT','SELECT','UPDATE','DELETE'].forEach(t => selectedCrud.add(t));
+  document.querySelectorAll('.crud-toggle').forEach(b => b.classList.toggle('active', selectedCrud.has(b.dataset.crud)));
+  document.getElementById('allToggle').textContent = selectedCrud.size === 5 ? '전체해제' : '전체선택';
 });
 
 const escHtml = UIUtils.escHtml;
@@ -115,6 +146,41 @@ function toSqlValue(v) {
     return v ? '1' : '0';
   }
   return `'${String(v).replace(/'/g, "''")}'`;
+}
+
+function inferColumnType(v) {
+  if (typeof v === 'number') {
+    if (Number.isInteger(v)) return selectedDialect === 'oracle' ? 'NUMBER(10)' : 'INT';
+    return selectedDialect === 'oracle' ? 'NUMBER(18,4)' : 'DECIMAL(18,4)';
+  }
+  if (typeof v === 'boolean') {
+    if (selectedDialect === 'postgresql') return 'BOOLEAN';
+    if (selectedDialect === 'oracle') return 'NUMBER(1)';
+    return 'TINYINT(1)';
+  }
+  if (v instanceof Date) return selectedDialect === 'postgresql' ? 'TIMESTAMP' : 'DATETIME';
+  if (v === null || v === undefined) return 'VARCHAR(255)';
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}:\d{2})?$/.test(s)) {
+    if (selectedDialect === 'oracle') return 'DATE';
+    if (selectedDialect === 'postgresql') return 'TIMESTAMP';
+    return 'DATETIME';
+  }
+  return s.length > 255 ? (selectedDialect === 'oracle' ? 'CLOB' : 'TEXT') : 'VARCHAR(255)';
+}
+
+function buildCreateSql(tableName, keys, parsed, pkCols) {
+  const tbl = quoteIdent(tableName);
+  const defs = keys.map(k => {
+    const col = quoteIdent(k);
+    const type = inferColumnType(parsed[k]);
+    const notNull = pkCols.includes(k) ? ' NOT NULL' : '';
+    return `  ${col} ${type}${notNull}`;
+  });
+  if (pkCols.length) {
+    defs.push(`  PRIMARY KEY (${pkCols.map(quoteIdent).join(', ')})`);
+  }
+  return `CREATE TABLE ${tbl} (\n${defs.join(',\n')}\n);`;
 }
 
 function generateCRUD() {
@@ -146,20 +212,21 @@ function generateCRUD() {
     const updateSet = (setCols.length ? setCols : keys)
       .map(k => `${quoteIdent(k)} = ${toSqlValue(parsed[k])}`).join(', ');
 
+    if (!selectedCrud.size) throw new Error('생성할 쿼리를 1개 이상 선택해주세요.');
+
+    const createSql = buildCreateSql(tableNameRaw, keys, parsed, pkCols);
     const selectSql = `SELECT ${cols.join(', ')}\nFROM ${tbl}\nWHERE ${whereClause};`;
     const insertSql = `INSERT INTO ${tbl} (${cols.join(', ')})\nVALUES (${vals.join(', ')});`;
     const updateSql = `UPDATE ${tbl}\nSET ${updateSet}\nWHERE ${whereClause};`;
     const deleteSql = `DELETE FROM ${tbl}\nWHERE ${whereClause};`;
 
-    const sql = [
-      '-- SELECT', selectSql,
-      '',
-      '-- INSERT', insertSql,
-      '',
-      '-- UPDATE', updateSql,
-      '',
-      '-- DELETE', deleteSql
-    ].join('\n');
+    const parts = [];
+    if (selectedCrud.has('CREATE')) parts.push('-- CREATE TABLE', createSql);
+    if (selectedCrud.has('SELECT')) parts.push('-- SELECT', selectSql);
+    if (selectedCrud.has('INSERT')) parts.push('-- INSERT', insertSql);
+    if (selectedCrud.has('UPDATE')) parts.push('-- UPDATE', updateSql);
+    if (selectedCrud.has('DELETE')) parts.push('-- DELETE', deleteSql);
+    const sql = parts.join('\n\n');
 
     const blockId = 'crud_' + Date.now();
     out.innerHTML = renderSqlBlock({
