@@ -17,6 +17,14 @@
 .setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2)}
 .setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
 .setting-group .options-bar{border-top:none !important;padding:4px 0 !important;gap:8px;flex-wrap:wrap}
+.export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.export-btn{border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.export-btn.save{background:linear-gradient(135deg,#1d7a4c,#1fbf75);color:#fff;border-color:rgba(31,191,117,.45)}
+.export-btn.single{background:linear-gradient(135deg,#0f4db8,#2a77ff);color:#fff;border-color:rgba(66,135,255,.45)}
+.export-btn.all{background:linear-gradient(135deg,#5a3bb2,#7a5cff);color:#fff;border-color:rgba(122,92,255,.45)}
+.export-btn:hover{transform:translateY(-1px);filter:brightness(1.03)}
+.export-btn:active{transform:translateY(0)}
+@media (max-width: 768px){.export-actions{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -154,10 +162,10 @@
             <span class="options-label">Quality</span>
             <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input small">
           </div>
-          <div class="options-bar" style="border-top:none;padding-top:0;">
-            <button class="generate-btn" onclick="savePage()">💾 페이지 저장</button>
-            <button class="generate-btn" onclick="downloadCurrent()">⬇ 현재 다운로드</button>
-            <button class="generate-btn" onclick="downloadAll()">⬇ 전체 다운로드</button>
+          <div class="export-actions">
+            <button class="export-btn save" onclick="savePage()">💾 페이지 저장</button>
+            <button class="export-btn single" onclick="downloadCurrent()">⬇ 현재 다운로드</button>
+            <button class="export-btn all" onclick="downloadAll()">⬇ 전체 다운로드</button>
           </div>
         </div>
       </div>
