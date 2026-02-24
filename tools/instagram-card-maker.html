@@ -189,6 +189,11 @@
           <div class="options-bar" style="border-top:none;padding-top:0;">
             <span class="options-label">Watermark</span>
             <input id="brandText" class="table-name-input" value="@instagram" placeholder="@your_brand">
+            <span class="options-label">Paging</span>
+            <div class="toggle-group">
+              <button class="toggle-btn pagewm-btn active" data-pagewm="on">ON</button>
+              <button class="toggle-btn pagewm-btn" data-pagewm="off">OFF</button>
+            </div>
           </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
@@ -243,7 +248,7 @@ let exportFormat='png';
 let tableSepMode='auto';
 let tableInputMode='text';
 
-function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -269,6 +274,8 @@ function fillInputsFromPage(){
   document.getElementById('bodyScale').value=p.bodyScale ?? 100;
   document.getElementById('sourceText').value=p.source||'출처: 관련 자료';
   document.getElementById('brandText').value=p.brand||'@instagram';
+  const pagewm = p.showPage === false ? 'off' : 'on';
+  document.querySelectorAll('.pagewm-btn').forEach(b=>b.classList.toggle('active', b.dataset.pagewm===pagewm));
   document.getElementById('imgZoom').value=p.imgZoom ?? 100;
   document.getElementById('imgPosX').value=p.imgPosX ?? 50;
   document.getElementById('imgPosY').value=p.imgPosY ?? 50;
@@ -289,6 +296,7 @@ function savePage(){
     bodyType,
     source:document.getElementById('sourceText').value,
     brand:document.getElementById('brandText').value,
+    showPage:(document.querySelector('.pagewm-btn.active')?.dataset.pagewm || 'on') === 'on',
     h1Scale:parseInt(document.getElementById('h1Scale').value || '100',10),
     h2Scale:parseInt(document.getElementById('h2Scale').value || '100',10),
     subScale:parseInt(document.getElementById('subScale').value || '100',10),
@@ -740,7 +748,8 @@ function renderCard(){
   const brand = (p.brand || '@instagram').trim();
   ctx.fillStyle='rgba(5,10,25,0.9)'; ctx.fillRect(panelX,panelY+panelH-fh,panelW,fh);
   ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.font='600 16px Pretendard, sans-serif'; ctx.fillText(source, panelX+12,panelY+panelH-11);
-  ctx.textAlign='right'; ctx.font='700 18px JetBrains Mono, sans-serif'; ctx.fillText(`${brand}  ${page}/${pages.length}`, panelX+panelW-12,panelY+panelH-11);
+  const wmText = p.showPage === false ? `${brand}` : `${brand}  ${page}/${pages.length}`;
+  ctx.textAlign='right'; ctx.font='700 18px JetBrains Mono, sans-serif'; ctx.fillText(wmText, panelX+panelW-12,panelY+panelH-11);
 }
 
 function getExportOptions(){
@@ -789,6 +798,7 @@ document.querySelectorAll('.tblmode-btn').forEach(b=>b.onclick=()=>{
   else syncTextFromGrid(false);
 });
 document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
 ['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
@@ -808,6 +818,7 @@ pages[0]={
   label:'2026년 IPO 예상 주요 기업',
   source:'출처: 관련 언론보도',
   brand:'@instagram',
+  showPage:true,
   h1Scale:100,
   h2Scale:100,
   subScale:100,
