@@ -87,4 +87,13 @@ const TOOLS = [
     tags:   ['Format', 'Lint', 'MySQL', 'PostgreSQL', 'Oracle'],
     footer: 'SQL → Format · Quick Safety Lint',
   },
+  {
+    href:   'cron-builder.html',
+    label:  'Cron Builder',
+    icon:   'CRON',
+    title:  'Cron Builder & Humanize',
+    desc:   'Linux 5-field cron 식을 빠르게 생성하고 자연어 해석을 제공합니다. 자주 쓰는 프리셋(매 5분, 평일 9시 등)과 복사 버튼 지원.',
+    tags:   ['Cron', 'Schedule', 'Humanize', 'Preset'],
+    footer: 'Cron → Build · Explain',
+  },
 ];
