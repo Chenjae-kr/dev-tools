@@ -9,7 +9,8 @@
 <link rel="stylesheet" href="styles.css">
 <style>
 .finder{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0 16px}
-.finder input{flex:1;min-width:220px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'JetBrains Mono',monospace}
+.finder input,.finder select{flex:1;min-width:220px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'JetBrains Mono',monospace}
+.finder select{max-width:260px;flex:0 0 260px;background:var(--surface)}
 .cat-chips{display:flex;gap:8px;flex-wrap:wrap}
 .cat-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-muted);padding:7px 10px;border-radius:999px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}
 .cat-chip.active{color:var(--accent);border-color:rgba(79,255,176,.35);background:rgba(79,255,176,.08)}
@@ -48,7 +49,8 @@
   <p class="section-label">Tools</p>
 
   <div class="finder">
-    <input id="toolSearch" placeholder="툴 검색 (이름/설명/태그)">
+    <input id="toolSearch" placeholder="툴 검색 (이름/설명/태그, #태그검색 지원)">
+    <select id="tagFilter"></select>
     <div class="cat-chips" id="catChips"></div>
   </div>
 
@@ -100,14 +102,22 @@
     const groupsEl = document.getElementById('toolsGroups');
     const searchEl = document.getElementById('toolSearch');
     const chipsEl = document.getElementById('catChips');
+    const tagFilterEl = document.getElementById('tagFilter');
     const categories = (typeof TOOL_CATEGORIES !== 'undefined' && TOOL_CATEGORIES.length)
       ? TOOL_CATEGORIES
       : [...new Set(TOOLS.map(t => t.category || 'Other'))];
+    const allTags = [...new Set(TOOLS.flatMap(t => t.tags || []))].sort((a,b)=>a.localeCompare(b));
 
     let activeCategory = 'ALL';
 
     function matchesQuery(tool, q){
       if(!q) return true;
+      const tags = (tool.tags || []).map(t => t.toLowerCase());
+      if (q.startsWith('#')) {
+        const needle = q.slice(1).trim();
+        if (!needle) return true;
+        return tags.some(t => t.includes(needle));
+      }
       const hay = [tool.title, tool.label, tool.desc, ...(tool.tags||[])].join(' ').toLowerCase();
       return hay.includes(q);
     }
@@ -124,11 +134,13 @@
 
     function renderGroups(){
       const q = (searchEl.value || '').trim().toLowerCase();
+      const selectedTag = tagFilterEl.value || '';
 
       groupsEl.innerHTML = categories.map(cat => {
         const tools = TOOLS
           .filter(t => (t.category || 'Other') === cat)
           .filter(t => activeCategory === 'ALL' || activeCategory === cat)
+          .filter(t => !selectedTag || (t.tags || []).includes(selectedTag))
           .filter(t => matchesQuery(t, q));
 
         if (!tools.length) return '';
@@ -148,9 +160,15 @@
       }
     }
 
+    function renderTagFilter(){
+      tagFilterEl.innerHTML = [`<option value="">태그 전체</option>`, ...allTags.map(t=>`<option value="${t}">#${t}</option>`)].join('');
+    }
+
+    renderTagFilter();
     renderChips();
     renderGroups();
     searchEl.addEventListener('input', renderGroups);
+    tagFilterEl.addEventListener('change', renderGroups);
 
     document.getElementById('toolCount').textContent = TOOLS.length;
     document.getElementById('categoryCount').textContent = categories.filter(cat => TOOLS.some(t => (t.category || 'Other') === cat)).length;
