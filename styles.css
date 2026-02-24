@@ -1125,16 +1125,24 @@ footer {
   border-color: rgba(0,184,122,0.2);
 }
 
+/* Category-linked icon tones */
+.tool-card.cat-sql-db .card-icon { background: rgba(59,130,246,.16); border-color: rgba(96,165,250,.45); color: #93c5fd; }
+.tool-card.cat-data-format .card-icon { background: rgba(139,92,246,.16); border-color: rgba(167,139,250,.45); color: #c4b5fd; }
+.tool-card.cat-image .card-icon { background: rgba(16,185,129,.16); border-color: rgba(52,211,153,.45); color: #86efac; }
+.tool-card.cat-text-compare .card-icon { background: rgba(245,158,11,.16); border-color: rgba(251,191,36,.45); color: #fde68a; }
+.tool-card.cat-utility .card-icon { background: rgba(239,68,68,.16); border-color: rgba(248,113,113,.45); color: #fca5a5; }
+
 .tool-card:hover .card-icon {
   background: rgba(79,255,176,0.16);
   border-color: rgba(79,255,176,0.4);
   box-shadow: 0 0 16px rgba(79,255,176,0.2);
 }
 
-[data-theme="light"] .tool-card:hover .card-icon {
-  background: rgba(0,184,122,0.14);
-  border-color: rgba(0,184,122,0.35);
-}
+.tool-card.cat-sql-db:hover .card-icon { background: rgba(59,130,246,.24); border-color: rgba(96,165,250,.7); box-shadow: 0 0 16px rgba(59,130,246,.28); }
+.tool-card.cat-data-format:hover .card-icon { background: rgba(139,92,246,.24); border-color: rgba(167,139,250,.7); box-shadow: 0 0 16px rgba(139,92,246,.28); }
+.tool-card.cat-image:hover .card-icon { background: rgba(16,185,129,.24); border-color: rgba(52,211,153,.7); box-shadow: 0 0 16px rgba(16,185,129,.28); }
+.tool-card.cat-text-compare:hover .card-icon { background: rgba(245,158,11,.24); border-color: rgba(251,191,36,.7); box-shadow: 0 0 16px rgba(245,158,11,.28); }
+.tool-card.cat-utility:hover .card-icon { background: rgba(239,68,68,.24); border-color: rgba(248,113,113,.7); box-shadow: 0 0 16px rgba(239,68,68,.28); }
 
 .card-arrow {
   font-family: 'JetBrains Mono', monospace;
