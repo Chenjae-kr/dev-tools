@@ -112,6 +112,7 @@
 .split-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px}
 .split-cell{padding:6px 10px;white-space:pre;overflow:auto}
 .split-old{border-right:1px solid var(--border)}
+.change-line.active-change{outline:1px solid var(--accent);box-shadow:inset 0 0 0 1px rgba(79,255,176,.25)}
 </style>
 </head>
 <body>
@@ -163,6 +164,11 @@
         <button class="toggle-btn active" data-trim="on">공백 무시</button>
         <button class="toggle-btn" data-trim="off">공백 포함</button>
       </div>
+      <span class="options-label">변경 이동</span>
+      <div class="toggle-group">
+        <button class="toggle-btn" onclick="jumpChange(-1)">이전</button>
+        <button class="toggle-btn" onclick="jumpChange(1)">다음</button>
+      </div>
     </div>
 
     <div class="options-bar row-tight">
@@ -196,6 +202,7 @@ let trimWhitespace = true;
 let diffMode = 'text';
 let viewMode = 'unified';
 let lastPatchText = '';
+let changeCursor = -1;
 
 document.querySelectorAll('[data-ctx]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -346,7 +353,8 @@ function renderLine(l) {
   const body = (l.type === 'add' || l.type === 'del') && l.pair != null
     ? highlightInline(l.type === 'del' ? l.val : l.pair, l.type === 'add' ? l.val : l.pair, l.type)
     : escHtml(l.val);
-  return `<div class="diff-line ${cls}"><span class="diff-line-num">${numStr}</span><span class="diff-line-content">${sign} ${body}</span></div>`;
+  const marker = l.type === 'add' || l.type === 'del' ? 'change-line' : '';
+  return `<div class="diff-line ${cls} ${marker}"><span class="diff-line-num">${numStr}</span><span class="diff-line-content">${sign} ${body}</span></div>`;
 }
 
 function attachPairs(lines){
@@ -364,12 +372,12 @@ function renderSplit(lines){
       html += `<div class="split-row"><div class="split-cell split-old diff-ctx">${escHtml(l.val)}</div><div class="split-cell diff-ctx">${escHtml(l.val)}</div></div>`;
     } else if(l.type==='del' && i+1<lines.length && lines[i+1].type==='add'){
       const n=lines[i+1];
-      html += `<div class="split-row"><div class="split-cell split-old diff-del">${highlightInline(l.val,n.val,'del')}</div><div class="split-cell diff-add">${highlightInline(l.val,n.val,'add')}</div></div>`;
+      html += `<div class="split-row change-line"><div class="split-cell split-old diff-del">${highlightInline(l.val,n.val,'del')}</div><div class="split-cell diff-add">${highlightInline(l.val,n.val,'add')}</div></div>`;
       i++;
     } else if(l.type==='del'){
-      html += `<div class="split-row"><div class="split-cell split-old diff-del">${escHtml(l.val)}</div><div class="split-cell"></div></div>`;
+      html += `<div class="split-row change-line"><div class="split-cell split-old diff-del">${escHtml(l.val)}</div><div class="split-cell"></div></div>`;
     } else if(l.type==='add'){
-      html += `<div class="split-row"><div class="split-cell split-old"></div><div class="split-cell diff-add">${escHtml(l.val)}</div></div>`;
+      html += `<div class="split-row change-line"><div class="split-cell split-old"></div><div class="split-cell diff-add">${escHtml(l.val)}</div></div>`;
     }
   }
   return html;
@@ -422,6 +430,7 @@ function runDiff() {
       lastPatchText = buildUnifiedPatch(ops);
 
       if (!hasChanges) {
+        changeCursor = -1;
         output.innerHTML = `
           <div class="panel">
             <div class="diff-identical">✓ 두 텍스트가 동일합니다</div>
@@ -454,6 +463,7 @@ function runDiff() {
           copyHandler: `copyDiff('${blockId}')`,
           bodyHtml,
         });
+        changeCursor = -1;
       }
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ ${escHtml(e.message)}</div>`;
@@ -468,6 +478,16 @@ function runDiff() {
 function copyDiff(id) {
   const btn = document.getElementById(`copy_${id}`);
   UIUtils.copyTextWithFeedback(lastPatchText || '', btn, 'COPY PATCH');
+}
+
+function jumpChange(dir = 1){
+  const lines = [...document.querySelectorAll('#outputPanel .change-line')];
+  if (!lines.length) return;
+  changeCursor = (changeCursor + dir + lines.length) % lines.length;
+  lines.forEach(l => l.classList.remove('active-change'));
+  const target = lines[changeCursor];
+  target.classList.add('active-change');
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // Ctrl/Cmd + Enter

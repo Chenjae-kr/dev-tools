@@ -37,6 +37,7 @@
 .matrix-grid .matrix-cell input{width:100%;min-width:0}
 .matrix-grid .matrix-head input{font-weight:700}
 .table-grid-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)}
+#presetSelect{max-width:220px}
 @media (max-width: 980px){.table-dual{grid-template-columns:1fr}.control-grid-4{grid-template-columns:1fr 1fr}}
 @media (max-width: 640px){.control-grid-4,.control-grid-2{grid-template-columns:1fr}}
 .export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
@@ -263,6 +264,14 @@
             <span class="options-label">Quality</span>
             <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input small">
           </div>
+          <div class="options-bar row-tight">
+            <span class="options-label">Preset</span>
+            <input id="presetName" class="table-name-input input-md" placeholder="프리셋 이름">
+            <button class="toggle-btn" onclick="savePreset()">저장</button>
+            <select id="presetSelect" class="table-name-input"></select>
+            <button class="toggle-btn" onclick="loadPreset()">불러오기</button>
+            <button class="toggle-btn" onclick="deletePreset()">삭제</button>
+          </div>
           <div class="export-actions">
             <button class="export-btn save" onclick="savePage()">💾 페이지 저장</button>
             <button class="export-btn single" onclick="downloadCurrent()">⬇ 현재 다운로드</button>
@@ -293,11 +302,68 @@ let page=1, pages=[{}], bodyType='text';
 let exportFormat='png';
 let tableSepMode='auto';
 let tableInputMode='text';
+const PRESET_KEY='insta-card-presets-v1';
 
 function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',bodyBgMode:'solid',bodyBgColor:'#ffffff',bodyBgOpacity:100,bodyBgImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
+
+function getPresets(){
+  try { return JSON.parse(localStorage.getItem(PRESET_KEY) || '{}'); }
+  catch { return {}; }
+}
+function setPresets(obj){ localStorage.setItem(PRESET_KEY, JSON.stringify(obj)); }
+function refreshPresetSelect(){
+  const sel=document.getElementById('presetSelect');
+  const presets=getPresets();
+  const names=Object.keys(presets).sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML = `<option value="">프리셋 선택</option>` + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+}
+function collectPreset(){
+  return {
+    sizeKey, themeKey, bgMode, exportFormat,
+    bgColor:document.getElementById('bgColor').value,
+    titleColor1:document.getElementById('titleColor1').value,
+    titleColor2:document.getElementById('titleColor2').value,
+    imgQuality:parseInt(document.getElementById('imgQuality').value||'92',10),
+  };
+}
+function applyPreset(v){
+  if(!v) return;
+  sizeKey=v.sizeKey||sizeKey; themeKey=v.themeKey||themeKey; bgMode=v.bgMode||bgMode; exportFormat=v.exportFormat||exportFormat;
+  if(v.bgColor) document.getElementById('bgColor').value=v.bgColor;
+  if(v.titleColor1) document.getElementById('titleColor1').value=v.titleColor1;
+  if(v.titleColor2) document.getElementById('titleColor2').value=v.titleColor2;
+  if(v.imgQuality!=null) document.getElementById('imgQuality').value=v.imgQuality;
+  document.querySelectorAll('.size-btn').forEach(b=>b.classList.toggle('active', b.dataset.size===sizeKey));
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active', b.dataset.theme===themeKey));
+  document.querySelectorAll('.bgmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.bgmode===bgMode));
+  document.querySelectorAll('.exfmt-btn').forEach(b=>b.classList.toggle('active', b.dataset.fmt===exportFormat));
+  document.getElementById('bgImageInput').classList.toggle('hidden', bgMode!=='image');
+  renderCard();
+}
+function savePreset(){
+  const name=(document.getElementById('presetName').value||'').trim();
+  if(!name) return;
+  const presets=getPresets();
+  presets[name]=collectPreset();
+  setPresets(presets); refreshPresetSelect();
+  document.getElementById('presetSelect').value=name;
+}
+function loadPreset(){
+  const name=document.getElementById('presetSelect').value;
+  if(!name) return;
+  const presets=getPresets();
+  applyPreset(presets[name]);
+}
+function deletePreset(){
+  const name=document.getElementById('presetSelect').value;
+  if(!name) return;
+  const presets=getPresets();
+  delete presets[name];
+  setPresets(presets); refreshPresetSelect();
+}
 
 function setBodyUI(){
   document.getElementById('bodyTextWrap').classList.toggle('hidden', bodyType!=='text');
@@ -977,7 +1043,7 @@ pages[0]={
   bodyBgOpacity:100,
   bodyBgImageData:''
 };
-fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); syncGridFromText(false); renderCard();
+fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncGridFromText(false); renderCard();
 </script>
 </body>
 </html>

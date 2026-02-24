@@ -132,6 +132,7 @@
 .preview-table td { padding:6px; border-bottom:1px solid var(--border); }
 .preview-table .empty { padding:8px; }
 .info-gap { margin-left:8px; }
+.dup-warn { margin:10px 0 12px; padding:10px 12px; border:1px solid rgba(251,191,36,.4); background:rgba(251,191,36,.10); border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#fef3c7; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 </style>
 </head>
 <body>
@@ -285,6 +286,7 @@ let upsertMode = 'off';
 let inputMode = 'csv';
 let columnMappings = [];
 let lastHeaderSignature = '';
+let lastDuplicateRows = [];
 
 // ─── Toggle handlers ─────────────────────────────────────
 function refreshUpsertUI() {
@@ -655,6 +657,23 @@ function buildUpsertClause(headers, dialect, keyHeaders) {
   return '';
 }
 
+function detectDuplicateRows(headers, rows, keyHeaders) {
+  if (!keyHeaders.length) return [];
+  const keyIdx = keyHeaders.map(k => headers.indexOf(k)).filter(i => i >= 0);
+  if (!keyIdx.length) return [];
+  const map = new Map();
+  rows.forEach((row, i) => {
+    const key = keyIdx.map(idx => (row[idx] ?? '').trim()).join('│');
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(i + 1);
+  });
+  const dups = [];
+  for (const [k, indexes] of map.entries()) {
+    if (indexes.length > 1) dups.push({ key: k, indexes });
+  }
+  return dups;
+}
+
 function buildOracleMergeStatement(tbl, headers, row, keyHeaders, useNull) {
   const quotedHeaders = headers.map(h => quoteIdent(h, 'oracle'));
   const sourceSelect = headers.map((h, idx) => `${formatValue(row[idx], 'oracle', useNull)} <span class="kw">AS</span> ${quoteIdent(h, 'oracle')}`).join(', ');
@@ -760,6 +779,12 @@ function generate() {
       const previewHead = mappedHeaders.map(h => `<th>${escHtml(h)}</th>`).join('');
       const previewBody = previewRows.map(r => `<tr>${r.map(v => `<td>${escHtml(v)}</td>`).join('')}</tr>`).join('');
 
+      const dupGroups = upsertMode === 'on' ? detectDuplicateRows(mappedHeaders, mappedRows, keyHeaders) : [];
+      lastDuplicateRows = dupGroups;
+      const dupWarnHtml = dupGroups.length
+        ? `<div class="dup-warn">⚠ 중복키 ${dupGroups.length}건 감지 (입력 행 기준).<button class="copy-btn" onclick="downloadDuplicateRows()">중복행 다운로드</button></div>`
+        : '';
+
       output.innerHTML = `
         <div class="panel sql-block">
           <div class="sql-block-header">
@@ -774,6 +799,7 @@ function generate() {
             <span class="info-gap">ROWS</span> ${mappedRows.length}
             <span class="info-gap">CHUNK</span> ${chunkSize}
           </div>
+          ${dupWarnHtml}
           <div class="preview-wrap">
             <table class="preview-table">
               <thead><tr>${previewHead}</tr></thead>
@@ -808,6 +834,21 @@ function downloadSQL(id) {
   document.body.appendChild(a);
   a.click();
   a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadDuplicateRows() {
+  if (!lastDuplicateRows.length) return;
+  const lines = ['duplicate_key,rows'];
+  lastDuplicateRows.forEach(d => {
+    const key = `"${String(d.key).replace(/"/g, '""')}"`;
+    lines.push(`${key},"${d.indexes.join(',')}"`);
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `duplicate_rows_${Date.now()}.csv`;
+  a.click();
   URL.revokeObjectURL(a.href);
 }
 
