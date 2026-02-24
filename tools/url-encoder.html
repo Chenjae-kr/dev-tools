@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL Encoder / Decoder | Dev Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<script>renderNav();</script>
+
+<div class="container">
+  <div class="tool-header">
+    <h1>URL <span>Encoder / Decoder</span></h1>
+    <p>// URL 인코딩·디코딩, 쿼리 파라미터 분석 및 재조합을 지원합니다</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT: Input Panel -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot"></div>
+            INPUT
+          </div>
+        </div>
+
+        <textarea class="ddl-textarea" id="urlInput" placeholder="https://example.com/search?q=hello world&lang=한국어"></textarea>
+
+        <!-- Mode -->
+        <div class="options-bar">
+          <span class="options-label">Mode</span>
+          <div class="toggle-group">
+            <button class="toggle-btn active" data-mode="encode">Encode</button>
+            <button class="toggle-btn" data-mode="decode">Decode</button>
+            <button class="toggle-btn" data-mode="parse">Parse</button>
+          </div>
+        </div>
+
+        <!-- Scope (only for encode/decode) -->
+        <div class="options-bar" id="scopeBar">
+          <span class="options-label">Scope</span>
+          <div class="toggle-group">
+            <button class="toggle-btn active" data-scope="component">Component</button>
+            <button class="toggle-btn" data-scope="full">Full URI</button>
+          </div>
+        </div>
+
+        <button class="generate-btn" id="runBtn" onclick="run()">
+          ⚡ 변환하기
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Output Panel -->
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">⬅</div>
+          <p>텍스트를 입력하고<br>변환하기 버튼을 누르세요</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// URL Encoder — Encode · Decode · Parse Query Params</footer>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+let mode  = 'encode';
+let scope = 'component';
+
+// ─── Mode toggle ─────────────────────────────────────────
+document.querySelectorAll('[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    mode = btn.dataset.mode;
+    document.getElementById('scopeBar').style.display = mode === 'parse' ? 'none' : '';
+  });
+});
+
+// ─── Scope toggle ─────────────────────────────────────────
+document.querySelectorAll('[data-scope]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-scope]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    scope = btn.dataset.scope;
+  });
+});
+
+// ─── Escape HTML ─────────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ─── Main ─────────────────────────────────────────────────
+function run() {
+  const raw    = document.getElementById('urlInput').value;
+  const output = document.getElementById('outputPanel');
+  const btn    = document.getElementById('runBtn');
+
+  if (!raw.trim()) {
+    output.innerHTML = `<div class="error-msg">⚠ 텍스트를 입력해주세요.</div>`;
+    return;
+  }
+
+  btn.textContent = '⏳ 변환 중...';
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    try {
+      let result = '';
+      let modeLabel = '';
+
+      if (mode === 'encode') {
+        result = scope === 'component' ? encodeURIComponent(raw) : encodeURI(raw);
+        modeLabel = scope === 'component' ? 'encodeURIComponent' : 'encodeURI';
+        renderResult(result, modeLabel);
+
+      } else if (mode === 'decode') {
+        result = scope === 'component' ? decodeURIComponent(raw) : decodeURI(raw);
+        modeLabel = scope === 'component' ? 'decodeURIComponent' : 'decodeURI';
+        renderResult(result, modeLabel);
+
+      } else {
+        renderParsed(raw);
+      }
+    } catch (e) {
+      output.innerHTML = `
+        <div class="panel sql-block">
+          <div class="sql-block-header">
+            <span class="sql-type-badge badge-delete">ERROR</span>
+          </div>
+          <div class="error-msg" style="border-radius:0;">❌ ${escHtml(e.message)}</div>
+        </div>`;
+    }
+
+    btn.textContent = '⚡ 변환하기';
+    btn.classList.remove('loading');
+  }, 20);
+}
+
+function renderResult(result, label) {
+  const output  = document.getElementById('outputPanel');
+  const blockId = `url_${Date.now()}`;
+  output.innerHTML = `
+    <div class="panel sql-block">
+      <div class="sql-block-header">
+        <span class="sql-type-badge badge-select">URL</span>
+        <span class="sql-dialect-tag">${label}</span>
+        <button class="copy-btn" id="copy_${blockId}" onclick="copyBlock('${blockId}')">COPY</button>
+      </div>
+      <pre class="sql-code" id="${blockId}">${escHtml(result)}</pre>
+    </div>`;
+}
+
+function getSearchParams(raw) {
+  const qs = raw.startsWith('?') ? raw.slice(1) : raw;
+  return new URLSearchParams(qs);
+}
+
+function renderParsed(raw) {
+  const output = document.getElementById('outputPanel');
+
+  let url;
+  try {
+    // Try parsing as full URL
+    url = new URL(raw.includes('://') ? raw : 'https://placeholder.invalid/?' + raw.replace(/^\?/, ''));
+  } catch (_) {
+    url = null;
+  }
+
+  const params = url ? url.searchParams : getSearchParams(raw);
+  const entries = [...params.entries()];
+
+  let baseHtml = '';
+  if (url && raw.includes('://')) {
+    baseHtml = `
+      <div class="url-parse-row"><span class="url-parse-key">Protocol</span><span class="url-parse-val">${escHtml(url.protocol)}</span></div>
+      <div class="url-parse-row"><span class="url-parse-key">Host</span><span class="url-parse-val">${escHtml(url.host)}</span></div>
+      ${url.pathname && url.pathname !== '/' ? `<div class="url-parse-row"><span class="url-parse-key">Path</span><span class="url-parse-val">${escHtml(url.pathname)}</span></div>` : ''}
+      ${url.hash ? `<div class="url-parse-row"><span class="url-parse-key">Hash</span><span class="url-parse-val">${escHtml(url.hash)}</span></div>` : ''}`;
+  }
+
+  const paramRows = entries.length
+    ? entries.map(([k, v]) => `
+        <div class="url-parse-row">
+          <span class="url-parse-key">${escHtml(k)}</span>
+          <span class="url-parse-val">${escHtml(v)}</span>
+        </div>`).join('')
+    : `<div class="url-parse-empty">쿼리 파라미터가 없습니다</div>`;
+
+  const blockId = `url_${Date.now()}`;
+  output.innerHTML = `
+    <div class="panel sql-block">
+      <div class="sql-block-header">
+        <span class="sql-type-badge badge-select">PARSE</span>
+        <span class="sql-dialect-tag">${entries.length} params</span>
+        <button class="copy-btn" id="copy_${blockId}" onclick="copyParsed('${blockId}')">COPY JSON</button>
+      </div>
+      <div class="url-parse-block" id="${blockId}">
+        ${baseHtml}
+        ${baseHtml ? '<div class="url-parse-divider">Query Params</div>' : ''}
+        <div class="url-parse-params">${paramRows}</div>
+      </div>
+    </div>`;
+}
+
+function copyBlock(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
+    const btn = document.getElementById(`copy_${id}`);
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+function copyParsed(id) {
+  const el = document.getElementById(id);
+  // Only copy query param rows (inside the params section, not base URL fields)
+  const paramSection = el.querySelector('.url-parse-params');
+  const source = paramSection || el;
+  const rows = source.querySelectorAll('.url-parse-row');
+  const obj = {};
+  rows.forEach(row => {
+    const k = row.querySelector('.url-parse-key').textContent;
+    const v = row.querySelector('.url-parse-val').textContent;
+    obj[k] = v;
+  });
+  navigator.clipboard.writeText(JSON.stringify(obj, null, 2)).then(() => {
+    const btn = document.getElementById(`copy_${id}`);
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY JSON'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// Ctrl/Cmd + Enter
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') run();
+});
+</script>
+
+<style>
+.url-parse-block {
+  padding: 12px 0;
+}
+.url-parse-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 6px 20px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.url-parse-row:last-child { border-bottom: none; }
+.url-parse-key {
+  min-width: 140px;
+  color: var(--accent2);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.url-parse-val {
+  color: var(--text);
+  word-break: break-all;
+}
+.url-parse-divider {
+  padding: 6px 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 4px;
+}
+.url-parse-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+</style>
+</body>
+</html>
