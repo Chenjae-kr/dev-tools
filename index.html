@@ -66,16 +66,19 @@
       return String(cat || 'other').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-');
     }
 
-    function tagStyle(tag) {
-      let h = 0;
-      const s = String(tag || '');
-      for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-      const hue = Math.abs(h) % 360;
+    function tagStyle(tag, category) {
+      const cat = slugCategory(category);
+      const map = {
+        'sql-db': '96,165,250',
+        'data-format': '167,139,250',
+        'image': '52,211,153',
+        'text-compare': '251,191,36',
+        'utility': '248,113,113',
+      };
+      const rgb = map[cat] || '148,163,184';
       const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-      if (isDark) {
-        return `background: hsla(${hue}, 55%, 22%, .30); border-color: hsla(${hue}, 70%, 62%, .42); color: hsl(${hue}, 35%, 86%);`;
-      }
-      return `background: hsla(${hue}, 75%, 96%, 1); border-color: hsla(${hue}, 38%, 62%, .45); color: hsl(${hue}, 42%, 28%);`;
+      if (isDark) return `background: rgba(${rgb}, .16); border-color: rgba(${rgb}, .42); color: #e5e7eb;`;
+      return `background: rgba(${rgb}, .14); border-color: rgba(${rgb}, .38); color: #334155;`;
     }
 
     function renderToolCard({ href, icon, title, desc, tags, footer, category }) {
@@ -94,7 +97,7 @@
           <p class="card-desc">${oneLineSummary({ desc, tags })}</p>
           <div class="card-io" title="${ioText}">입출력: ${ioText}</div>
           <div class="card-tags">
-            ${shownTags.map(t => `<span class="card-tag" style="${tagStyle(t)}">${t}</span>`).join('')}
+            ${shownTags.map(t => `<span class="card-tag" style="${tagStyle(t, category)}">${t}</span>`).join('')}
             ${hiddenTagCount > 0 ? `<span class="card-tag card-tag-more">+${hiddenTagCount}</span>` : ''}
           </div>
           <div class="card-footer">
