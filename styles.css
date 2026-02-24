@@ -1090,11 +1090,16 @@ footer {
 }
 
 .tool-card:hover {
-  border-color: var(--accent);
+  border-color: rgba(79,255,176,.45);
   transform: translateY(-3px);
   box-shadow: 0 16px 48px rgba(0,0,0,0.25);
 }
 
+.tool-card.cat-sql-db:hover { border-color: rgba(96,165,250,.62); }
+.tool-card.cat-data-format:hover { border-color: rgba(167,139,250,.62); }
+.tool-card.cat-image:hover { border-color: rgba(52,211,153,.62); }
+.tool-card.cat-text-compare:hover { border-color: rgba(251,191,36,.62); }
+.tool-card.cat-utility:hover { border-color: rgba(248,113,113,.62); }
 [data-theme="light"] .tool-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
 
 .tool-card:hover::after { opacity: 0.06; }
@@ -1126,11 +1131,11 @@ footer {
 }
 
 /* Category-linked icon tones */
-.tool-card.cat-sql-db .card-icon { background: rgba(59,130,246,.16); border-color: rgba(96,165,250,.45); color: #93c5fd; }
-.tool-card.cat-data-format .card-icon { background: rgba(139,92,246,.16); border-color: rgba(167,139,250,.45); color: #c4b5fd; }
-.tool-card.cat-image .card-icon { background: rgba(16,185,129,.16); border-color: rgba(52,211,153,.45); color: #86efac; }
-.tool-card.cat-text-compare .card-icon { background: rgba(245,158,11,.16); border-color: rgba(251,191,36,.45); color: #fde68a; }
-.tool-card.cat-utility .card-icon { background: rgba(239,68,68,.16); border-color: rgba(248,113,113,.45); color: #fca5a5; }
+.tool-card.cat-sql-db .card-icon { background: rgba(59,130,246,.24); border-color: rgba(96,165,250,.58); color: #dbeafe; }
+.tool-card.cat-data-format .card-icon { background: rgba(139,92,246,.24); border-color: rgba(167,139,250,.58); color: #ede9fe; }
+.tool-card.cat-image .card-icon { background: rgba(16,185,129,.24); border-color: rgba(52,211,153,.58); color: #dcfce7; }
+.tool-card.cat-text-compare .card-icon { background: rgba(245,158,11,.24); border-color: rgba(251,191,36,.58); color: #fef3c7; }
+.tool-card.cat-utility .card-icon { background: rgba(239,68,68,.24); border-color: rgba(248,113,113,.58); color: #fee2e2; }
 
 .tool-card:hover .card-icon {
   background: rgba(79,255,176,0.16);
@@ -1248,6 +1253,11 @@ footer {
 }
 
 .tool-card:hover .card-footer { border-color: rgba(79,255,176,0.2); }
+.tool-card.cat-sql-db:hover .card-footer { border-color: rgba(96,165,250,.36); }
+.tool-card.cat-data-format:hover .card-footer { border-color: rgba(167,139,250,.36); }
+.tool-card.cat-image:hover .card-footer { border-color: rgba(52,211,153,.36); }
+.tool-card.cat-text-compare:hover .card-footer { border-color: rgba(251,191,36,.36); }
+.tool-card.cat-utility:hover .card-footer { border-color: rgba(248,113,113,.36); }
 [data-theme="light"] .tool-card:hover .card-footer { border-color: rgba(0,184,122,0.2); }
 
 .card-cta {
