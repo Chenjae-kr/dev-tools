@@ -1141,8 +1141,11 @@ footer {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   color: var(--text-muted);
-  line-height: 1.75;
+  line-height: 1.45;
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-tags {

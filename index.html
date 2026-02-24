@@ -54,6 +54,11 @@
   <div id="toolsGroups"></div>
 
   <script>
+    function oneLineSummary({ desc, tags }) {
+      if (Array.isArray(tags) && tags.length) return tags.slice(0, 3).join(' · ');
+      return String(desc || '').split('.')[0].trim();
+    }
+
     function renderToolCard({ href, icon, title, desc, tags, footer }) {
       return `
         <a class="tool-card" href="tools/${href}">
@@ -62,7 +67,7 @@
             <span class="card-arrow">→</span>
           </div>
           <div class="card-title">${title}</div>
-          <p class="card-desc">${desc}</p>
+          <p class="card-desc">${oneLineSummary({ desc, tags })}</p>
           <div class="card-tags">
             ${tags.map(t => `<span class="card-tag">${t}</span>`).join('')}
           </div>
