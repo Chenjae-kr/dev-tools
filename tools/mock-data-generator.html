@@ -6,6 +6,7 @@
 <title>Mock Data Generator | Dev Tools</title>
 <script src="../tools.js"></script>
 <script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
 <link rel="stylesheet" href="../styles.css">
 <style>
 .mock-textarea {
@@ -101,9 +102,7 @@ document.querySelectorAll('.fmt-btn').forEach(btn => {
   });
 });
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+const escHtml = UIUtils.escHtml;
 
 // seeded random
 function rng(seed) {
@@ -247,13 +246,7 @@ function generateMock() {
 }
 
 function copyOut(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
-    const btn = document.getElementById(`copy_${id}`);
-    btn.textContent = '✓ COPIED';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1200);
-  });
+  UIUtils.copyElementText(id, `copy_${id}`, 'COPY');
 }
 
 document.addEventListener('keydown', e => {

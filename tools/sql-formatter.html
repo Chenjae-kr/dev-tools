@@ -6,6 +6,7 @@
 <title>SQL Formatter + Lint | Dev Tools</title>
 <script src="../tools.js"></script>
 <script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
 <link rel="stylesheet" href="../styles.css">
 <style>
 .sql-input {
@@ -97,9 +98,7 @@ const KEYWORDS = [
   'CREATE TABLE','ALTER TABLE','DROP TABLE','TRUNCATE TABLE'
 ];
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+const escHtml = UIUtils.escHtml;
 
 function normalizeSpaces(sql) {
   return sql
@@ -205,13 +204,7 @@ function runFormatLint() {
 }
 
 function copySQL(id) {
-  const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
-    const btn = document.getElementById(`copy_${id}`);
-    btn.textContent = '✓ COPIED';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1200);
-  });
+  UIUtils.copyElementText(id, `copy_${id}`, 'COPY');
 }
 
 document.addEventListener('keydown', e => {

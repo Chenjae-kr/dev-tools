@@ -6,6 +6,7 @@
 <title>Diff Viewer | Dev Tools</title>
 <script src="../tools.js"></script>
 <script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
 <link rel="stylesheet" href="../styles.css">
 <style>
 .diff-grid {
@@ -229,9 +230,7 @@ function computeLCS(a, b) {
 }
 
 // ─── Render diff HTML ─────────────────────────────────────
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+const escHtml = UIUtils.escHtml;
 
 function renderDiff(ops, ctx) {
   // Assign line numbers
@@ -372,13 +371,8 @@ function runDiff() {
 }
 
 function copyDiff(id) {
-  const text = lastPatchText || '';
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById(`copy_${id}`);
-    btn.textContent = '✓ COPIED';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'COPY PATCH'; btn.classList.remove('copied'); }, 1500);
-  });
+  const btn = document.getElementById(`copy_${id}`);
+  UIUtils.copyTextWithFeedback(lastPatchText || '', btn, 'COPY PATCH');
 }
 
 // Ctrl/Cmd + Enter
