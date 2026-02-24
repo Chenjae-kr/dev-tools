@@ -125,6 +125,13 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
 }
+
+.preview-wrap { overflow:auto; max-height:220px; margin:10px 0 14px; border:1px solid var(--border); border-radius:8px; }
+.preview-table { width:100%; border-collapse:collapse; font-size:11px; font-family:'JetBrains Mono', monospace; }
+.preview-table th { text-align:left; padding:6px; border-bottom:1px solid var(--border); }
+.preview-table td { padding:6px; border-bottom:1px solid var(--border); }
+.preview-table .empty { padding:8px; }
+.info-gap { margin-left:8px; }
 </style>
 </head>
 <body>
@@ -236,7 +243,7 @@
           </div>
         </div>
 
-        <div class="options-bar row-tight" id="upsertKeysBar" style="display:none;">
+        <div class="options-bar row-tight hidden" id="upsertKeysBar">
           <span class="options-label">Conflict Keys</span>
           <input type="text" id="conflictKeys" class="table-name-input" placeholder="id 또는 id,email">
         </div>
@@ -283,7 +290,7 @@ let lastHeaderSignature = '';
 function refreshUpsertUI() {
   const bar = document.getElementById('upsertKeysBar');
   const show = upsertMode === 'on';
-  bar.style.display = show ? 'flex' : 'none';
+  bar.classList.toggle('hidden', !show);
 }
 
 function refreshInputModeUI() {
@@ -750,8 +757,8 @@ function generate() {
 
       const blockId = `block_csv_${Date.now()}`;
       const previewRows = mappedRows.slice(0, previewCount);
-      const previewHead = mappedHeaders.map(h => `<th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">${escHtml(h)}</th>`).join('');
-      const previewBody = previewRows.map(r => `<tr>${r.map(v => `<td style="padding:6px;border-bottom:1px solid var(--border)">${escHtml(v)}</td>`).join('')}</tr>`).join('');
+      const previewHead = mappedHeaders.map(h => `<th>${escHtml(h)}</th>`).join('');
+      const previewBody = previewRows.map(r => `<tr>${r.map(v => `<td>${escHtml(v)}</td>`).join('')}</tr>`).join('');
 
       output.innerHTML = `
         <div class="panel sql-block">
@@ -763,14 +770,14 @@ function generate() {
           </div>
           <div class="table-info">
             <span>TABLE</span> ${escHtml(tableName)}
-            <span style="margin-left:8px">COLUMNS</span> ${mappedHeaders.length}
-            <span style="margin-left:8px">ROWS</span> ${mappedRows.length}
-            <span style="margin-left:8px">CHUNK</span> ${chunkSize}
+            <span class="info-gap">COLUMNS</span> ${mappedHeaders.length}
+            <span class="info-gap">ROWS</span> ${mappedRows.length}
+            <span class="info-gap">CHUNK</span> ${chunkSize}
           </div>
-          <div style="overflow:auto; max-height:220px; margin:10px 0 14px; border:1px solid var(--border); border-radius:8px;">
-            <table style="width:100%; border-collapse:collapse; font-size:11px; font-family:'JetBrains Mono', monospace;">
+          <div class="preview-wrap">
+            <table class="preview-table">
               <thead><tr>${previewHead}</tr></thead>
-              <tbody>${previewBody || '<tr><td style="padding:8px;" colspan="99">(데이터 없음)</td></tr>'}</tbody>
+              <tbody>${previewBody || '<tr><td class="empty" colspan="99">(데이터 없음)</td></tr>'}</tbody>
             </table>
           </div>
           <pre class="sql-code" id="${blockId}">${sqlHtml}</pre>

@@ -107,6 +107,10 @@
 .erd-legend { display: flex; gap: 14px; align-items: center; margin-left: auto; }
 .legend-item { display: flex; align-items: center; gap: 5px; }
 .legend-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.legend-dot-pk { background:#f0c050; }
+.legend-dot-fk { background:#9c8cff; }
+.legend-relation-svg { overflow:visible; }
+.erd-table { cursor: grab; }
 
 /* Error area */
 #erdError { display: none; }
@@ -203,15 +207,15 @@ CREATE TABLE orders (
         <span>FK relations <b id="statFKs">0</b></span>
         <div class="erd-legend">
           <div class="legend-item">
-            <div class="legend-dot" style="background:#f0c050"></div>
+            <div class="legend-dot legend-dot-pk"></div>
             <span class="text-muted">PK</span>
           </div>
           <div class="legend-item">
-            <div class="legend-dot" style="background:#9c8cff"></div>
+            <div class="legend-dot legend-dot-fk"></div>
             <span class="text-muted">FK</span>
           </div>
           <div class="legend-item">
-            <svg width="28" height="10" style="overflow:visible">
+            <svg width="28" height="10" class="legend-relation-svg">
               <line x1="0" y1="5" x2="20" y2="5" stroke="#7c6aff" stroke-width="1.5" marker-end="url(#arr-end)" marker-start="url(#arr-start)"/>
             </svg>
             <span class="text-muted">관계</span>
@@ -548,7 +552,7 @@ function buildTableSVG(table) {
   const { name, columns, x, y, width, height } = table;
   const p = [];
 
-  p.push(`<g class="erd-table" data-table="${esc(name)}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})" style="cursor:grab">`);
+  p.push(`<g class="erd-table" data-table="${esc(name)}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">`);
 
   // Shadow
   p.push(`<rect class="tbl-shadow" x="3" y="4" width="${width}" height="${height}" rx="7"/>`);
