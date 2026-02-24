@@ -154,6 +154,7 @@
             <div class="dot"></div>
             CSV INPUT
           </div>
+          <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
         <div class="options-bar row-tight">
@@ -259,6 +260,7 @@
         <button class="generate-btn" id="generateBtn" onclick="generate()">
           ⚡ INSERT 생성
         </button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -790,8 +792,11 @@ function generate() {
           <div class="sql-block-header">
             <span class="sql-type-badge badge-insert">${upsertMode === 'on' ? 'UPSERT' : 'INSERT'}</span>
             <span class="sql-dialect-tag">${dialectLabel[selectedDialect]} · ${insertMode} · ${mappedRows.length} rows${upsertMode === 'on' ? ' · upsert' : ''}</span>
-            <button class="copy-btn" id="copy_${blockId}" onclick="copySQL('${blockId}')">COPY ALL</button>
-            <button class="copy-btn" onclick="downloadSQL('${blockId}')">DOWNLOAD .SQL</button>
+            <div class="block-actions">
+              <button class="wrap-btn" id="wrap_${blockId}" onclick="toggleWrap('${blockId}')">WRAP</button>
+              <button class="copy-btn" id="copy_${blockId}" onclick="copySQL('${blockId}')">COPY ALL</button>
+              <button class="copy-btn" onclick="downloadSQL('${blockId}')">DOWNLOAD .SQL</button>
+            </div>
           </div>
           <div class="table-info">
             <span>TABLE</span> ${escHtml(tableName)}
@@ -808,6 +813,7 @@ function generate() {
           </div>
           <pre class="sql-code" id="${blockId}">${sqlHtml}</pre>
         </div>`;
+      scrollToOutput(output);
 
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
@@ -850,6 +856,13 @@ function downloadDuplicateRows() {
   a.download = `duplicate_rows_${Date.now()}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+function loadSample() {
+  document.getElementById('tableName').value = 'users';
+  document.getElementById('csvInput').value = `id,name,age,email\n1,Alice,30,alice@example.com\n2,Bob,25,bob@example.com\n3,Charlie,,charlie@example.com\n2,Bob,25,bob2@example.com`;
+  inputMode = 'csv';
+  refreshInputModeUI();
 }
 
 // Ctrl/Cmd + Enter to generate

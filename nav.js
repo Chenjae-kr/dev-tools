@@ -114,6 +114,22 @@ function closeMobileMenu() {
   }
 }
 
+// ─── Output helpers (global) ─────────────────────────────
+function toggleWrap(id) {
+  const el = document.getElementById(id);
+  const btn = document.getElementById('wrap_' + id);
+  if (!el) return;
+  el.classList.toggle('wrapped');
+  if (btn) btn.classList.toggle('active');
+}
+
+function scrollToOutput(outputEl) {
+  if (!outputEl) return;
+  if (window.innerWidth <= 900) {
+    setTimeout(() => outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  }
+}
+
 function closeAllNavMenus() {
   document.querySelectorAll('.nav-menu').forEach(m => {
     m.classList.remove('open');
