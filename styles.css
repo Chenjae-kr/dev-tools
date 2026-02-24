@@ -1184,10 +1184,23 @@ footer {
   background: color-mix(in srgb, var(--surface2) 82%, transparent);
   border: 1px dashed var(--border);
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 0 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-height: 0;
+  opacity: 0;
+  margin-top: -6px;
+  pointer-events: none;
+  transition: max-height .2s ease, opacity .2s ease, padding .2s ease, margin .2s ease;
+}
+
+.tool-card:hover .card-io,
+.tool-card:focus-visible .card-io {
+  max-height: 28px;
+  opacity: 1;
+  padding: 6px 8px;
+  margin-top: 0;
 }
 
 .card-tags {
