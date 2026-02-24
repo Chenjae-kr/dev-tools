@@ -130,7 +130,7 @@
           </div>
           <div class="options-bar" style="border-top:none;padding-top:0;">
             <span class="options-label">Watermark</span>
-            <input id="brandText" class="table-name-input" value="@flow.itself" placeholder="@your_brand">
+            <input id="brandText" class="table-name-input" value="@instagram" placeholder="@your_brand">
           </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
@@ -183,7 +183,7 @@ let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
 let page=1, pages=[{}], bodyType='text';
 let exportFormat='png';
 
-function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@flow.itself',h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:''}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:''}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -208,7 +208,7 @@ function fillInputsFromPage(){
   document.getElementById('titleY').value=p.titleY ?? 8;
   document.getElementById('bodyScale').value=p.bodyScale ?? 100;
   document.getElementById('sourceText').value=p.source||'출처: 관련 자료';
-  document.getElementById('brandText').value=p.brand||'@flow.itself';
+  document.getElementById('brandText').value=p.brand||'@instagram';
   bodyType=p.bodyType||'text';
   document.querySelectorAll('.bodytype-btn').forEach(b=>b.classList.toggle('active', b.dataset.body===bodyType));
   setBodyUI();
@@ -429,7 +429,7 @@ function renderCard(){
 
   // footer
   const source = (p.source || '출처: 관련 자료').trim();
-  const brand = (p.brand || '@flow.itself').trim();
+  const brand = (p.brand || '@instagram').trim();
   ctx.fillStyle='rgba(5,10,25,0.9)'; ctx.fillRect(panelX,panelY+panelH-fh,panelW,fh);
   ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.font='600 16px Pretendard, sans-serif'; ctx.fillText(source, panelX+12,panelY+panelH-11);
   ctx.textAlign='right'; ctx.font='700 18px JetBrains Mono, sans-serif'; ctx.fillText(`${brand}  ${page}/${pages.length}`, panelX+panelW-12,panelY+panelH-11);
@@ -485,7 +485,7 @@ pages[0]={
   subtitle:'신규 상장 시장 전망 2026',
   label:'2026년 IPO 예상 주요 기업',
   source:'출처: 관련 언론보도',
-  brand:'@flow.itself',
+  brand:'@instagram',
   h1Scale:100,
   h2Scale:100,
   subScale:100,
