@@ -37,7 +37,7 @@
   <!-- ─── Tools Grid ──────────────────────────────────── -->
   <p class="section-label">Tools</p>
 
-  <div class="tools-grid" id="toolsGrid"></div>
+  <div id="toolsGroups"></div>
 
   <script>
     function renderToolCard({ href, icon, title, desc, tags, footer }) {
@@ -59,8 +59,22 @@
         </a>`;
     }
 
-    const grid = document.getElementById('toolsGrid');
-    grid.innerHTML = TOOLS.map(renderToolCard).join('');
+    const groupsEl = document.getElementById('toolsGroups');
+    const categories = (typeof TOOL_CATEGORIES !== 'undefined' && TOOL_CATEGORIES.length)
+      ? TOOL_CATEGORIES
+      : [...new Set(TOOLS.map(t => t.category || 'Other'))];
+
+    groupsEl.innerHTML = categories.map(cat => {
+      const tools = TOOLS.filter(t => (t.category || 'Other') === cat);
+      if (!tools.length) return '';
+      return `
+        <p class="section-label" style="margin-top:22px">${cat}</p>
+        <div class="tools-grid">
+          ${tools.map(renderToolCard).join('')}
+        </div>
+      `;
+    }).join('');
+
     document.getElementById('toolCount').textContent = TOOLS.length;
   </script>
 
