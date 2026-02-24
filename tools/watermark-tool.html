@@ -14,6 +14,7 @@
 .setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
 .setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:10px;text-transform:uppercase}
 .setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
+.hidden{display:none !important}
 </style>
 </head>
 <body>
@@ -96,7 +97,18 @@ const canvas=document.getElementById('wmCanvas'); const ctx=canvas.getContext('2
 function bindInput(ids){ ids.forEach(id=>document.getElementById(id).addEventListener('input', render)); }
 bindInput(['wmText','wmColor','wmTextSize','wmImgScale','wmMargin','wmOpacity','wmRotate','imgQuality']);
 
-document.querySelectorAll('.wmtype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.wmtype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmType=b.dataset.type;document.getElementById('wmTextWrap').classList.toggle('hidden',wmType!=='text');document.getElementById('wmImageWrap').classList.toggle('hidden',wmType!=='image');render();});
+function updateWatermarkTypeUI(){
+  document.getElementById('wmTextWrap').classList.toggle('hidden', wmType!=='text');
+  document.getElementById('wmImageWrap').classList.toggle('hidden', wmType!=='image');
+}
+
+document.querySelectorAll('.wmtype-btn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.wmtype-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  wmType=b.dataset.type;
+  updateWatermarkTypeUI();
+  render();
+});
 document.querySelectorAll('.pos-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pos-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmPos=b.dataset.pos;render();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
@@ -162,6 +174,7 @@ function downloadOut(){
   ImageToolUtils.downloadCanvas(canvas,{format:exportFormat,quality:q,filename:`watermark_${Date.now()}`});
 }
 
+updateWatermarkTypeUI();
 render();
 </script>
 </body>
