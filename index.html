@@ -1,11 +1,19 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DDL → CRUD SQL Generator</title>
+<title>DDL → CRUD SQL Generator | Dev Tools</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<script>
+  /* Prevent theme flash on load */
+  (function() {
+    const t = localStorage.getItem('devtools-theme');
+    if (t) document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 <style>
+  /* ─── Dark Theme (default) ───────────────────────────── */
   :root {
     --bg: #0d0f14;
     --surface: #151820;
@@ -21,6 +29,25 @@
     --oracle: #e04040;
     --postgres: #336dc8;
     --mybatis: #e8734a;
+    --nav-h: 56px;
+  }
+
+  /* ─── Light Theme ────────────────────────────────────── */
+  [data-theme="light"] {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #eef1f8;
+    --border: #d8dded;
+    --accent: #00b87a;
+    --accent2: #6050d8;
+    --accent3: #e03535;
+    --text: #1a1e2e;
+    --text-muted: #6676a0;
+    --text-dim: #4a5575;
+    --mysql: #c87800;
+    --oracle: #cc3333;
+    --postgres: #2b5eb0;
+    --mybatis: #cc5822;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,6 +58,7 @@
     font-family: 'Syne', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background 0.25s, color 0.25s;
   }
 
   /* Grid bg */
@@ -46,6 +74,12 @@
     z-index: 0;
   }
 
+  [data-theme="light"] body::before {
+    background-image:
+      linear-gradient(rgba(0,184,122,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,184,122,0.05) 1px, transparent 1px);
+  }
+
   .container {
     max-width: 1400px;
     margin: 0 auto;
@@ -54,50 +88,199 @@
     z-index: 1;
   }
 
-  /* Header */
-  header {
-    padding: 32px 0 24px;
+  /* ─── Top Navigation ─────────────────────────────────── */
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
-    margin-bottom: 32px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: background 0.25s, border-color 0.25s;
   }
 
-  .header-inner {
+  .nav-inner {
     display: flex;
     align-items: center;
-    gap: 16px;
+    height: var(--nav-h);
+    gap: 0;
   }
 
-  .logo-mark {
-    width: 44px; height: 44px;
+  /* Brand */
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-right: 20px;
+    border-right: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .nav-logo {
+    width: 34px; height: 34px;
     background: var(--accent);
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 11px;
     color: var(--bg);
     flex-shrink: 0;
-    box-shadow: 0 0 20px rgba(79,255,176,0.3);
+    box-shadow: 0 0 14px rgba(79,255,176,0.25);
+    transition: background 0.25s, color 0.25s, box-shadow 0.25s;
   }
 
-  .header-text h1 {
-    font-size: 22px;
+  [data-theme="light"] .nav-logo {
+    box-shadow: 0 0 14px rgba(0,184,122,0.2);
+  }
+
+  .nav-brand-name {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .nav-brand-name em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  /* Tool nav items */
+  .nav-tools {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    padding: 0 14px;
+    overflow-x: auto;
+  }
+
+  .nav-tools::-webkit-scrollbar { display: none; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 13px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+    background: transparent;
+    letter-spacing: 0.3px;
+  }
+
+  .nav-item:hover {
+    color: var(--text);
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .nav-item.active {
+    color: var(--accent);
+    background: rgba(79,255,176,0.08);
+    border-color: rgba(79,255,176,0.25);
+  }
+
+  [data-theme="light"] .nav-item.active {
+    background: rgba(0,184,122,0.08);
+    border-color: rgba(0,184,122,0.28);
+  }
+
+  .nav-item-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.5;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .nav-item.active .nav-item-dot {
+    opacity: 1;
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  .nav-badge {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    letter-spacing: 0.3px;
+  }
+
+  /* Nav actions (theme toggle) */
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 14px;
+    border-left: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .theme-toggle {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+
+  .theme-toggle:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(79,255,176,0.15);
+  }
+
+  [data-theme="light"] .theme-toggle:hover {
+    box-shadow: 0 0 10px rgba(0,184,122,0.15);
+  }
+
+  /* ─── Tool Header ─────────────────────────────────────── */
+  .tool-header {
+    padding: 28px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+
+  .tool-header h1 {
+    font-size: 20px;
     font-weight: 800;
     letter-spacing: -0.5px;
   }
 
-  .header-text span {
+  .tool-header h1 span {
     color: var(--accent);
   }
 
-  .header-text p {
-    font-size: 13px;
+  .tool-header p {
+    font-size: 12px;
     color: var(--text-muted);
-    margin-top: 2px;
+    margin-top: 3px;
     font-family: 'JetBrains Mono', monospace;
   }
 
-  /* Main Layout */
+  /* ─── Main Layout ─────────────────────────────────────── */
   .main-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -109,12 +292,13 @@
     .main-grid { grid-template-columns: 1fr; }
   }
 
-  /* Panel */
+  /* ─── Panel ──────────────────────────────────────────── */
   .panel {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
     overflow: hidden;
+    transition: background 0.25s, border-color 0.25s;
   }
 
   .panel-header {
@@ -255,6 +439,10 @@
     color: var(--accent2);
   }
 
+  [data-theme="light"] .crud-toggle.active {
+    background: rgba(96,80,216,0.1);
+  }
+
   /* Generate Button */
   .generate-btn {
     width: calc(100% - 40px);
@@ -279,6 +467,11 @@
     background: #6fffbe;
     box-shadow: 0 0 30px rgba(79,255,176,0.4);
     transform: translateY(-1px);
+  }
+
+  [data-theme="light"] .generate-btn:hover {
+    background: #00d090;
+    box-shadow: 0 4px 20px rgba(0,184,122,0.35);
   }
 
   .generate-btn:active { transform: translateY(0); }
@@ -334,6 +527,11 @@
   .badge-update { background: rgba(240,160,0,0.12); color: var(--mysql); }
   .badge-delete { background: rgba(255,106,106,0.12); color: var(--accent3); }
 
+  [data-theme="light"] .badge-insert { background: rgba(0,184,122,0.1); }
+  [data-theme="light"] .badge-select { background: rgba(96,80,216,0.08); }
+  [data-theme="light"] .badge-update { background: rgba(200,120,0,0.1); }
+  [data-theme="light"] .badge-delete { background: rgba(224,53,53,0.08); }
+
   .sql-dialect-tag {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -368,13 +566,21 @@
     color: var(--text);
   }
 
-  /* Syntax highlight */
-  .kw { color: #7c6aff; font-weight: 600; }
+  /* Syntax highlight — dark */
+  .kw  { color: #7c6aff; font-weight: 600; }
   .tbl { color: #4fffb0; }
   .col { color: #e8ecf5; }
   .val { color: #ff9d5c; }
   .cmt { color: #3a4060; font-style: italic; }
-  .ph { color: #ff6a6a; }
+  .ph  { color: #ff6a6a; }
+
+  /* Syntax highlight — light */
+  [data-theme="light"] .kw  { color: #5040c0; }
+  [data-theme="light"] .tbl { color: #007050; }
+  [data-theme="light"] .col { color: #1a1e2e; }
+  [data-theme="light"] .val { color: #b85800; }
+  [data-theme="light"] .cmt { color: #8898c0; font-style: italic; }
+  [data-theme="light"] .ph  { color: #c02828; }
 
   /* Empty state */
   .empty-state {
@@ -408,6 +614,10 @@
     gap: 8px;
   }
 
+  [data-theme="light"] .table-info {
+    background: rgba(0,184,122,0.05);
+  }
+
   .table-info span { color: var(--text-muted); }
 
   /* Error */
@@ -428,7 +638,7 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-  /* Select all checkbox */
+  /* Select all toggle */
   .all-toggle {
     font-size: 11px;
     color: var(--text-muted);
@@ -452,16 +662,35 @@
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <div class="header-inner">
-      <div class="logo-mark">SQL</div>
-      <div class="header-text">
-        <h1>DDL <span>→</span> CRUD Generator</h1>
-        <p>// paste your CREATE TABLE statement and generate queries instantly</p>
-      </div>
+
+<!-- ─── Top Navigation ─────────────────────────────────── -->
+<nav class="topnav">
+  <div class="nav-inner container">
+    <div class="nav-brand">
+      <div class="nav-logo">DEV</div>
+      <span class="nav-brand-name">Dev<em>Tools</em></span>
     </div>
-  </header>
+
+    <div class="nav-tools">
+      <a class="nav-item active" href="index.html">
+        <span class="nav-item-dot"></span>
+        DDL → CRUD
+      </a>
+      <!-- 새 툴은 여기에 nav-item으로 추가 -->
+    </div>
+
+    <div class="nav-actions">
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="다크/라이트 모드 전환">☀</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <!-- Tool Header -->
+  <div class="tool-header">
+    <h1>DDL <span>→</span> CRUD Generator</h1>
+    <p>// paste your CREATE TABLE statement and generate queries instantly</p>
+  </div>
 
   <div class="main-grid">
     <!-- LEFT: Input Panel -->
@@ -527,6 +756,23 @@
 </div>
 
 <script>
+// ─── Theme ───────────────────────────────────────────────
+function updateThemeIcon() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('themeToggle').textContent = isDark ? '☀' : '🌙';
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('devtools-theme', next);
+  updateThemeIcon();
+}
+
+// Sync icon with current theme on load
+updateThemeIcon();
+
 // ─── State ───────────────────────────────────────────────
 let selectedDialect = 'mysql';
 let selectedCrud = new Set(['INSERT', 'SELECT', 'UPDATE', 'DELETE']);
