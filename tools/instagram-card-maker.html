@@ -17,6 +17,8 @@
 .setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2)}
 .setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
 .setting-group .options-bar{border-top:none !important;padding:4px 0 !important;gap:8px;flex-wrap:wrap}
+.table-dual{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width: 980px){.table-dual{grid-template-columns:1fr}}
 .export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
 .export-btn{border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
 .export-btn.save{background:linear-gradient(135deg,#1d7a4c,#1fbf75);color:#fff;border-color:rgba(31,191,117,.45)}
@@ -119,8 +121,9 @@
           <div class="options-bar" style="border-top:none;padding-top:0;">
             <span class="options-label">Input Mode</span>
             <div class="toggle-group">
-              <button class="toggle-btn tblmode-btn active" data-mode="text">구분자 입력</button>
+              <button class="toggle-btn tblmode-btn" data-mode="text">구분자 입력</button>
               <button class="toggle-btn tblmode-btn" data-mode="grid">테이블 입력</button>
+              <button class="toggle-btn tblmode-btn active" data-mode="split">분할 입력</button>
             </div>
             <span class="options-label">구분자</span>
             <div class="toggle-group">
@@ -131,11 +134,13 @@
             </div>
           </div>
 
-          <div id="tableTextWrap">
-            <textarea id="tableText" class="input-area" placeholder="기업명	예상가치	주요사업\n케이뱅크	3조 3,673억	인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |"></textarea>
-          </div>
+          <div class="table-dual" id="tableDual">
+            <div id="tableTextWrap">
+              <textarea id="tableText" class="input-area" placeholder="기업명	예상가치	주요사업\n케이뱅크	3조 3,673억	인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |"></textarea>
+            </div>
 
-          <div id="tableGridWrap" class="hidden" style="overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)"></div>
+            <div id="tableGridWrap" style="overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)"></div>
+          </div>
 
           <div class="options-bar" style="border-top:none;padding-top:0;">
             <span class="options-label">Quick Edit</span>
@@ -236,7 +241,7 @@ let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
 let page=1, pages=[{}], bodyType='text';
 let exportFormat='png';
 let tableSepMode='auto';
-let tableInputMode='text';
+let tableInputMode='split';
 
 function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
@@ -375,8 +380,26 @@ function parseCsvTable(text){
 }
 
 function setTableInputUI(){
-  document.getElementById('tableTextWrap').classList.toggle('hidden', tableInputMode !== 'text');
-  document.getElementById('tableGridWrap').classList.toggle('hidden', tableInputMode !== 'grid');
+  const textWrap = document.getElementById('tableTextWrap');
+  const gridWrap = document.getElementById('tableGridWrap');
+  const dual = document.getElementById('tableDual');
+
+  if (tableInputMode === 'text') {
+    textWrap.classList.remove('hidden');
+    gridWrap.classList.add('hidden');
+    dual.style.gridTemplateColumns = '1fr';
+    return;
+  }
+  if (tableInputMode === 'grid') {
+    textWrap.classList.add('hidden');
+    gridWrap.classList.remove('hidden');
+    dual.style.gridTemplateColumns = '1fr';
+    return;
+  }
+  // split
+  textWrap.classList.remove('hidden');
+  gridWrap.classList.remove('hidden');
+  dual.style.gridTemplateColumns = '';
 }
 
 function renderTableGrid(head, body){
@@ -392,11 +415,11 @@ function renderTableGrid(head, body){
   wrap.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>syncTextFromGrid(false)));
 }
 
-function syncGridFromText(){
+function syncGridFromText(doRender=true){
   const t = parseCsvTable(document.getElementById('tableText').value || '');
   if(!t) return;
   renderTableGrid(t.head, t.body);
-  renderCard();
+  if (doRender) renderCard();
 }
 
 function syncTextFromGrid(doRender=true){
@@ -731,13 +754,17 @@ document.querySelectorAll('.tblmode-btn').forEach(b=>b.onclick=()=>{
   b.classList.add('active');
   tableInputMode=b.dataset.mode;
   setTableInputUI();
-  if(tableInputMode==='grid') syncGridFromText();
+  if(tableInputMode==='grid' || tableInputMode==='split') syncGridFromText();
   else syncTextFromGrid(false);
 });
 document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
-['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
+['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+  if(id==='pageCount') syncPages();
+  if(id==='tableText' && (tableInputMode==='grid' || tableInputMode==='split')) syncGridFromText(false);
+  renderCard();
+}));
 
 document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
 document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
@@ -760,7 +787,7 @@ pages[0]={
   tableText:'기업명,예상기업가치,주요 사업\n무신사,8조원 이상,패션 플랫폼\n한화에너지,5조원 이상,에너지 발전·공급\n케이뱅크,3조 3,673억,인터넷전문은행',
   bodyImageData:''
 };
-fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); renderCard();
+fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); syncGridFromText(false); renderCard();
 </script>
 </body>
 </html>
