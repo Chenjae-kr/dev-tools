@@ -1510,3 +1510,18 @@ kbd {
 
 /* Wrapped code output */
 .sql-code.wrapped { white-space: pre-wrap; word-break: break-all; }
+
+/* Wrapped diff output */
+.diff-output-wrap {
+  overflow-x: auto;
+}
+
+.diff-output-wrap.wrapped {
+  overflow-x: visible;
+}
+
+.diff-output-wrap.wrapped .diff-line,
+.diff-output-wrap.wrapped .diff-line-content {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
