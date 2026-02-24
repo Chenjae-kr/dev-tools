@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="dark">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HTML → Markdown | Dev Tools</title>
+<title>HTML ↔ Markdown | Dev Tools</title>
 <script src="../tools.js"></script>
 <script src="../nav.js"></script>
 <script src="../ui-utils.js"></script>
@@ -16,47 +16,72 @@
 <body>
 <script>renderNav();</script>
 <div class="container">
-  <div class="tool-header"><h1>HTML <span>→</span> Markdown</h1><p>// HTML 코드를 Markdown으로 변환</p></div>
+  <div class="tool-header"><h1>HTML <span>↔</span> Markdown</h1><p>// HTML ↔ Markdown 양방향 변환</p></div>
   <div class="main-grid">
     <div>
       <div class="panel"><div class="panel-header"><div class="panel-title"><div class="dot"></div>INPUT</div></div>
         <div class="setting-group">
           <div class="setting-title">Source</div>
           <div class="options-bar" style="border-top:none;padding-top:0;gap:8px;flex-wrap:wrap;">
-            <input id="htmlFile" type="file" accept=".html,.htm,text/html">
-            <button class="toggle-btn" onclick="loadSample()">샘플 불러오기</button>
+            <span class="options-label">Mode</span>
+            <div class="toggle-group">
+              <button class="toggle-btn mode-btn active" data-mode="h2m">HTML → MD</button>
+              <button class="toggle-btn mode-btn" data-mode="m2h">MD → HTML</button>
+            </div>
+            <input id="sourceFile" type="file" accept=".html,.htm,.md,.markdown,text/html,text/markdown,text/plain">
+            <button class="toggle-btn" onclick="loadSample()">샘플</button>
           </div>
-          <textarea id="htmlInput" class="txt" placeholder="<h1>Hello</h1><p><strong>World</strong></p>"></textarea>
+          <textarea id="sourceInput" class="txt" placeholder="<h1>Hello</h1><p><strong>World</strong></p>"></textarea>
         </div>
         <div class="setting-group">
           <div class="setting-title">Convert</div>
           <div class="options-bar" style="border-top:none;padding-top:0;gap:8px;flex-wrap:wrap;">
             <button class="generate-btn" onclick="convertNow()">⚡ 변환</button>
             <button class="toggle-btn" onclick="copyOut()">COPY</button>
-            <button class="toggle-btn" onclick="downloadOut()">⬇ .md 다운로드</button>
+            <button class="toggle-btn" id="downloadBtn" onclick="downloadOut()">⬇ 다운로드</button>
           </div>
         </div>
       </div>
     </div>
     <div class="output-panel" id="outPanel">
-      <div class="panel"><div class="empty-state"><div class="icon">MD</div><p>HTML 입력 후 변환</p></div></div>
+      <div class="panel"><div class="empty-state"><div class="icon">↔</div><p>HTML 또는 Markdown 입력 후 변환</p></div></div>
     </div>
   </div>
-  <footer>// HTML to Markdown Converter</footer>
+  <footer>// HTML ↔ Markdown Converter</footer>
 </div>
 <script>
-let lastMd='';
+let lastOut='';
+let convertMode='h2m';
 const esc=UIUtils.escHtml;
 
-document.getElementById('htmlFile').addEventListener('change', e=>{
+document.querySelectorAll('.mode-btn').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  convertMode = btn.dataset.mode;
+  const input = document.getElementById('sourceInput');
+  const dl = document.getElementById('downloadBtn');
+  if (convertMode === 'h2m') {
+    input.placeholder = '<h1>Hello</h1><p><strong>World</strong></p>';
+    dl.textContent = '⬇ .md 다운로드';
+  } else {
+    input.placeholder = '# 제목\n\n- 항목1\n- 항목2';
+    dl.textContent = '⬇ .html 다운로드';
+  }
+}));
+
+document.getElementById('sourceFile').addEventListener('change', e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=ev=>{ document.getElementById('htmlInput').value = ev.target.result || ''; };
+  r.onload=ev=>{ document.getElementById('sourceInput').value = ev.target.result || ''; };
   r.readAsText(f, 'utf-8');
 });
 
 function loadSample(){
-  document.getElementById('htmlInput').value = `<h1>제목</h1>\n<p>이것은 <strong>굵게</strong> 와 <em>기울임</em>이 있는 문장입니다.</p>\n<ul><li>첫째</li><li>둘째</li></ul>\n<pre><code>console.log('hello')</code></pre>`;
+  if (convertMode === 'h2m') {
+    document.getElementById('sourceInput').value = `<h1>제목</h1>\n<p>이것은 <strong>굵게</strong> 와 <em>기울임</em>이 있는 문장입니다.</p>\n<ul><li>첫째</li><li>둘째</li></ul>\n<pre><code>console.log('hello')</code></pre>`;
+  } else {
+    document.getElementById('sourceInput').value = `# 제목\n\n이것은 **굵게** 와 *기울임* 예시입니다.\n\n- 첫째\n- 둘째\n\n\`\`\`js\nconsole.log('hello')\n\`\`\``;
+  }
 }
 
 function textOf(node){ return (node.textContent||'').replace(/\s+/g,' ').trim(); }
@@ -130,30 +155,106 @@ function htmlToMarkdown(html){
   return md;
 }
 
+function mdInlineToHtml(s){
+  return s
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2">')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+}
+
+function markdownToHtml(md){
+  const lines = md.split(/\r?\n/);
+  let i=0, out=[];
+
+  while(i<lines.length){
+    const line = lines[i];
+    if(!line.trim()){ i++; continue; }
+
+    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    if(h){ out.push(`<h${h[1].length}>${mdInlineToHtml(h[2])}</h${h[1].length}>`); i++; continue; }
+
+    if(/^```/.test(line)){
+      const lang = line.replace(/^```/, '').trim();
+      i++;
+      const buf=[];
+      while(i<lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
+      i++;
+      out.push(`<pre><code class="language-${lang}">${esc(buf.join('\n'))}</code></pre>`);
+      continue;
+    }
+
+    if(/^\|/.test(line)){
+      const rows=[];
+      while(i<lines.length && /^\|/.test(lines[i])) rows.push(lines[i++]);
+      const parse = r => r.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      const head = parse(rows[0]||'');
+      const body = rows.slice(2).map(parse);
+      let t = '<table><thead><tr>'+head.map(c=>`<th>${mdInlineToHtml(c)}</th>`).join('')+'</tr></thead><tbody>';
+      body.forEach(r=>{ t += '<tr>'+head.map((_,idx)=>`<td>${mdInlineToHtml(r[idx]||'')}</td>`).join('')+'</tr>'; });
+      t += '</tbody></table>';
+      out.push(t);
+      continue;
+    }
+
+    if(/^(\- |\* )/.test(line)){
+      const items=[];
+      while(i<lines.length && /^(\- |\* )/.test(lines[i])) items.push(lines[i++].replace(/^(\- |\* )/,''));
+      out.push('<ul>'+items.map(x=>`<li>${mdInlineToHtml(x)}</li>`).join('')+'</ul>');
+      continue;
+    }
+
+    if(/^\d+\.\s+/.test(line)){
+      const items=[];
+      while(i<lines.length && /^\d+\.\s+/.test(lines[i])) items.push(lines[i++].replace(/^\d+\.\s+/,''));
+      out.push('<ol>'+items.map(x=>`<li>${mdInlineToHtml(x)}</li>`).join('')+'</ol>');
+      continue;
+    }
+
+    if(/^>\s?/.test(line)){
+      const qs=[];
+      while(i<lines.length && /^>\s?/.test(lines[i])) qs.push(lines[i++].replace(/^>\s?/,''));
+      out.push('<blockquote>'+mdInlineToHtml(qs.join('<br>'))+'</blockquote>');
+      continue;
+    }
+
+    if(/^---+$/.test(line.trim())){ out.push('<hr>'); i++; continue; }
+
+    const p=[];
+    while(i<lines.length && lines[i].trim() && !/^(#{1,6})\s+/.test(lines[i]) && !/^```/.test(lines[i]) && !/^\|/.test(lines[i]) && !/^(\- |\* )/.test(lines[i]) && !/^\d+\.\s+/.test(lines[i]) && !/^>\s?/.test(lines[i]) && !/^---+$/.test(lines[i].trim())) p.push(lines[i++]);
+    out.push('<p>'+mdInlineToHtml(p.join(' '))+'</p>');
+  }
+
+  return out.join('\n');
+}
+
 function convertNow(){
-  const html=document.getElementById('htmlInput').value.trim();
-  if(!html){ UIUtils.showError('outPanel','HTML 입력이 비어 있습니다.'); return; }
+  const src=document.getElementById('sourceInput').value.trim();
+  if(!src){ UIUtils.showError('outPanel', convertMode==='h2m' ? 'HTML 입력이 비어 있습니다.' : 'Markdown 입력이 비어 있습니다.'); return; }
   try{
-    const md=htmlToMarkdown(html);
-    lastMd=md;
-    const id='md_'+Date.now();
+    const outText = convertMode==='h2m' ? htmlToMarkdown(src) : markdownToHtml(src);
+    lastOut = outText;
+    const id='out_'+Date.now();
     document.getElementById('outPanel').innerHTML = UIUtils.renderSqlBlock({
-      badge:'MARKDOWN',
-      tag:'Converted',
+      badge: convertMode==='h2m' ? 'MARKDOWN' : 'HTML',
+      tag: convertMode==='h2m' ? 'HTML → MD' : 'MD → HTML',
       copyBtnId:`copy_${id}`,
       copyLabel:'COPY',
       copyHandler:`UIUtils.copyElementText('${id}','copy_${id}','COPY')`,
-      bodyHtml:`<pre class="sql-code" id="${id}">${esc(md)}</pre>`
+      bodyHtml:`<pre class="sql-code" id="${id}">${esc(outText)}</pre>`
     });
   }catch(e){ UIUtils.showError('outPanel', e.message||String(e)); }
 }
 
-function copyOut(){ if(!lastMd) return; navigator.clipboard.writeText(lastMd); }
+function copyOut(){ if(!lastOut) return; navigator.clipboard.writeText(lastOut); }
 function downloadOut(){
-  if(!lastMd) return;
-  const blob=new Blob([lastMd],{type:'text/markdown;charset=utf-8'});
+  if(!lastOut) return;
+  const ext = convertMode==='h2m' ? 'md' : 'html';
+  const mime = convertMode==='h2m' ? 'text/markdown' : 'text/html';
+  const blob=new Blob([lastOut],{type:`${mime};charset=utf-8`});
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download=`converted_${Date.now()}.md`; a.click(); URL.revokeObjectURL(a.href);
+  a.href=URL.createObjectURL(blob); a.download=`converted_${Date.now()}.${ext}`; a.click(); URL.revokeObjectURL(a.href);
 }
 </script>
 </body>

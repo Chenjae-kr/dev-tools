@@ -76,11 +76,11 @@ const TOOLS = [
     footer: 'JSON → Prettify · Minify · Validate',
   },
   {
-    category: 'Data/Format', href: 'html-to-markdown.html', label: 'HTML → MD', icon: 'H2M',
-    title: 'HTML to Markdown Converter',
-    desc: 'HTML 코드를 입력하거나 파일 업로드하면 Markdown으로 변환합니다. heading/list/table/code block 변환을 지원합니다.',
-    tags: ['HTML', 'Markdown', 'Converter', 'Upload'],
-    footer: 'HTML → Markdown',
+    category: 'Data/Format', href: 'html-to-markdown.html', label: 'HTML ↔ MD', icon: 'H2M',
+    title: 'HTML ↔ Markdown Converter',
+    desc: 'HTML/Markdown 코드를 입력하거나 파일 업로드하면 양방향으로 변환합니다. heading/list/table/code block 변환을 지원합니다.',
+    tags: ['HTML', 'Markdown', 'Converter', 'Bi-directional'],
+    footer: 'HTML ↔ Markdown',
   },
   {
     category: 'Data/Format', href: 'mock-data-generator.html', label: 'Mock Data', icon: 'MOCK',
