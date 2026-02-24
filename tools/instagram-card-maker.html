@@ -86,7 +86,12 @@
         <div class="setting-group">
           <div class="setting-title">Headline & Subtitle</div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Headline Line 1</span></div>
+        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Headline Line 1</span>
+          <div class="toggle-group">
+            <button class="toggle-btn headvis-btn active" data-head="on">ON</button>
+            <button class="toggle-btn headvis-btn" data-head="off">OFF</button>
+          </div>
+        </div>
         <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목 1줄"></textarea>
 
         <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Headline Line 2</span></div>
@@ -98,7 +103,12 @@
           <span class="options-label">L2</span><input id="titleColor2" type="color" value="#d41414" class="table-name-input small" style="padding:4px 6px;">
         </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Subtitle</span></div>
+        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Subtitle</span>
+          <div class="toggle-group">
+            <button class="toggle-btn subvis-btn active" data-sub="on">ON</button>
+            <button class="toggle-btn subvis-btn" data-sub="off">OFF</button>
+          </div>
+        </div>
         <textarea id="subTitleText" class="input-area" placeholder="소제목/요약"></textarea>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
@@ -265,7 +275,7 @@ let exportFormat='png';
 let tableSepMode='auto';
 let tableInputMode='text';
 
-function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -313,9 +323,13 @@ function fillInputsFromPage(){
   const pagewm = p.showPage === false ? 'off' : 'on';
   const sourceVis = p.showSource === false ? 'off' : 'on';
   const brandVis = p.showBrand === false ? 'off' : 'on';
+  const headVis = p.showHeadline === false ? 'off' : 'on';
+  const subVis = p.showSubtitle === false ? 'off' : 'on';
   document.querySelectorAll('.pagewm-btn').forEach(b=>b.classList.toggle('active', b.dataset.pagewm===pagewm));
   document.querySelectorAll('.sourcevis-btn').forEach(b=>b.classList.toggle('active', b.dataset.source===sourceVis));
   document.querySelectorAll('.brandvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brandVis));
+  document.querySelectorAll('.headvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.head===headVis));
+  document.querySelectorAll('.subvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===subVis));
   document.getElementById('imgZoom').value=p.imgZoom ?? 100;
   document.getElementById('imgPosX').value=p.imgPosX ?? 50;
   document.getElementById('imgPosY').value=p.imgPosY ?? 50;
@@ -336,6 +350,8 @@ function savePage(){
     bodyType,
     source:document.getElementById('sourceText').value,
     brand:document.getElementById('brandText').value,
+    showHeadline:(document.querySelector('.headvis-btn.active')?.dataset.head || 'on') === 'on',
+    showSubtitle:(document.querySelector('.subvis-btn.active')?.dataset.sub || 'on') === 'on',
     showSource:(document.querySelector('.sourcevis-btn.active')?.dataset.source || 'on') === 'on',
     showBrand:(document.querySelector('.brandvis-btn.active')?.dataset.brand || 'on') === 'on',
     showPage:(document.querySelector('.pagewm-btn.active')?.dataset.pagewm || 'on') === 'on',
@@ -673,29 +689,33 @@ function renderCard(){
   const bodyScale=Math.max(60,Math.min(180,p.bodyScale||100))/100;
 
   let y=panelY+Math.floor(panelH*titleY);
-  if (t1) {
-    const fs1=fit(ctx,t1,panelW-60,Math.floor(h*0.055*h1Scale));
-    ctx.font=`900 ${fs1}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
-    ctx.fillStyle=titleColor1;
-    ctx.textAlign='center';
-    ctx.fillText(t1,panelX+panelW/2,y);
-    y += Math.floor(fs1*1.08);
-  }
-  if (t2) {
-    const fs2=fit(ctx,t2,panelW-60,Math.floor(h*0.06*h2Scale));
-    ctx.font=`900 ${fs2}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
-    ctx.fillStyle=titleColor2;
-    ctx.fillText(t2,panelX+panelW/2,y);
-    y += Math.floor(fs2*1.1);
+  if (p.showHeadline !== false) {
+    if (t1) {
+      const fs1=fit(ctx,t1,panelW-60,Math.floor(h*0.055*h1Scale));
+      ctx.font=`900 ${fs1}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+      ctx.fillStyle=titleColor1;
+      ctx.textAlign='center';
+      ctx.fillText(t1,panelX+panelW/2,y);
+      y += Math.floor(fs1*1.08);
+    }
+    if (t2) {
+      const fs2=fit(ctx,t2,panelW-60,Math.floor(h*0.06*h2Scale));
+      ctx.font=`900 ${fs2}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+      ctx.fillStyle=titleColor2;
+      ctx.fillText(t2,panelX+panelW/2,y);
+      y += Math.floor(fs2*1.1);
+    }
   }
 
-  subLines.slice(0,2).forEach(line=>{
-    const fs=fit(ctx,line,panelW-100,Math.floor(h*0.03*subScale));
-    ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
-    ctx.fillStyle=th.sub;
-    ctx.fillText(line,panelX+panelW/2,y);
-    y += Math.floor(fs*1.2);
-  });
+  if (p.showSubtitle !== false) {
+    subLines.slice(0,2).forEach(line=>{
+      const fs=fit(ctx,line,panelW-100,Math.floor(h*0.03*subScale));
+      ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+      ctx.fillStyle=th.sub;
+      ctx.fillText(line,panelX+panelW/2,y);
+      y += Math.floor(fs*1.2);
+    });
+  }
 
   const label=(p.label||'').trim();
   if (label) {
@@ -851,6 +871,8 @@ document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.qu
 document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;if(tableInputMode==='grid') syncGridFromText();renderCard();});
 /* table input mode is controlled by single toggle button */
 document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.headvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.headvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.subvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.subvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.sourcevis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sourcevis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.brandvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.brandvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
@@ -873,6 +895,8 @@ pages[0]={
   label:'2026년 IPO 예상 주요 기업',
   source:'출처: 관련 언론보도',
   brand:'@instagram',
+  showHeadline:true,
+  showSubtitle:true,
   showSource:true,
   showBrand:true,
   showPage:true,
