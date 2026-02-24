@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     topnav.addEventListener('mouseleave', function () {
       if (window.innerWidth <= 768) return;
-      closeTimer = setTimeout(() => closeAllNavMenus(), 120);
+      closeTimer = setTimeout(() => closeAllNavMenus(), 420);
     });
 
     topnav.addEventListener('mouseenter', function () {

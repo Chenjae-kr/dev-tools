@@ -149,6 +149,8 @@ body::before {
 
 .nav-menu {
   position: relative;
+  padding-bottom: 6px; /* hover bridge to submenu */
+  margin-bottom: -6px;
 }
 
 .nav-menu-btn {
@@ -181,7 +183,7 @@ body::before {
 
 .nav-submenu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 1px);
   left: 0;
   min-width: 180px;
   max-height: 60vh;
@@ -492,8 +494,8 @@ body::before {
   }
 
   .nav-tools .nav-item {
-    padding: 10px 12px;
-    font-size: 12px;
+    padding: 11px 14px;
+    font-size: 13px;
     background: var(--surface);
     border-color: var(--border);
     border-radius: 9px;
