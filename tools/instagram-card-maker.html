@@ -120,6 +120,8 @@
             <button class="toggle-btn bodytype-btn" data-body="table">Table</button>
             <button class="toggle-btn bodytype-btn" data-body="image">Image</button>
           </div>
+          <span class="options-label" id="inputModeLabel" style="display:none">Input Mode</span>
+          <button class="toggle-btn" id="inputModeToggle" onclick="toggleTableInputMode()" style="display:none">텍스트 입력</button>
         </div>
 
         <div id="bodyTextWrap">
@@ -129,11 +131,6 @@
 
         <div id="bodyTableWrap" class="hidden">
           <div class="options-bar" style="border-top:none;padding-top:0;">
-            <span class="options-label">Input Mode</span>
-            <div class="toggle-group">
-              <button class="toggle-btn tblmode-btn active" data-mode="text">텍스트 입력</button>
-              <button class="toggle-btn tblmode-btn" data-mode="grid">테이블 입력</button>
-            </div>
             <span class="options-label" id="tblSepLabel">구분자</span>
             <div class="toggle-group" id="tblSepGroup">
               <button class="toggle-btn tblsep-btn active" data-sep="auto">AUTO</button>
@@ -266,6 +263,25 @@ function setBodyUI(){
   document.getElementById('bodyTextWrap').classList.toggle('hidden', bodyType!=='text');
   document.getElementById('bodyTableWrap').classList.toggle('hidden', bodyType!=='table');
   document.getElementById('bodyImageWrap').classList.toggle('hidden', bodyType!=='image');
+  updateInputModeToggle();
+}
+
+function updateInputModeToggle(){
+  const label = document.getElementById('inputModeLabel');
+  const btn = document.getElementById('inputModeToggle');
+  const visible = bodyType === 'table';
+  label.style.display = visible ? '' : 'none';
+  btn.style.display = visible ? '' : 'none';
+  btn.textContent = tableInputMode === 'grid' ? '테이블 입력' : '텍스트 입력';
+}
+
+function toggleTableInputMode(){
+  tableInputMode = tableInputMode === 'grid' ? 'text' : 'grid';
+  setTableInputUI();
+  updateInputModeToggle();
+  if(tableInputMode==='grid') syncGridFromText();
+  else syncTextFromGrid(false);
+  renderCard();
 }
 
 function fillInputsFromPage(){
@@ -799,14 +815,7 @@ document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.query
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
 document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
 document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;if(tableInputMode==='grid') syncGridFromText();renderCard();});
-document.querySelectorAll('.tblmode-btn').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.tblmode-btn').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');
-  tableInputMode=b.dataset.mode;
-  setTableInputUI();
-  if(tableInputMode==='grid') syncGridFromText();
-  else syncTextFromGrid(false);
-});
+/* table input mode is controlled by single toggle button */
 document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
