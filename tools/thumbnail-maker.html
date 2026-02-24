@@ -77,6 +77,17 @@
         </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Decor</span>
+          <div class="toggle-group">
+            <button class="toggle-btn decor-btn active" data-decor="quote-frame">Style 1</button>
+            <button class="toggle-btn decor-btn" data-decor="double-frame">Style 2</button>
+            <button class="toggle-btn decor-btn" data-decor="corner-lines">Style 3</button>
+            <button class="toggle-btn decor-btn" data-decor="clean-box">Style 4</button>
+            <button class="toggle-btn decor-btn" data-decor="minimal">Style 5</button>
+          </div>
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
           <span class="options-label">Main</span>
         </div>
         <textarea id="mainText" class="input-area" placeholder="메인 텍스트">블로그 썸네일
@@ -146,22 +157,23 @@ let ratio = '1:1';
 let bgMode = 'color';
 let bgImage = null;
 let overlayMode = 'none';
+let decorStyle = 'quote-frame';
 let saveFormat = 'png';
 
 const ratios = { '1:1':[1200,1200], '16:9':[1600,900], '4:3':[1200,900], '3:2':[1500,1000] };
 const presets = {
   quote: {
-    ratio: '1:1', bgColor: '#5f6fdd', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 6, pad: 90, ov: 'none', ovStrength: 28,
+    ratio: '1:1', bgColor: '#5f6fdd', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 6, pad: 90, ov: 'none', ovStrength: 28, decor: 'quote-frame',
     mainScale: 100, subScale: 100, mainY: 43, subY: 72,
     main: '블로그 썸네일\n3분 제작', sub: '3분만에 블로그 썸네일 만들기'
   },
   blog: {
-    ratio: '4:3', bgColor: '#2e3f8f', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 5, pad: 80, ov: 'gradient', ovStrength: 32,
+    ratio: '4:3', bgColor: '#2e3f8f', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 5, pad: 80, ov: 'gradient', ovStrength: 32, decor: 'double-frame',
     mainScale: 100, subScale: 95, mainY: 41, subY: 73,
     main: '실전 가이드\n핵심 요약', sub: '바로 적용 가능한 블로그 포스트 템플릿'
   },
   youtube: {
-    ratio: '16:9', bgColor: '#1c1f2a', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 6, pad: 70, ov: 'vignette', ovStrength: 40,
+    ratio: '16:9', bgColor: '#1c1f2a', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 6, pad: 70, ov: 'vignette', ovStrength: 40, decor: 'corner-lines',
     mainScale: 110, subScale: 95, mainY: 42, subY: 74,
     main: '조회수 올리는\n썸네일', sub: '클릭을 부르는 타이틀 디자인'
   }
@@ -192,6 +204,13 @@ document.querySelectorAll('.preset-btn').forEach(b=>b.onclick=()=>{
   applyPreset(b.dataset.preset);
 });
 
+document.querySelectorAll('.decor-btn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.decor-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  decorStyle = b.dataset.decor;
+  renderThumb();
+});
+
 document.querySelectorAll('.fmt-btn').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.fmt-btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
@@ -218,6 +237,9 @@ function applyPreset(name){
 
   overlayMode = p.ov;
   document.querySelectorAll('.ov-btn').forEach(x=>x.classList.toggle('active', x.dataset.ov===overlayMode));
+
+  decorStyle = p.decor || 'quote-frame';
+  document.querySelectorAll('.decor-btn').forEach(x=>x.classList.toggle('active', x.dataset.decor===decorStyle));
 
   document.getElementById('bgColor').value = p.bgColor;
   document.getElementById('textColor').value = p.textColor;
@@ -304,6 +326,57 @@ function drawOutlinedText(ctx, text, x, y, fillColor, strokeColor, outlinePx) {
   ctx.fillText(text, x, y);
 }
 
+function drawDecor(ctx, w, h) {
+  const m=Math.max(34,Math.floor(w*0.08));
+  const lw=Math.max(6,Math.floor(w*0.007));
+  ctx.strokeStyle='rgba(255,255,255,0.92)';
+  ctx.fillStyle='rgba(255,255,255,0.95)';
+  ctx.lineWidth=lw;
+
+  if (decorStyle === 'minimal') return;
+
+  if (decorStyle === 'quote-frame') {
+    ctx.strokeRect(m,m,w-m*2,h-m*2);
+    ctx.font = `700 ${Math.floor(w*0.12)}px serif`;
+    ctx.fillText('“', m-38, m+130);
+    ctx.fillText('”', w-m-28, h-m+72);
+    return;
+  }
+
+  if (decorStyle === 'double-frame') {
+    ctx.strokeRect(m,m,w-m*2,h-m*2);
+    ctx.globalAlpha=0.7;
+    ctx.strokeRect(m+Math.floor(lw*2.2),m+Math.floor(lw*2.2),w-m*2-Math.floor(lw*4.4),h-m*2-Math.floor(lw*4.4));
+    ctx.globalAlpha=1;
+    return;
+  }
+
+  if (decorStyle === 'corner-lines') {
+    const l=Math.floor(Math.min(w,h)*0.14);
+    const r=w-m, b=h-m;
+    ctx.beginPath();
+    // TL
+    ctx.moveTo(m,m+l); ctx.lineTo(m,m); ctx.lineTo(m+l,m);
+    // TR
+    ctx.moveTo(r-l,m); ctx.lineTo(r,m); ctx.lineTo(r,m+l);
+    // BL
+    ctx.moveTo(m,b-l); ctx.lineTo(m,b); ctx.lineTo(m+l,b);
+    // BR
+    ctx.moveTo(r-l,b); ctx.lineTo(r,b); ctx.lineTo(r,b-l);
+    ctx.stroke();
+    return;
+  }
+
+  if (decorStyle === 'clean-box') {
+    ctx.globalAlpha=0.8;
+    ctx.fillRect(m,m,w-m*2,h-m*2);
+    ctx.globalAlpha=1;
+    ctx.strokeStyle='rgba(255,255,255,0.65)';
+    ctx.strokeRect(m,m,w-m*2,h-m*2);
+    return;
+  }
+}
+
 function renderThumb(){
   const [w,h]=ratios[ratio];
   const pad=parseInt(document.getElementById('pad').value||'90',10);
@@ -324,17 +397,8 @@ function renderThumb(){
   drawBg(ctx,w,h);
   drawOverlay(ctx,w,h);
 
-  // frame
-  ctx.strokeStyle='rgba(255,255,255,0.92)';
-  ctx.lineWidth=Math.max(8,Math.floor(w*0.008));
-  const m=Math.max(34,Math.floor(w*0.08));
-  ctx.strokeRect(m,m,w-m*2,h-m*2);
-
-  // quotes
-  ctx.fillStyle='rgba(255,255,255,0.95)';
-  ctx.font = `700 ${Math.floor(w*0.12)}px serif`;
-  ctx.fillText('“', m-38, m+130);
-  ctx.fillText('”', w-m-28, h-m+72);
+  // decor
+  drawDecor(ctx,w,h);
 
   // text
   ctx.fillStyle=color;
