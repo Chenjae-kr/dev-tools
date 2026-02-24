@@ -7,6 +7,15 @@
 
 const TOOLS = [
   {
+    href:   'csv-to-insert.html',
+    label:  'CSV → INSERT',
+    icon:   'CSV',
+    title:  'CSV → INSERT SQL',
+    desc:   'CSV 파일을 업로드하거나 붙여넣으면 INSERT SQL 쿼리를 자동 생성합니다. 드래그 앤 드롭, 구분자 자동 감지(콤마·세미콜론·탭), Bulk/Individual 모드 지원.',
+    tags:   ['MySQL', 'Oracle', 'PostgreSQL', 'Drag & Drop'],
+    footer: 'CSV → INSERT SQL · Auto-detect delimiter',
+  },
+  {
     href:   'ddl-crud.html',
     label:  'DDL → CRUD',
     icon:   'SQL',

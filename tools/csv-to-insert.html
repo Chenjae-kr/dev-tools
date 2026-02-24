@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSV → INSERT SQL | Dev Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.csv-drop-zone {
+  margin: 16px 20px 0;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 22px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: var(--bg);
+}
+.csv-drop-zone:hover,
+.csv-drop-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(79,255,176,0.04);
+}
+[data-theme="light"] .csv-drop-zone:hover,
+[data-theme="light"] .csv-drop-zone.dragover {
+  background: rgba(0,184,122,0.04);
+}
+.drop-icon { font-size: 26px; margin-bottom: 8px; opacity: 0.45; }
+.drop-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+.file-select-btn {
+  padding: 5px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+}
+.file-select-btn:hover { background: rgba(79,255,176,0.1); }
+[data-theme="light"] .file-select-btn:hover { background: rgba(0,184,122,0.08); }
+
+.csv-file-badge {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: rgba(79,255,176,0.06);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  margin-top: 10px;
+}
+[data-theme="light"] .csv-file-badge { background: rgba(0,184,122,0.05); }
+.csv-file-badge.visible { display: flex; }
+.csv-file-badge .badge-label { color: var(--text-muted); }
+.file-clear-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color 0.15s;
+}
+.file-clear-btn:hover { color: var(--accent3); }
+
+.csv-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 14px 20px;
+  resize: none;
+  tab-size: 4;
+  min-height: 160px;
+}
+.csv-textarea::placeholder { color: var(--text-muted); }
+.csv-divider {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0 20px 8px;
+}
+</style>
+</head>
+<body>
+
+<script>renderNav();</script>
+
+<div class="container">
+  <div class="tool-header">
+    <h1>CSV <span>→</span> INSERT SQL</h1>
+    <p>// upload or paste a CSV file and generate INSERT queries instantly</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT: Input Panel -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot"></div>
+            CSV INPUT
+          </div>
+        </div>
+
+        <!-- Drop Zone -->
+        <div class="csv-drop-zone" id="dropZone">
+          <div class="drop-icon">📄</div>
+          <p class="drop-text">CSV 파일을 드래그 앤 드롭하거나<br>아래에 직접 텍스트를 붙여넣으세요</p>
+          <button class="file-select-btn" onclick="document.getElementById('csvFileInput').click()">파일 선택</button>
+          <input type="file" id="csvFileInput" accept=".csv,.tsv,.txt,text/csv" style="display:none">
+        </div>
+
+        <!-- File Badge -->
+        <div class="csv-file-badge" id="csvFileBadge">
+          <span class="badge-label">FILE</span>
+          <span id="csvFileName"></span>
+          <span id="csvFileSize" style="color:var(--text-muted)"></span>
+          <button class="file-clear-btn" onclick="clearFile()" title="파일 제거">✕</button>
+        </div>
+
+        <p class="csv-divider" style="margin-top:12px">또는 직접 입력</p>
+
+        <!-- CSV Textarea -->
+        <textarea class="csv-textarea" id="csvInput" placeholder="id,name,age,email
+1,Alice,30,alice@example.com
+2,Bob,25,bob@example.com
+3,Charlie,,charlie@example.com"></textarea>
+
+        <!-- Table Name -->
+        <div class="options-bar">
+          <span class="options-label">Table</span>
+          <input type="text" id="tableName" class="table-name-input" placeholder="table_name">
+        </div>
+
+        <!-- Delimiter -->
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Delimiter</span>
+          <div class="toggle-group">
+            <button class="toggle-btn delim-btn active" data-delim=",">콤마 (,)</button>
+            <button class="toggle-btn delim-btn" data-delim=";">세미콜론 (;)</button>
+            <button class="toggle-btn delim-btn" data-delim="tab">탭 (↹)</button>
+          </div>
+        </div>
+
+        <!-- Dialect -->
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Dialect</span>
+          <div class="dialect-group">
+            <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
+            <button class="dialect-btn" data-dialect="oracle">Oracle</button>
+            <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+          </div>
+        </div>
+
+        <!-- Mode + NULL -->
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Mode</span>
+          <div class="toggle-group">
+            <button class="toggle-btn mode-btn active" data-mode="individual">Individual</button>
+            <button class="toggle-btn mode-btn" data-mode="bulk">Bulk</button>
+          </div>
+          <span class="options-label">Empty값</span>
+          <div class="toggle-group">
+            <button class="toggle-btn null-btn active" data-null="null">NULL</button>
+            <button class="toggle-btn null-btn" data-null="empty">''</button>
+          </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn" onclick="generate()">
+          ⚡ INSERT 생성
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Output Panel -->
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">⬅</div>
+          <p>CSV 파일을 업로드하거나<br>텍스트를 붙여넣고<br>INSERT 생성 버튼을 누르세요</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// CSV → INSERT Generator — supports MySQL · Oracle · PostgreSQL · drag & drop · auto-detect delimiter</footer>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+let selectedDialect = 'mysql';
+let insertMode = 'individual';
+let nullMode = 'null';
+let selectedDelim = ',';
+
+// ─── Toggle handlers ─────────────────────────────────────
+document.querySelectorAll('.dialect-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.dialect-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedDialect = btn.dataset.dialect;
+  });
+});
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    insertMode = btn.dataset.mode;
+  });
+});
+
+document.querySelectorAll('.null-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.null-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    nullMode = btn.dataset.null;
+  });
+});
+
+document.querySelectorAll('.delim-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.delim-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedDelim = btn.dataset.delim === 'tab' ? '\t' : btn.dataset.delim;
+  });
+});
+
+// ─── File Upload ─────────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const csvFileInput = document.getElementById('csvFileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+csvFileInput.addEventListener('change', () => {
+  if (csvFileInput.files[0]) loadFile(csvFileInput.files[0]);
+  csvFileInput.value = '';
+});
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    // Strip UTF-8 BOM if present
+    const text = e.target.result.replace(/^\uFEFF/, '');
+    document.getElementById('csvInput').value = text;
+
+    // Show file badge
+    const badge = document.getElementById('csvFileBadge');
+    badge.classList.add('visible');
+    document.getElementById('csvFileName').textContent = file.name;
+    document.getElementById('csvFileSize').textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
+
+    // Auto-detect delimiter from first line
+    const firstLine = text.split(/\r?\n/)[0] || '';
+    const counts = {
+      ',':  (firstLine.match(/,/g)  || []).length,
+      ';':  (firstLine.match(/;/g)  || []).length,
+      'tab':(firstLine.match(/\t/g) || []).length,
+    };
+    let bestKey = Object.keys(counts).reduce((a, b) => counts[a] >= counts[b] ? a : b);
+    selectedDelim = bestKey === 'tab' ? '\t' : bestKey;
+    document.querySelectorAll('.delim-btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.querySelector(`.delim-btn[data-delim="${bestKey}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    // Auto-fill table name from filename
+    if (!document.getElementById('tableName').value) {
+      document.getElementById('tableName').value = file.name
+        .replace(/\.[^.]+$/, '')
+        .replace(/[^a-zA-Z0-9_]/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .toLowerCase();
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function clearFile() {
+  document.getElementById('csvFileBadge').classList.remove('visible');
+  document.getElementById('csvFileName').textContent = '';
+  document.getElementById('csvFileSize').textContent = '';
+  document.getElementById('csvInput').value = '';
+  document.getElementById('tableName').value = '';
+}
+
+// ─── CSV Parser ───────────────────────────────────────────
+function parseCSV(text, delim) {
+  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  let i = 0;
+
+  while (i < text.length) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"' && text[i + 1] === '"') { field += '"'; i += 2; }
+      else if (ch === '"')                   { inQuotes = false; i++; }
+      else                                   { field += ch; i++; }
+    } else {
+      if (ch === '"') {
+        inQuotes = true; i++;
+      } else if (text.slice(i, i + delim.length) === delim) {
+        row.push(field.trim());
+        field = '';
+        i += delim.length;
+      } else if (ch === '\n') {
+        row.push(field.trim());
+        field = '';
+        if (row.some(f => f !== '')) rows.push(row);
+        row = [];
+        i++;
+      } else {
+        field += ch; i++;
+      }
+    }
+  }
+  // Last field / row
+  row.push(field.trim());
+  if (row.some(f => f !== '')) rows.push(row);
+
+  if (rows.length < 2) throw new Error('헤더 행과 최소 1개의 데이터 행이 필요합니다.');
+
+  const headers = rows[0].map(h => h.replace(/^["']|["']$/g, ''));
+  if (headers.length === 0 || headers.every(h => h === '')) throw new Error('유효한 헤더 컬럼이 없습니다.');
+
+  const dataRows = rows.slice(1).map(r => {
+    const out = [];
+    for (let i = 0; i < headers.length; i++) out.push(r[i] !== undefined ? r[i] : '');
+    return out;
+  });
+
+  return { headers, rows: dataRows };
+}
+
+// ─── Helpers ─────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function quoteIdent(name, dialect) {
+  const n = escHtml(name);
+  if (dialect === 'mysql')      return `\`${n}\``;
+  if (dialect === 'oracle')     return escHtml(name.toUpperCase());
+  return `"${n}"`;  // postgresql
+}
+
+function formatValue(val, dialect, useNull) {
+  if (/^(null|NULL|Null|\\N)$/.test(val))
+    return `<span class="kw">NULL</span>`;
+  if (val === '')
+    return useNull ? `<span class="kw">NULL</span>` : `<span class="ph">''</span>`;
+  if (/^-?\d+$/.test(val))
+    return `<span class="val">${escHtml(val)}</span>`;
+  if (/^-?\d+\.\d+([eE][+-]?\d+)?$/.test(val))
+    return `<span class="val">${escHtml(val)}</span>`;
+  if (/^true$/i.test(val))
+    return dialect === 'postgresql' ? `<span class="kw">TRUE</span>` : `<span class="val">1</span>`;
+  if (/^false$/i.test(val))
+    return dialect === 'postgresql' ? `<span class="kw">FALSE</span>` : `<span class="val">0</span>`;
+  // String — SQL-escape single quotes, then HTML-escape for display
+  const sql = val.replace(/'/g, "''");
+  return `<span class="ph">'${escHtml(sql)}'</span>`;
+}
+
+// ─── Main Generate ────────────────────────────────────────
+function generate() {
+  const csvText = document.getElementById('csvInput').value.trim();
+  const tableName = document.getElementById('tableName').value.trim() || 'my_table';
+  const output = document.getElementById('outputPanel');
+  const btn = document.getElementById('generateBtn');
+
+  if (!csvText) {
+    output.innerHTML = `<div class="error-msg">⚠ CSV 데이터를 입력하거나 파일을 업로드해주세요.</div>`;
+    return;
+  }
+
+  btn.textContent = '⏳ 생성 중...';
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    try {
+      const { headers, rows } = parseCSV(csvText, selectedDelim);
+      const useNull = nullMode === 'null';
+      const tbl = quoteIdent(tableName, selectedDialect);
+      const colsHtml = headers.map(h => `<span class="col">${quoteIdent(h, selectedDialect)}</span>`);
+      const dialectLabel = { mysql: 'MySQL', oracle: 'Oracle', postgresql: 'PostgreSQL' };
+
+      let sqlHtml = '';
+
+      if (insertMode === 'bulk') {
+        sqlHtml += `<span class="cmt">-- Bulk INSERT: ${escHtml(tableName)}에 ${rows.length}행 삽입</span>\n`;
+        sqlHtml += `<span class="kw">INSERT INTO</span> <span class="tbl">${tbl}</span> (\n`;
+        sqlHtml += `    ${colsHtml.join(',\n    ')}\n)\n<span class="kw">VALUES</span>\n`;
+        rows.forEach((row, i) => {
+          const vals = row.map(v => formatValue(v, selectedDialect, useNull));
+          const isLast = i === rows.length - 1;
+          sqlHtml += `    (${vals.join(', ')})${isLast ? ';' : ','}`;
+          if (!isLast) sqlHtml += `  <span class="cmt">-- row ${i + 1}</span>`;
+          sqlHtml += '\n';
+        });
+      } else {
+        rows.forEach((row, i) => {
+          if (i > 0) sqlHtml += '\n\n';
+          sqlHtml += `<span class="cmt">-- Row ${i + 1}</span>\n`;
+          sqlHtml += `<span class="kw">INSERT INTO</span> <span class="tbl">${tbl}</span> (\n`;
+          sqlHtml += `    ${colsHtml.join(',\n    ')}\n)\n<span class="kw">VALUES</span> (\n`;
+          const vals = row.map((v, j) =>
+            `    ${formatValue(v, selectedDialect, useNull)} <span class="cmt">-- ${escHtml(headers[j])}</span>`
+          );
+          sqlHtml += vals.join(',\n') + '\n);';
+        });
+      }
+
+      const blockId = `block_csv_${Date.now()}`;
+      output.innerHTML = `
+        <div class="panel sql-block">
+          <div class="sql-block-header">
+            <span class="sql-type-badge badge-insert">INSERT</span>
+            <span class="sql-dialect-tag">${dialectLabel[selectedDialect]} · ${insertMode} · ${rows.length} rows</span>
+            <button class="copy-btn" id="copy_${blockId}" onclick="copySQL('${blockId}')">COPY ALL</button>
+          </div>
+          <div class="table-info">
+            <span>TABLE</span> ${escHtml(tableName)}
+            <span style="margin-left:8px">COLUMNS</span> ${headers.length}
+            <span style="margin-left:8px">ROWS</span> ${rows.length}
+          </div>
+          <pre class="sql-code" id="${blockId}">${sqlHtml}</pre>
+        </div>`;
+
+    } catch (e) {
+      output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
+    }
+
+    btn.textContent = '⚡ INSERT 생성';
+    btn.classList.remove('loading');
+  }, 10);
+}
+
+function copySQL(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
+    const btn = document.getElementById(`copy_${id}`);
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY ALL'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// Ctrl/Cmd + Enter to generate
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generate();
+});
+</script>
+</body>
+</html>
