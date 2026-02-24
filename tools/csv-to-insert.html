@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CSV → INSERT SQL | Dev Tools</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="../tools.js"></script>
 <script src="../nav.js"></script>
 <link rel="stylesheet" href="../styles.css">
@@ -129,9 +130,9 @@
         <!-- Drop Zone -->
         <div class="csv-drop-zone" id="dropZone">
           <div class="drop-icon">📄</div>
-          <p class="drop-text">CSV 파일을 드래그 앤 드롭하거나<br>아래에 직접 텍스트를 붙여넣으세요</p>
+          <p class="drop-text">CSV/Excel 파일을 드래그 앤 드롭하거나<br>아래에 직접 텍스트를 붙여넣으세요</p>
           <button class="file-select-btn" onclick="document.getElementById('csvFileInput').click()">파일 선택</button>
-          <input type="file" id="csvFileInput" accept=".csv,.tsv,.txt,text/csv" style="display:none">
+          <input type="file" id="csvFileInput" accept=".csv,.tsv,.txt,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none">
         </div>
 
         <!-- File Badge -->
@@ -207,7 +208,7 @@
     </div>
   </div>
 
-  <footer>// CSV → INSERT Generator — supports MySQL · Oracle · PostgreSQL · drag & drop · auto-detect delimiter</footer>
+  <footer>// CSV/Excel → INSERT Generator — supports MySQL · Oracle · PostgreSQL · drag & drop · auto-detect delimiter</footer>
 </div>
 
 <script>
@@ -267,40 +268,71 @@ csvFileInput.addEventListener('change', () => {
   csvFileInput.value = '';
 });
 
+function showLoadError(message) {
+  document.getElementById('outputPanel').innerHTML = `<div class="error-msg">❌ 파일 로드 오류\n${escHtml(message)}</div>`;
+}
+
+function processLoadedText(file, rawText) {
+  // Strip UTF-8 BOM if present
+  const text = String(rawText || '').replace(/^\uFEFF/, '');
+  document.getElementById('csvInput').value = text;
+
+  // Show file badge
+  const badge = document.getElementById('csvFileBadge');
+  badge.classList.add('visible');
+  document.getElementById('csvFileName').textContent = file.name;
+  document.getElementById('csvFileSize').textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
+
+  // Auto-detect delimiter from first line
+  const firstLine = text.split(/\r?\n/)[0] || '';
+  const counts = {
+    ',':  (firstLine.match(/,/g)  || []).length,
+    ';':  (firstLine.match(/;/g)  || []).length,
+    'tab':(firstLine.match(/\t/g) || []).length,
+  };
+  const bestKey = Object.keys(counts).reduce((a, b) => counts[a] >= counts[b] ? a : b);
+  selectedDelim = bestKey === 'tab' ? '\t' : bestKey;
+  document.querySelectorAll('.delim-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`.delim-btn[data-delim="${bestKey}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // Auto-fill table name from filename
+  if (!document.getElementById('tableName').value) {
+    document.getElementById('tableName').value = file.name
+      .replace(/\.[^.]+$/, '')
+      .replace(/[^a-zA-Z0-9_]/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .toLowerCase();
+  }
+}
+
 function loadFile(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const isExcel = ext === 'xlsx' || ext === 'xls';
   const reader = new FileReader();
-  reader.onload = e => {
-    // Strip UTF-8 BOM if present
-    const text = e.target.result.replace(/^\uFEFF/, '');
-    document.getElementById('csvInput').value = text;
 
-    // Show file badge
-    const badge = document.getElementById('csvFileBadge');
-    badge.classList.add('visible');
-    document.getElementById('csvFileName').textContent = file.name;
-    document.getElementById('csvFileSize').textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
+  reader.onerror = () => showLoadError('파일을 읽는 중 문제가 발생했습니다.');
 
-    // Auto-detect delimiter from first line
-    const firstLine = text.split(/\r?\n/)[0] || '';
-    const counts = {
-      ',':  (firstLine.match(/,/g)  || []).length,
-      ';':  (firstLine.match(/;/g)  || []).length,
-      'tab':(firstLine.match(/\t/g) || []).length,
+  if (isExcel) {
+    reader.onload = e => {
+      try {
+        const workbook = XLSX.read(e.target.result, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        if (!firstSheetName) throw new Error('엑셀 시트가 비어 있습니다.');
+
+        const sheet = workbook.Sheets[firstSheetName];
+        const csvText = XLSX.utils.sheet_to_csv(sheet, { FS: selectedDelim || ',' });
+        processLoadedText(file, csvText);
+      } catch (err) {
+        showLoadError(`엑셀 파일 파싱 실패: ${err?.message || err}`);
+      }
     };
-    let bestKey = Object.keys(counts).reduce((a, b) => counts[a] >= counts[b] ? a : b);
-    selectedDelim = bestKey === 'tab' ? '\t' : bestKey;
-    document.querySelectorAll('.delim-btn').forEach(b => b.classList.remove('active'));
-    const activeBtn = document.querySelector(`.delim-btn[data-delim="${bestKey}"]`);
-    if (activeBtn) activeBtn.classList.add('active');
+    reader.readAsArrayBuffer(file);
+    return;
+  }
 
-    // Auto-fill table name from filename
-    if (!document.getElementById('tableName').value) {
-      document.getElementById('tableName').value = file.name
-        .replace(/\.[^.]+$/, '')
-        .replace(/[^a-zA-Z0-9_]/g, '_')
-        .replace(/^_+|_+$/g, '')
-        .toLowerCase();
-    }
+  reader.onload = e => {
+    processLoadedText(file, e.target.result || '');
   };
   reader.readAsText(file, 'UTF-8');
 }
