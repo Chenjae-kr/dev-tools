@@ -24,6 +24,16 @@
 .quick-actions .toggle-btn{padding:8px 10px}
 .table-dual{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .matrix-grid{display:grid;gap:8px;width:100%}
+.matrix-grid.cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}
+.matrix-grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.matrix-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.matrix-grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.matrix-grid.cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.matrix-grid.cols-6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.matrix-grid.cols-7{grid-template-columns:repeat(7,minmax(0,1fr))}
+.matrix-grid.cols-8{grid-template-columns:repeat(8,minmax(0,1fr))}
+.matrix-grid.cols-9{grid-template-columns:repeat(9,minmax(0,1fr))}
+.matrix-grid.cols-10{grid-template-columns:repeat(10,minmax(0,1fr))}
 .matrix-grid .matrix-cell input{width:100%;min-width:0}
 .matrix-grid .matrix-head input{font-weight:700}
 .table-grid-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)}
@@ -504,7 +514,8 @@ function renderTableGrid(head, body){
     ).join('')
   ).join('');
 
-  wrap.innerHTML = `<div class="matrix-grid" style="grid-template-columns:repeat(${cols}, minmax(0, 1fr));">${headerCells}${bodyCells}</div>`;
+  const colClass = `cols-${Math.min(Math.max(cols,1),10)}`;
+  wrap.innerHTML = `<div class="matrix-grid ${colClass}">${headerCells}${bodyCells}</div>`;
 
   wrap.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>syncTextFromGrid(false)));
   document.getElementById('tblCols').value = cols;

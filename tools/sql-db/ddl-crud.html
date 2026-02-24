@@ -345,7 +345,7 @@ function generate() {
         const sqlHtml = generators[type]();
         const id = `block_${type}_${Date.now()}`;
         html += `
-          <div class="panel sql-block" style="animation-delay: ${blockIdx * 0.08}s">
+          <div class="panel sql-block delay-${Math.min(blockIdx,3)}">
             <div class="sql-block-header">
               <span class="sql-type-badge ${badgeClass[type]}">${type}</span>
               <span class="sql-dialect-tag">${dialectLabel[selectedDialect]}</span>

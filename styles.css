@@ -750,6 +750,10 @@ body::before {
 .icon-xl { font-size: 32px; margin-bottom: 12px; }
 .no-radius { border-radius: 0 !important; }
 .panel-plain { padding: 0; overflow: hidden; }
+.delay-0 { animation-delay: 0s; }
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.16s; }
+.delay-3 { animation-delay: 0.24s; }
 .input-xs { max-width: 90px; }
 .input-sm { max-width: 120px; }
 .input-md { max-width: 160px; }

@@ -5,7 +5,7 @@
 <title>CSV Column Profiler | Dev Tools</title>
 <script src="../../tools.js"></script><script src="../../nav.js"></script><script src="../../ui-utils.js"></script>
 <link rel="stylesheet" href="../../styles.css">
-<style>.txt{width:100%;min-height:220px;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;padding:14px 20px;resize:vertical}</style>
+<style>.txt{width:100%;min-height:220px;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;padding:14px 20px;resize:vertical}.profile-wrap{overflow:auto}.profile-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px}.profile-table th,.profile-table td{padding:6px;border-bottom:1px solid var(--border);text-align:left}</style>
 </head><body><script>renderNav();</script>
 <div class="container"><div class="tool-header"><h1>CSV Column <span>Profiler</span></h1><p>// 컬럼별 null/중복/타입/길이 통계</p></div>
 <div class="main-grid"><div><div class="panel"><div class="panel-header"><div class="panel-title"><div class="dot"></div>INPUT</div></div>
@@ -20,6 +20,6 @@ function parse(t){const lines=t.trim().split(/\r?\n/).filter(Boolean);if(lines.l
 function typeOfVals(vals){const f=vals.filter(v=>v!=='');if(!f.length)return 'empty';if(f.every(v=>/^-?\d+$/.test(v)))return 'int';if(f.every(v=>/^-?\d+(\.\d+)?$/.test(v)))return 'number';if(f.every(v=>/^(true|false)$/i.test(v)))return 'bool';if(f.every(v=>/^\d{4}-\d{2}-\d{2}/.test(v)))return 'date';return 'string'}
 function profileCsv(){try{const {h,rows}=parse(document.getElementById('input').value);const total=rows.length;const stats=h.map((col,i)=>{const vals=rows.map(r=>r[i]??'');const nulls=vals.filter(v=>v==='').length;const uniq=new Set(vals.filter(v=>v!==''));const dup=(vals.filter(v=>v!=='').length-uniq.size);const maxLen=Math.max(0,...vals.map(v=>v.length));const minLen=vals.filter(v=>v!=='').length?Math.min(...vals.filter(v=>v!=='').map(v=>v.length)):0;return {col,nulls,nullPct:((nulls/total)*100).toFixed(1),dup,type:typeOfVals(vals),maxLen,minLen}});
 const body=stats.map(s=>`<tr><td>${esc(s.col)}</td><td>${s.type}</td><td>${s.nulls} (${s.nullPct}%)</td><td>${s.dup}</td><td>${s.minLen}/${s.maxLen}</td></tr>`).join('');
-document.getElementById('out').innerHTML=UIUtils.renderSqlBlock({badge:'PROFILE',tag:`${h.length} cols · ${rows.length} rows`,bodyHtml:`<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px"><thead><tr><th>Column</th><th>Type</th><th>Null</th><th>Duplicate</th><th>Len min/max</th></tr></thead><tbody>${body}</tbody></table></div>`});
+document.getElementById('out').innerHTML=UIUtils.renderSqlBlock({badge:'PROFILE',tag:`${h.length} cols · ${rows.length} rows`,bodyHtml:`<div class="profile-wrap"><table class="profile-table"><thead><tr><th>Column</th><th>Type</th><th>Null</th><th>Duplicate</th><th>Len min/max</th></tr></thead><tbody>${body}</tbody></table></div>`});
 }catch(e){UIUtils.showError('out',e.message)}}
 </script></body></html>
