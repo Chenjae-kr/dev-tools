@@ -20,7 +20,7 @@ function renderNav() {
     ? TOOL_CATEGORIES
     : [...new Set(TOOLS.map(t => t.category || 'Other'))];
 
-  const items = categories.map(cat => {
+  const items = categories.map((cat, idx) => {
     const grouped = TOOLS.filter(t => (t.category || 'Other') === cat);
     if (!grouped.length) return '';
 
@@ -30,7 +30,12 @@ function renderNav() {
       return `<a class="nav-item${active}" href="${href}"><span class="nav-item-dot"></span>${item.label}</a>`;
     }).join('');
 
-    return `<div class="nav-group"><span class="nav-group-label">${cat}</span>${links}</div>`;
+    const hasActive = grouped.some(item => filename === item.href);
+    return `
+      <div class="nav-menu${hasActive ? ' open' : ''}" data-menu="${idx}">
+        <button class="nav-menu-btn" onclick="toggleNavGroup(${idx})" aria-expanded="${hasActive ? 'true' : 'false'}">${cat}<span class="nav-caret">▾</span></button>
+        <div class="nav-submenu">${links}</div>
+      </div>`;
   }).join('');
 
   const brandHref = inTools ? '../index.html' : 'index.html';
@@ -100,6 +105,18 @@ function closeMobileMenu() {
     btn.setAttribute('aria-expanded', 'false');
     btn.setAttribute('title', '메뉴 열기');
   }
+}
+
+function toggleNavGroup(idx) {
+  const isMobile = window.innerWidth <= 768;
+  if (!isMobile) return;
+
+  const menu = document.querySelector(`.nav-menu[data-menu="${idx}"]`);
+  if (!menu) return;
+  menu.classList.toggle('open');
+
+  const btn = menu.querySelector('.nav-menu-btn');
+  if (btn) btn.setAttribute('aria-expanded', menu.classList.contains('open') ? 'true' : 'false');
 }
 
 // ─── Init after DOM ──────────────────────────────────────
