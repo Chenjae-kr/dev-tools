@@ -145,6 +145,13 @@ const TOOLS = [
     tags: ['Chart', 'Bar', 'Line', 'Pie', 'JSON', 'CSV'],
     footer: 'Data → Chart Image',
   },
+  {
+    category: 'Image', href: 'image/pdf-to-image.html', label: 'PDF → Image', icon: 'PDF',
+    title: '📄 PDF to Image Converter',
+    desc: 'PDF 파일을 업로드하면 페이지별로 PNG/JPG/WEBP 이미지로 렌더링하고 다운로드할 수 있습니다.',
+    tags: ['PDF', 'Image', 'PNG', 'JPG', 'WEBP'],
+    footer: 'PDF Page → Image File',
+  },
 
   {
     category: 'Text/Compare', href: 'text-compare/diff-viewer.html', label: 'Diff Viewer', icon: 'DIFF',
