@@ -71,7 +71,11 @@
       const s = String(tag || '');
       for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
       const hue = Math.abs(h) % 360;
-      return `background: hsla(${hue}, 78%, 52%, .16); border-color: hsla(${hue}, 88%, 62%, .45); color: hsl(${hue}, 92%, 78%);`;
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      if (isDark) {
+        return `background: hsla(${hue}, 55%, 22%, .30); border-color: hsla(${hue}, 70%, 62%, .42); color: hsl(${hue}, 35%, 86%);`;
+      }
+      return `background: hsla(${hue}, 75%, 96%, 1); border-color: hsla(${hue}, 38%, 62%, .45); color: hsl(${hue}, 42%, 28%);`;
     }
 
     function renderToolCard({ href, icon, title, desc, tags, footer, category }) {

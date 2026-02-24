@@ -1179,13 +1179,14 @@ footer {
 .card-tag {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 4px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
   background: var(--surface2);
   border: 1px solid var(--border);
   color: var(--text-dim);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.25px;
+  line-height: 1.25;
   transition: all 0.2s;
 }
 
