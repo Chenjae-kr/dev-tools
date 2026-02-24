@@ -60,4 +60,13 @@ const TOOLS = [
     tags:   ['Format', 'Minify', 'Validate', 'Syntax Highlight'],
     footer: 'JSON → Prettify · Minify · Validate',
   },
+  {
+    href:   'url-encoder.html',
+    label:  'URL Encode',
+    icon:   'URL',
+    title:  'URL Encoder / Decoder',
+    desc:   'URL 인코딩·디코딩과 쿼리 파라미터 분석을 지원합니다. encodeURIComponent / encodeURI 모드 선택, 파라미터 파싱 및 JSON 복사 지원.',
+    tags:   ['Encode', 'Decode', 'Query Params', 'Parse'],
+    footer: 'URL → Encode · Decode · Parse',
+  },
 ];
