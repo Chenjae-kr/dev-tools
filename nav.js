@@ -161,6 +161,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  // On desktop: close opened dropdown when mouse moves outside menus
+  document.addEventListener('mousemove', function (e) {
+    if (window.innerWidth <= 768) return;
+    if (e.target.closest('.nav-menu')) return;
+
+    document.querySelectorAll('.nav-menu.open').forEach(m => {
+      m.classList.remove('open');
+      const b = m.querySelector('.nav-menu-btn');
+      if (b) b.setAttribute('aria-expanded', 'false');
+    });
+  });
+
   // Close mobile menu when a nav item is clicked
   const navTools = document.getElementById('navTools');
   if (navTools) {
