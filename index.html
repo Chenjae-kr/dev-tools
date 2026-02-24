@@ -54,9 +54,11 @@
   <div id="toolsGroups"></div>
 
   <script>
-    function oneLineSummary({ desc, tags }) {
-      if (Array.isArray(tags) && tags.length) return tags.slice(0, 3).join(' · ');
-      return String(desc || '').split('.')[0].trim();
+    function oneLineSummary({ desc }) {
+      const text = String(desc || '').replace(/\s+/g, ' ').trim();
+      if (!text) return '';
+      const firstSentence = text.split('. ')[0].trim();
+      return firstSentence.endsWith('.') ? firstSentence : `${firstSentence}.`;
     }
 
     function renderToolCard({ href, icon, title, desc, tags, footer }) {
