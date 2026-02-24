@@ -42,6 +42,13 @@
           <div id="wmTextWrap">
             <div class="options-bar"><span class="options-label">Text</span><input id="wmText" class="table-name-input" value="@instagram"></div>
             <div class="options-bar">
+              <span class="options-label">Timestamp</span>
+              <div class="toggle-group">
+                <button class="toggle-btn ts-btn active" data-ts="off">OFF</button>
+                <button class="toggle-btn ts-btn" data-ts="on">ON</button>
+              </div>
+            </div>
+            <div class="options-bar">
               <span class="options-label">Color</span><input id="wmColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
               <span class="options-label">Size%</span><input id="wmTextSize" type="number" value="5" min="1" max="20" class="table-name-input" style="max-width:70px;">
             </div>
@@ -91,7 +98,7 @@
 </div>
 
 <script>
-let baseImage=null, watermarkImage=null, wmType='text', wmPos='br', exportFormat='png';
+let baseImage=null, watermarkImage=null, wmType='text', wmPos='br', exportFormat='png', showTimestamp=false;
 const canvas=document.getElementById('wmCanvas'); const ctx=canvas.getContext('2d');
 
 function bindInput(ids){ ids.forEach(id=>document.getElementById(id).addEventListener('input', render)); }
@@ -110,6 +117,7 @@ document.querySelectorAll('.wmtype-btn').forEach(b=>b.onclick=()=>{
   render();
 });
 document.querySelectorAll('.pos-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pos-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmPos=b.dataset.pos;render();});
+document.querySelectorAll('.ts-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.ts-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');showTimestamp=b.dataset.ts==='on';render();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
 function readImageFile(input, cb){ const f=input.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{ const i=new Image(); i.onload=()=>cb(i); i.src=e.target.result; }; r.readAsDataURL(f); }
@@ -134,6 +142,12 @@ function drawBase(){
   }
 }
 
+function fmtTimestamp(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
 function render(){
   drawBase();
   if(!baseImage) return;
@@ -146,7 +160,9 @@ function render(){
   ctx.globalAlpha=op;
 
   if(wmType==='text'){
-    const txt=document.getElementById('wmText').value||'@instagram';
+    const base=document.getElementById('wmText').value||'@instagram';
+    const ts=showTimestamp ? fmtTimestamp() : '';
+    const txt=[base, ts].filter(Boolean).join(' ');
     const fs=Math.floor((ImageToolUtils.clamp(parseInt(document.getElementById('wmTextSize').value||'5',10),1,20)/100)*Math.min(w,h));
     ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     const tw=ctx.measureText(txt).width, th=fs;
