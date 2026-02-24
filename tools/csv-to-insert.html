@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CSV → INSERT SQL | Dev Tools</title>
+<title>CSV/Markdown → INSERT SQL | Dev Tools</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="../tools.js"></script>
 <script src="../nav.js"></script>
@@ -133,8 +133,8 @@
 
 <div class="container">
   <div class="tool-header">
-    <h1>CSV <span>→</span> INSERT SQL</h1>
-    <p>// upload or paste a CSV file and generate INSERT queries instantly</p>
+    <h1>CSV/Markdown <span>→</span> INSERT SQL</h1>
+    <p>// upload or paste CSV/Markdown table and generate INSERT queries instantly</p>
   </div>
 
   <div class="main-grid">
@@ -145,6 +145,14 @@
           <div class="panel-title">
             <div class="dot"></div>
             CSV INPUT
+          </div>
+        </div>
+
+        <div class="options-bar" style="border-top:none; padding-top:0;">
+          <span class="options-label">Input</span>
+          <div class="toggle-group">
+            <button class="toggle-btn inputmode-btn active" data-input="csv">CSV</button>
+            <button class="toggle-btn inputmode-btn" data-input="md">Markdown</button>
           </div>
         </div>
 
@@ -171,6 +179,12 @@
 1,Alice,30,alice@example.com
 2,Bob,25,bob@example.com
 3,Charlie,,charlie@example.com"></textarea>
+
+        <!-- Markdown Textarea -->
+        <textarea class="csv-textarea" id="mdInput" style="display:none" placeholder="| user_id | username | age | email |
+|---|---|---|---|
+| 1 | alice | 30 | alice@example.com |
+| 2 | bob | 25 | bob@example.com |"></textarea>
 
         <p class="csv-divider">컬럼 매핑 (생성 시 자동 인식)</p>
         <div class="mapping-wrap" id="mappingWrap">
@@ -261,6 +275,7 @@ let insertMode = 'individual';
 let nullMode = 'null';
 let selectedDelim = ',';
 let upsertMode = 'off';
+let inputMode = 'csv';
 let columnMappings = [];
 let lastHeaderSignature = '';
 
@@ -269,6 +284,15 @@ function refreshUpsertUI() {
   const bar = document.getElementById('upsertKeysBar');
   const show = upsertMode === 'on';
   bar.style.display = show ? 'flex' : 'none';
+}
+
+function refreshInputModeUI() {
+  const isCSV = inputMode === 'csv';
+  document.getElementById('dropZone').style.display = isCSV ? 'block' : 'none';
+  document.getElementById('csvFileBadge').style.display = isCSV ? '' : 'none';
+  document.querySelector('.csv-divider').textContent = isCSV ? '또는 직접 입력' : 'Markdown 테이블 입력';
+  document.getElementById('csvInput').style.display = isCSV ? 'block' : 'none';
+  document.getElementById('mdInput').style.display = isCSV ? 'none' : 'block';
 }
 
 function renderMappingUI() {
@@ -353,8 +377,26 @@ document.querySelectorAll('.delim-btn').forEach(btn => {
   });
 });
 
+document.querySelectorAll('.inputmode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.inputmode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    inputMode = btn.dataset.input;
+    refreshInputModeUI();
+  });
+});
+
+const qMode = new URLSearchParams(location.search).get('mode');
+if (qMode === 'md') {
+  inputMode = 'md';
+  document.querySelectorAll('.inputmode-btn').forEach(b => b.classList.remove('active'));
+  const mdBtn = document.querySelector('.inputmode-btn[data-input="md"]');
+  if (mdBtn) mdBtn.classList.add('active');
+}
+
 refreshUpsertUI();
 renderMappingUI();
+refreshInputModeUI();
 
 // ─── File Upload ─────────────────────────────────────────
 const dropZone = document.getElementById('dropZone');
@@ -451,6 +493,38 @@ function clearFile() {
   columnMappings = [];
   lastHeaderSignature = '';
   renderMappingUI();
+}
+
+// ─── Markdown Parser ─────────────────────────────────────
+function isSeparatorRow(line) {
+  return /^[\s|:\-]+$/.test(line);
+}
+
+function parseMdRow(line) {
+  return line.replace(/^\s*\||\|\s*$/g, '').split('|').map(c => c.trim());
+}
+
+function parseMarkdownTable(md) {
+  const lines = md.split('\n').map(l => l.trim()).filter(l => l.includes('|'));
+  if (lines.length < 2) throw new Error('마크다운 테이블 형식이 올바르지 않습니다.');
+
+  let headerIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (!isSeparatorRow(lines[i])) { headerIdx = i; break; }
+  }
+  if (headerIdx === -1) throw new Error('헤더 행을 찾을 수 없습니다.');
+
+  const headers = parseMdRow(lines[headerIdx]).filter(Boolean);
+  const dataLines = lines.slice(headerIdx + 1).filter(l => !isSeparatorRow(l));
+  if (!headers.length || !dataLines.length) throw new Error('헤더/데이터 행이 부족합니다.');
+
+  const rows = dataLines.map(line => {
+    const cells = parseMdRow(line);
+    const r = [];
+    for (let i = 0; i < headers.length; i++) r.push(cells[i] !== undefined ? cells[i] : '');
+    return r;
+  });
+  return { headers, rows };
 }
 
 // ─── CSV Parser ───────────────────────────────────────────
@@ -593,13 +667,15 @@ function buildOracleMergeStatement(tbl, headers, row, keyHeaders, useNull) {
 
 // ─── Main Generate ────────────────────────────────────────
 function generate() {
-  const csvText = document.getElementById('csvInput').value.trim();
+  const sourceText = (inputMode === 'csv'
+    ? document.getElementById('csvInput').value
+    : document.getElementById('mdInput').value).trim();
   const tableName = document.getElementById('tableName').value.trim() || 'my_table';
   const output = document.getElementById('outputPanel');
   const btn = document.getElementById('generateBtn');
 
-  if (!csvText) {
-    output.innerHTML = `<div class="error-msg">⚠ CSV 데이터를 입력하거나 파일을 업로드해주세요.</div>`;
+  if (!sourceText) {
+    output.innerHTML = `<div class="error-msg">⚠ ${inputMode === 'csv' ? 'CSV 데이터를 입력하거나 파일을 업로드해주세요.' : '마크다운 테이블을 입력해주세요.'}</div>`;
     return;
   }
 
@@ -608,7 +684,10 @@ function generate() {
 
   setTimeout(() => {
     try {
-      const { headers, rows } = parseCSV(csvText, selectedDelim);
+      const parsed = inputMode === 'csv'
+        ? parseCSV(sourceText, selectedDelim)
+        : parseMarkdownTable(sourceText);
+      const { headers, rows } = parsed;
       ensureMappings(headers);
 
       const activeMappings = columnMappings.filter(m => m.include);
