@@ -47,7 +47,7 @@
           </div>
         </div>
 
-        <div class="options-bar" style="border-top:none; padding-top:0;">
+        <div class="options-bar row-tight">
           <span class="options-label">CRUD</span>
           <div class="crud-group">
             <button class="crud-toggle active" data-crud="INSERT">INSERT</button>
@@ -353,8 +353,8 @@ function generate() {
             </div>
             <div class="table-info">
               <span>TABLE</span> ${tableName}
-              <span style="margin-left:8px">COLUMNS</span> ${columns.length}
-              ${primaryKeys.length ? `<span style="margin-left:8px">PK</span> ${primaryKeys.join(', ')}` : ''}
+              <span class="ml-8">COLUMNS</span> ${columns.length}
+              ${primaryKeys.length ? `<span class="ml-8">PK</span> ${primaryKeys.join(', ')}` : ''}
             </div>
             <pre class="sql-code" id="${id}">${sqlHtml}</pre>
           </div>`;

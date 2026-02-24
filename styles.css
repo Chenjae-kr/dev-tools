@@ -742,6 +742,14 @@ body::before {
 
 .row-tight { border-top: none !important; padding-top: 0 !important; gap: 8px; flex-wrap: wrap; }
 .mt-8 { margin-top: 8px; }
+.mt-10 { margin-top: 10px; }
+.mb-16 { margin-bottom: 16px; }
+.ml-8 { margin-left: 8px; }
+.hidden { display: none !important; }
+.text-muted { color: var(--text-muted); }
+.icon-xl { font-size: 32px; margin-bottom: 12px; }
+.no-radius { border-radius: 0 !important; }
+.panel-plain { padding: 0; overflow: hidden; }
 .input-xs { max-width: 90px; }
 .input-sm { max-width: 120px; }
 .input-md { max-width: 160px; }

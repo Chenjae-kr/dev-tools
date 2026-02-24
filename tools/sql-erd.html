@@ -123,7 +123,7 @@
   </div>
 
   <!-- ── Input Panel ──────────────────────────────────── -->
-  <div class="panel" style="margin-bottom:20px">
+  <div class="panel mb-16">
     <div class="panel-header">
       <div class="panel-title"><div class="dot"></div>SQL DDL INPUT</div>
     </div>
@@ -148,7 +148,7 @@ CREATE TABLE orders (
     <div class="options-bar">
       <span class="options-label">파일</span>
       <button class="toggle-btn" id="openFileBtn">📂 .sql 파일 열기</button>
-      <input type="file" id="fileInput" accept=".sql,.txt,.ddl" style="display:none">
+      <input type="file" id="fileInput" class="hidden" accept=".sql,.txt,.ddl">
       <span class="options-label">예제</span>
       <button class="toggle-btn" onclick="loadSample()">샘플 DDL 로드</button>
       <button class="toggle-btn" onclick="clearInput()">지우기</button>
@@ -162,8 +162,8 @@ CREATE TABLE orders (
   </div>
 
   <!-- ── ERD Panel ────────────────────────────────────── -->
-  <div id="erdSection" style="display:none">
-    <div class="panel" style="padding:0; overflow:hidden;">
+  <div id="erdSection" class="hidden">
+    <div class="panel panel-plain">
 
       <!-- Toolbar -->
       <div class="erd-toolbar">
@@ -204,17 +204,17 @@ CREATE TABLE orders (
         <div class="erd-legend">
           <div class="legend-item">
             <div class="legend-dot" style="background:#f0c050"></div>
-            <span style="color:var(--text-muted)">PK</span>
+            <span class="text-muted">PK</span>
           </div>
           <div class="legend-item">
             <div class="legend-dot" style="background:#9c8cff"></div>
-            <span style="color:var(--text-muted)">FK</span>
+            <span class="text-muted">FK</span>
           </div>
           <div class="legend-item">
             <svg width="28" height="10" style="overflow:visible">
               <line x1="0" y1="5" x2="20" y2="5" stroke="#7c6aff" stroke-width="1.5" marker-end="url(#arr-end)" marker-start="url(#arr-start)"/>
             </svg>
-            <span style="color:var(--text-muted)">관계</span>
+            <span class="text-muted">관계</span>
           </div>
         </div>
       </div>
