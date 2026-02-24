@@ -127,6 +127,18 @@
             </div>
           </div>
           <textarea id="tableText" class="input-area" placeholder="기업명	예상가치	주요사업\n케이뱅크	3조 3,673억	인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |"></textarea>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
+            <span class="options-label">Quick Edit</span>
+            <button class="toggle-btn" onclick="buildTableTemplate()">템플릿 생성</button>
+            <button class="toggle-btn" onclick="addTableRow()">행 +1</button>
+            <button class="toggle-btn" onclick="addTableCol()">열 +1</button>
+            <button class="toggle-btn" onclick="removeTableRow()">행 -1</button>
+            <button class="toggle-btn" onclick="removeTableCol()">열 -1</button>
+          </div>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
+            <span class="options-label">Rows</span><input id="tblRows" type="number" value="4" min="1" max="30" class="table-name-input small">
+            <span class="options-label">Cols</span><input id="tblCols" type="number" value="3" min="1" max="10" class="table-name-input small">
+          </div>
         </div>
 
         <div id="bodyImageWrap" class="hidden">
@@ -326,6 +338,73 @@ function parseCsvTable(text){
     return x;
   });
   return {head:normalized[0], body:normalized.slice(1)};
+}
+
+function serializeTableData(head, body){
+  const mode = tableSepMode === 'auto' ? 'tab' : tableSepMode;
+  if (mode === 'pipe') {
+    const sep = '|';
+    const h = `| ${head.join(' | ')} |`;
+    const s = `| ${head.map(()=> '---').join(' | ')} |`;
+    const b = body.map(r => `| ${r.map(v=>String(v||'')).join(' | ')} |`);
+    return [h, s, ...b].join('\n');
+  }
+  const sep = mode === 'comma' ? ',' : '\t';
+  const line = arr => arr.map(v => {
+    const t = String(v ?? '');
+    if (sep === ',' && /[",\n]/.test(t)) return `"${t.replace(/"/g, '""')}"`;
+    return t;
+  }).join(sep);
+  return [line(head), ...body.map(line)].join('\n');
+}
+
+function tableToMatrix(){
+  const t = parseCsvTable(document.getElementById('tableText').value || '');
+  if (!t) return null;
+  return { head:[...t.head], body:t.body.map(r=>[...r]) };
+}
+
+function buildTableTemplate(){
+  const cols = Math.max(1, Math.min(10, parseInt(document.getElementById('tblCols').value || '3', 10)));
+  const rows = Math.max(1, Math.min(30, parseInt(document.getElementById('tblRows').value || '4', 10)));
+  const head = Array.from({length: cols}, (_,i)=>`컬럼${i+1}`);
+  const body = Array.from({length: rows}, (_,r)=>Array.from({length: cols}, (_,c)=>`${r+1}-${c+1}`));
+  document.getElementById('tableText').value = serializeTableData(head, body);
+  renderCard();
+}
+
+function addTableRow(){
+  const m = tableToMatrix();
+  if (!m) return buildTableTemplate();
+  m.body.push(Array.from({length:m.head.length}, ()=>''));
+  document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  renderCard();
+}
+
+function addTableCol(){
+  const m = tableToMatrix();
+  if (!m) return buildTableTemplate();
+  m.head.push(`컬럼${m.head.length+1}`);
+  m.body = m.body.map(r => [...r, '']);
+  document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  renderCard();
+}
+
+function removeTableRow(){
+  const m = tableToMatrix();
+  if (!m || m.body.length <= 1) return;
+  m.body.pop();
+  document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  renderCard();
+}
+
+function removeTableCol(){
+  const m = tableToMatrix();
+  if (!m || m.head.length <= 1) return;
+  m.head.pop();
+  m.body = m.body.map(r => r.slice(0, m.head.length));
+  document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  renderCard();
 }
 
 function drawCoverImage(ctx,w,h,img){
