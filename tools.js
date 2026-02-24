@@ -43,6 +43,15 @@ const TOOLS = [
     footer: 'Original vs Modified — line-by-line diff',
   },
   {
+    href:   'sql-erd.html',
+    label:  'SQL → ERD',
+    icon:   'ERD',
+    title:  'SQL → ERD Viewer',
+    desc:   'SQL DDL 파일을 업로드하거나 붙여넣으면 테이블 관계도(ERD)를 자동으로 그려줍니다. FK 관계·PK·컬럼 타입 시각화, 드래그 배치, SVG 내보내기 지원.',
+    tags:   ['ERD', 'FK Relations', 'Schema Viz', 'SVG Export'],
+    footer: 'DDL → Entity Relationship Diagram',
+  },
+  {
     href:   'json-formatter.html',
     label:  'JSON Format',
     icon:   'JSON',

@@ -2,16 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "serve (npx)",
-      "runtimeExecutable": "npx.cmd",
-      "runtimeArgs": ["serve", ".", "--listen", "3000", "--no-clipboard"],
+      "name": "dev-server",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["-e", "const h=require('http'),fs=require('fs'),p=require('path');h.createServer((req,res)=>{let f=p.join(process.cwd(),decodeURIComponent(req.url.split('?')[0]));if(f.endsWith('/')||!p.extname(f))f=p.join(f,'index.html');const ext=p.extname(f).slice(1);const mime={'html':'text/html','css':'text/css','js':'text/javascript','svg':'image/svg+xml','png':'image/png','jpg':'image/jpeg','gif':'image/gif','ico':'image/x-icon','json':'application/json'};fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);res.end('Not found')}else{res.writeHead(200,{'Content-Type':mime[ext]||'text/plain'});res.end(d)}})}).listen(3000,()=>console.log('Server running at http://localhost:3000'))"],
       "port": 3000
-    },
-    {
-      "name": "python http.server",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8080"],
-      "port": 8080
     }
   ]
 }
