@@ -116,8 +116,17 @@
         </div>
 
         <div id="bodyTableWrap" class="hidden">
-          <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Table Data (CSV)</span></div>
-          <textarea id="tableText" class="input-area" placeholder="기업명,예상가치,주요사업\n케이뱅크,3조 3,673억,인터넷전문은행"></textarea>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
+            <span class="options-label">Table Data</span>
+            <span class="options-label">구분자</span>
+            <div class="toggle-group">
+              <button class="toggle-btn tblsep-btn active" data-sep="auto">AUTO</button>
+              <button class="toggle-btn tblsep-btn" data-sep="tab">TAB</button>
+              <button class="toggle-btn tblsep-btn" data-sep="comma">CSV</button>
+              <button class="toggle-btn tblsep-btn" data-sep="pipe">|</button>
+            </div>
+          </div>
+          <textarea id="tableText" class="input-area" placeholder="기업명	예상가치	주요사업\n케이뱅크	3조 3,673억	인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |"></textarea>
         </div>
 
         <div id="bodyImageWrap" class="hidden">
@@ -190,6 +199,7 @@ const themes = {
 let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
 let page=1, pages=[{}], bodyType='text';
 let exportFormat='png';
+let tableSepMode='auto';
 
 function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:''}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
@@ -255,7 +265,7 @@ function nextPage(){savePage();if(page<pages.length) page++;fillInputsFromPage()
 
 function fit(ctx,text,maxW,start){ let s=start; while(s>18){ ctx.font=`800 ${s}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`; if(ctx.measureText(text).width<=maxW) return s; s-=2;} return s; }
 
-function parseCsvLine(line){
+function parseDelimitedLine(line, sep=','){
   const out=[]; let cur=''; let q=false;
   for(let i=0;i<line.length;i++){
     const ch=line[i];
@@ -264,17 +274,51 @@ function parseCsvLine(line){
       else q=!q;
       continue;
     }
-    if(ch===',' && !q){ out.push(cur.trim()); cur=''; continue; }
+    if(ch===sep && !q){ out.push(cur.trim()); cur=''; continue; }
     cur+=ch;
   }
   out.push(cur.trim());
   return out;
 }
 
+function parseMarkdownTable(text){
+  const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const only=lines.filter(l=>l.includes('|'));
+  if(only.length<2) return null;
+  const isSep = l => /^[\s|:\-]+$/.test(l);
+  const row = l => l.replace(/^\s*\||\|\s*$/g,'').split('|').map(c=>c.trim());
+  let hi=only.findIndex(l=>!isSep(l));
+  if(hi<0) return null;
+  const head=row(only[hi]).filter(Boolean);
+  const body=only.slice(hi+1).filter(l=>!isSep(l)).map(l=>row(l));
+  if(!head.length || !body.length) return null;
+  return {head, body};
+}
+
 function parseCsvTable(text){
   const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   if(lines.length<2) return null;
-  const rows=lines.map(l=>parseCsvLine(l));
+
+  if (tableSepMode === 'auto') {
+    const md = parseMarkdownTable(text);
+    if (md) return md;
+  }
+
+  let sep = ',';
+  if (tableSepMode === 'tab') sep='\t';
+  else if (tableSepMode === 'pipe') sep='|';
+  else if (tableSepMode === 'comma') sep=',';
+  else {
+    const first = lines[0] || '';
+    const cTab=(first.match(/\t/g)||[]).length;
+    const cPipe=(first.match(/\|/g)||[]).length;
+    const cComma=(first.match(/,/g)||[]).length;
+    if (cTab>=cPipe && cTab>=cComma) sep='\t';
+    else if (cPipe>=cComma) sep='|';
+    else sep=',';
+  }
+
+  const rows=lines.map(l=>parseDelimitedLine(l, sep));
   const cols=rows[0].length;
   const normalized=rows.map(r=>{
     const x=r.slice(0,cols);
@@ -479,6 +523,7 @@ document.querySelectorAll('.size-btn').forEach(b=>b.onclick=()=>{document.queryS
 document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');themeKey=b.dataset.theme;document.getElementById('bgColor').value=themes[themeKey].bg;renderCard();});
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
 document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
+document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;renderCard();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
 ['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
