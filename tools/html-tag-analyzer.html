@@ -13,6 +13,7 @@
 .setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
 .input-area{width:100%;min-height:220px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;resize:vertical}
 .file-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);background:var(--surface)}
+.result-body{padding:12px 14px 14px}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
 .stat{border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--surface2)}
 .stat .k{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
@@ -87,18 +88,20 @@ function analyze(){
   out.innerHTML = `
     <div class="panel">
       <div class="panel-header"><div class="panel-title"><div class="dot"></div>RESULT</div></div>
-      <div class="stats">
-        <div class="stat"><div class="k">Total Elements</div><div class="v">${totalEls}</div></div>
-        <div class="stat"><div class="k">Unique Tags</div><div class="v">${unique}</div></div>
-        <div class="stat"><div class="k">Links (a)</div><div class="v">${links}</div></div>
-        <div class="stat"><div class="k">Images (img)</div><div class="v">${images}</div></div>
+      <div class="result-body">
+        <div class="stats">
+          <div class="stat"><div class="k">Total Elements</div><div class="v">${totalEls}</div></div>
+          <div class="stat"><div class="k">Unique Tags</div><div class="v">${unique}</div></div>
+          <div class="stat"><div class="k">Links (a)</div><div class="v">${links}</div></div>
+          <div class="stat"><div class="k">Images (img)</div><div class="v">${images}</div></div>
+        </div>
+        <table class="tag-table">
+          <thead><tr><th>Tag</th><th>Count</th><th>Ratio</th></tr></thead>
+          <tbody>
+            ${sorted.map(([tag,c])=>`<tr><td>&lt;${tag}&gt;</td><td>${c}</td><td>${((c/Math.max(1,totalEls))*100).toFixed(1)}%</td></tr>`).join('')}
+          </tbody>
+        </table>
       </div>
-      <table class="tag-table">
-        <thead><tr><th>Tag</th><th>Count</th><th>Ratio</th></tr></thead>
-        <tbody>
-          ${sorted.map(([tag,c])=>`<tr><td>&lt;${tag}&gt;</td><td>${c}</td><td>${((c/Math.max(1,totalEls))*100).toFixed(1)}%</td></tr>`).join('')}
-        </tbody>
-      </table>
     </div>`;
 }
 </script>
