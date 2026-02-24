@@ -11,8 +11,9 @@
 <style>
 .canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
 #cardCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
-.input-area{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:80px}
+.input-area{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:72px}
 .small{max-width:90px}
+.hidden{display:none}
 </style>
 </head>
 <body>
@@ -20,7 +21,7 @@
 <div class="container">
   <div class="tool-header">
     <h1>Instagram <span>Card News Maker</span></h1>
-    <p>// 카드뉴스 슬라이드 생성 (비율/배경/텍스트/페이지 내보내기)</p>
+    <p>// 제목/소제목 + 본문(텍스트·표·이미지) 카드뉴스 제작</p>
   </div>
 
   <div class="main-grid">
@@ -54,11 +55,34 @@
         </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Title</span></div>
-        <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목">대한민국 TOP10 건설사
-아파트 브랜드·총정리</textarea>
+        <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목"></textarea>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Items (줄바꿈)</span></div>
-        <textarea id="itemsText" class="input-area" placeholder="1위 삼성물산\n2위 현대건설\n..."></textarea>
+        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Subtitle</span></div>
+        <textarea id="subTitleText" class="input-area" placeholder="소제목/요약"></textarea>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Body Type</span>
+          <div class="toggle-group">
+            <button class="toggle-btn bodytype-btn active" data-body="text">Text</button>
+            <button class="toggle-btn bodytype-btn" data-body="table">Table</button>
+            <button class="toggle-btn bodytype-btn" data-body="image">Image</button>
+          </div>
+        </div>
+
+        <div id="bodyTextWrap">
+          <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Body Text</span></div>
+          <textarea id="bodyText" class="input-area" placeholder="본문 텍스트 (줄바꿈 지원)"></textarea>
+        </div>
+
+        <div id="bodyTableWrap" class="hidden">
+          <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Table Data (CSV)</span></div>
+          <textarea id="tableText" class="input-area" placeholder="기업명,예상가치,주요사업\n케이뱅크,3조 3,673억,인터넷전문은행"></textarea>
+        </div>
+
+        <div id="bodyImageWrap" class="hidden">
+          <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Body Image</span>
+            <input id="bodyImageInput" type="file" accept="image/*"></div>
+        </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
           <span class="options-label">Pages</span>
@@ -89,97 +113,207 @@
 <script>
 const sizes = { '1:1':[1080,1080], '4:5':[1080,1350], '9:16':[1080,1920] };
 const themes = {
-  navy:{bg:'#0b122b',box:'#111c3f',accent:'#ff4d5a',text:'#ffffff',sub:'#c9d3ff'},
-  blue:{bg:'#102c6d',box:'#1a3f93',accent:'#ff6a3d',text:'#ffffff',sub:'#d7e4ff'},
-  green:{bg:'#0f2f24',box:'#16513d',accent:'#f3b340',text:'#ffffff',sub:'#cde8dd'}
+  navy:{bg:'#0b122b',box:'#ffffff',accent:'#d41414',text:'#0b122b',sub:'#1a2b5f'},
+  blue:{bg:'#102c6d',box:'#ffffff',accent:'#0a52cc',text:'#111',sub:'#1f376e'},
+  green:{bg:'#0f2f24',box:'#ffffff',accent:'#0a7a4f',text:'#111',sub:'#24443a'}
 };
 let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
-let page=1, pages=[{title:'',items:''}];
+let page=1, pages=[{}], bodyType='text';
 
+function newPage(){ return {title:'',subtitle:'',bodyType:'text',bodyText:'',tableText:'',bodyImageData:''}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
-function pageObj(){return pages[page-1] || {title:'',items:''};}
-function setInputsFromPage(){const p=pageObj();document.getElementById('titleText').value=p.title;document.getElementById('itemsText').value=p.items;}
+function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
+
+function setBodyUI(){
+  document.getElementById('bodyTextWrap').classList.toggle('hidden', bodyType!=='text');
+  document.getElementById('bodyTableWrap').classList.toggle('hidden', bodyType!=='table');
+  document.getElementById('bodyImageWrap').classList.toggle('hidden', bodyType!=='image');
+}
+
+function fillInputsFromPage(){
+  const p=current();
+  document.getElementById('titleText').value=p.title||'';
+  document.getElementById('subTitleText').value=p.subtitle||'';
+  document.getElementById('bodyText').value=p.bodyText||'';
+  document.getElementById('tableText').value=p.tableText||'';
+  bodyType=p.bodyType||'text';
+  document.querySelectorAll('.bodytype-btn').forEach(b=>b.classList.toggle('active', b.dataset.body===bodyType));
+  setBodyUI();
+}
+
+function savePage(){
+  pages[page-1]={
+    ...(pages[page-1]||newPage()),
+    title:document.getElementById('titleText').value,
+    subtitle:document.getElementById('subTitleText').value,
+    bodyType,
+    bodyText:document.getElementById('bodyText').value,
+    tableText:document.getElementById('tableText').value,
+  };
+}
 
 function syncPages(){
   const n=Math.max(1,Math.min(20,parseInt(document.getElementById('pageCount').value||'1',10)));
-  while(pages.length<n) pages.push({title:'',items:''});
+  while(pages.length<n) pages.push(newPage());
   while(pages.length>n) pages.pop();
   if(page>pages.length) page=pages.length;
   setPageLabel();
 }
 
-document.querySelectorAll('.size-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');sizeKey=b.dataset.size;renderCard();});
-document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');themeKey=b.dataset.theme;document.getElementById('bgColor').value=themes[themeKey].bg;renderCard();});
-document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
-document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
-['bgColor','titleText','itemsText','pageCount'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
+function prevPage(){savePage();if(page>1) page--;fillInputsFromPage();setPageLabel();renderCard();}
+function nextPage(){savePage();if(page<pages.length) page++;fillInputsFromPage();setPageLabel();renderCard();}
 
-function savePage(){pages[page-1]={title:document.getElementById('titleText').value,items:document.getElementById('itemsText').value};setPageLabel();}
-function prevPage(){savePage();if(page>1) page--;setInputsFromPage();setPageLabel();renderCard();}
-function nextPage(){savePage();if(page<pages.length) page++;setInputsFromPage();setPageLabel();renderCard();}
+function fit(ctx,text,maxW,start){ let s=start; while(s>18){ ctx.font=`800 ${s}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`; if(ctx.measureText(text).width<=maxW) return s; s-=2;} return s; }
+
+function parseCsvTable(text){
+  const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  if(lines.length<2) return null;
+  const rows=lines.map(l=>l.split(',').map(c=>c.trim()));
+  return {head:rows[0], body:rows.slice(1)};
+}
+
+function drawCoverImage(ctx,w,h,img){
+  const ir=img.width/img.height, cr=w/h; let dw=w,dh=h,dx=0,dy=0;
+  if(ir>cr){dh=h;dw=h*ir;dx=(w-dw)/2;} else {dw=w;dh=w/ir;dy=(h-dh)/2;}
+  ctx.drawImage(img,dx,dy,dw,dh);
+}
 
 function drawBg(ctx,w,h){
   const th=themes[themeKey];
   if(bgMode==='image' && bgImage){
-    const ir=bgImage.width/bgImage.height, cr=w/h; let dw=w,dh=h,dx=0,dy=0;
-    if(ir>cr){dh=h;dw=h*ir;dx=(w-dw)/2;} else {dw=w;dh=w/ir;dy=(h-dh)/2;}
-    ctx.drawImage(bgImage,dx,dy,dw,dh);
-    ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(0,0,w,h);
-  } else { ctx.fillStyle=document.getElementById('bgColor').value||th.bg; ctx.fillRect(0,0,w,h); }
+    drawCoverImage(ctx,w,h,bgImage);
+    ctx.fillStyle='rgba(0,0,0,0.28)'; ctx.fillRect(0,0,w,h);
+  } else {
+    ctx.fillStyle=document.getElementById('bgColor').value||th.bg; ctx.fillRect(0,0,w,h);
+  }
 }
 
-function fit(ctx,text,maxW,start){let s=start;while(s>20){ctx.font=`800 ${s}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;if(ctx.measureText(text).width<=maxW)return s;s-=2;}return s;}
-
 function renderCard(){
+  savePage();
   const cv=getCanvas(); const [w,h]=sizes[sizeKey]; cv.width=w; cv.height=h; const ctx=cv.getContext('2d');
-  const th=themes[themeKey];
+  const th=themes[themeKey]; const p=current();
+
   drawBg(ctx,w,h);
 
-  // header
-  ctx.fillStyle=th.accent; ctx.fillRect(0,0,w,Math.floor(h*0.08));
-  ctx.fillStyle='#fff'; ctx.font=`700 ${Math.floor(h*0.03)}px JetBrains Mono, sans-serif`; ctx.textAlign='center'; ctx.fillText(`CARD NEWS ${page}/${pages.length}`,w/2,Math.floor(h*0.055));
+  // white board panel
+  const margin=Math.floor(w*0.04); const panelX=margin, panelY=Math.floor(h*0.06), panelW=w-margin*2, panelH=h-panelY-Math.floor(h*0.06);
+  ctx.fillStyle=th.box; ctx.fillRect(panelX,panelY,panelW,panelH);
+  ctx.strokeStyle='rgba(0,0,0,0.16)'; ctx.lineWidth=2; ctx.strokeRect(panelX,panelY,panelW,panelH);
 
-  // title box
-  const margin=Math.floor(w*0.06), top=Math.floor(h*0.12), boxW=w-margin*2, boxH=Math.floor(h*0.22);
-  ctx.fillStyle=th.box; ctx.fillRect(margin,top,boxW,boxH);
-  const title=(document.getElementById('titleText').value||'').trim();
-  const titleLines=title.split('\n').filter(Boolean).slice(0,3);
-  let ty=top+Math.floor(boxH*0.36);
-  titleLines.forEach(line=>{const fs=fit(ctx,line,boxW-40,Math.floor(h*0.05));ctx.font=`800 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;ctx.fillStyle=th.text;ctx.fillText(line,w/2,ty);ty+=Math.floor(fs*1.1);});
+  // title lines
+  const titleLines=(p.title||'').split('\n').filter(Boolean);
+  const subLines=(p.subtitle||'').split('\n').filter(Boolean);
 
-  // items grid
-  const items=(document.getElementById('itemsText').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
-  const gTop=top+boxH+Math.floor(h*0.03), gH=h-gTop-Math.floor(h*0.08);
-  const cols=2, rows=Math.max(1,Math.min(6,Math.ceil(items.length/cols)||3));
-  const cellGap=Math.floor(w*0.015), cellW=(boxW-cellGap)/2, cellH=(gH-(rows-1)*cellGap)/rows;
-  let idx=0;
-  for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-      const x=margin+c*(cellW+cellGap), y=gTop+r*(cellH+cellGap);
-      ctx.fillStyle='rgba(255,255,255,0.1)'; ctx.fillRect(x,y,cellW,cellH);
-      if(items[idx]){
-        const txt=items[idx];
-        const fs=fit(ctx,txt,cellW-28,Math.floor(h*0.028));
-        ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
-        ctx.fillStyle=th.sub;
-        ctx.textAlign='left';
-        ctx.fillText(`${idx+1}. ${txt}`,x+14,y+Math.floor(cellH*0.58));
+  let y=panelY+Math.floor(panelH*0.08);
+  titleLines.slice(0,2).forEach((line,idx)=>{
+    const fs=fit(ctx,line,panelW-60,Math.floor(h*0.055));
+    ctx.font=`900 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+    ctx.fillStyle= idx===1 ? th.accent : th.text;
+    ctx.textAlign='center';
+    ctx.fillText(line,panelX+panelW/2,y);
+    y += Math.floor(fs*1.1);
+  });
+
+  subLines.slice(0,2).forEach(line=>{
+    const fs=fit(ctx,line,panelW-100,Math.floor(h*0.03));
+    ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+    ctx.fillStyle=th.sub;
+    ctx.fillText(line,panelX+panelW/2,y);
+    y += Math.floor(fs*1.2);
+  });
+
+  y += Math.floor(h*0.02);
+  const contentX=panelX+24, contentY=y, contentW=panelW-48, contentH=panelY+panelH-y-28;
+
+  // body by type
+  if(p.bodyType==='text'){
+    ctx.fillStyle='rgba(16,38,90,0.07)'; ctx.fillRect(contentX,contentY,contentW,contentH);
+    const lines=(p.bodyText||'').split('\n').filter(Boolean);
+    let ty=contentY+36;
+    lines.forEach(line=>{
+      const fs=fit(ctx,line,contentW-30,Math.floor(h*0.03));
+      ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+      ctx.fillStyle='#1b1f2a';
+      ctx.textAlign='left';
+      ctx.fillText(line,contentX+14,ty);
+      ty += Math.floor(fs*1.45);
+    });
+  } else if(p.bodyType==='table'){
+    const t=parseCsvTable(p.tableText||'');
+    if(!t){
+      ctx.fillStyle='#777'; ctx.font=`600 ${Math.floor(h*0.024)}px sans-serif`; ctx.fillText('표 데이터(CSV)를 입력하세요', contentX+8, contentY+40);
+    } else {
+      const cols=t.head.length; const rows=Math.min(t.body.length,10);
+      const rh=Math.floor(contentH/(rows+1)); const cw=Math.floor(contentW/cols);
+      // header
+      for(let c=0;c<cols;c++){
+        ctx.fillStyle='#0f2f7d'; ctx.fillRect(contentX+c*cw,contentY,cw,rh);
+        ctx.fillStyle='#fff'; ctx.font=`700 ${Math.floor(rh*0.34)}px sans-serif`; ctx.textAlign='center';
+        ctx.fillText((t.head[c]||'').slice(0,14), contentX+c*cw+cw/2, contentY+Math.floor(rh*0.62));
       }
-      idx++;
+      // rows
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const y0=contentY+rh*(r+1), x0=contentX+c*cw;
+          ctx.fillStyle=(r%2===0)?'#f6f8ff':'#ffffff'; ctx.fillRect(x0,y0,cw,rh);
+          ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.strokeRect(x0,y0,cw,rh);
+          ctx.fillStyle='#111'; ctx.font=`600 ${Math.floor(rh*0.33)}px sans-serif`; ctx.textAlign='center';
+          const v=((t.body[r]&&t.body[r][c])||'').slice(0,16);
+          ctx.fillText(v, x0+cw/2, y0+Math.floor(rh*0.6));
+        }
+      }
+    }
+  } else if(p.bodyType==='image'){
+    if(p.bodyImageData){
+      const img=new Image();
+      img.onload=()=>{ drawCoverImage(ctx,contentW,contentH,img); };
+      // draw framed image immediately on separate temp
+      const tmp=new Image();
+      tmp.onload=()=>{
+        const ir=tmp.width/tmp.height, cr=contentW/contentH; let dw=contentW,dh=contentH,dx=contentX,dy=contentY;
+        if(ir>cr){dh=contentH;dw=contentH*ir;dx=contentX+(contentW-dw)/2;} else {dw=contentW;dh=contentW/ir;dy=contentY+(contentH-dh)/2;}
+        ctx.drawImage(tmp,dx,dy,dw,dh);
+        ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.strokeRect(contentX,contentY,contentW,contentH);
+      };
+      tmp.src=p.bodyImageData;
+    } else {
+      ctx.fillStyle='rgba(0,0,0,0.06)'; ctx.fillRect(contentX,contentY,contentW,contentH);
+      ctx.fillStyle='#666'; ctx.font=`600 ${Math.floor(h*0.024)}px sans-serif`; ctx.textAlign='center';
+      ctx.fillText('본문 이미지를 업로드하세요',contentX+contentW/2,contentY+contentH/2);
     }
   }
 
   // footer
-  ctx.fillStyle='rgba(0,0,0,0.28)'; ctx.fillRect(0,h-Math.floor(h*0.05),w,Math.floor(h*0.05));
-  ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font=`600 ${Math.floor(h*0.018)}px JetBrains Mono, sans-serif`; ctx.fillText('@your_brand',w/2,h-Math.floor(h*0.018));
+  ctx.fillStyle='rgba(0,0,0,0.75)'; ctx.fillRect(panelX,panelY+panelH-26,panelW,26);
+  ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.font='600 16px sans-serif'; ctx.fillText('출처: 관련 자료', panelX+10,panelY+panelH-8);
+  ctx.textAlign='right'; ctx.fillText(`@card ${page}/${pages.length}`, panelX+panelW-10,panelY+panelH-8);
 }
 
-function downloadCurrent(){savePage();renderCard();const a=document.createElement('a');a.href=getCanvas().toDataURL('image/png');a.download=`card_${page}_${sizeKey.replace(':','x')}.png`;a.click();}
-async function downloadAll(){savePage();const current=page;for(let i=1;i<=pages.length;i++){page=i;setInputsFromPage();renderCard();const a=document.createElement('a');a.href=getCanvas().toDataURL('image/png');a.download=`card_${i}_${sizeKey.replace(':','x')}.png`;a.click();await new Promise(r=>setTimeout(r,120));}page=current;setInputsFromPage();renderCard();setPageLabel();}
+function downloadCurrent(){ savePage(); renderCard(); const a=document.createElement('a'); a.href=getCanvas().toDataURL('image/png'); a.download=`card_${page}_${sizeKey.replace(':','x')}.png`; a.click(); }
+async function downloadAll(){ savePage(); const cur=page; for(let i=1;i<=pages.length;i++){ page=i; fillInputsFromPage(); renderCard(); const a=document.createElement('a'); a.href=getCanvas().toDataURL('image/png'); a.download=`card_${i}_${sizeKey.replace(':','x')}.png`; a.click(); await new Promise(r=>setTimeout(r,120)); } page=cur; fillInputsFromPage(); renderCard(); setPageLabel(); }
 
-pages[0]={title:document.getElementById('titleText').value,items:'1위 삼성물산\n2위 현대건설\n3위 DL이앤씨\n4위 GS건설\n5위 포스코이앤씨\n6위 롯데건설'};
-setInputsFromPage();setPageLabel();renderCard();
+// UI bindings
+document.querySelectorAll('.size-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');sizeKey=b.dataset.size;renderCard();});
+document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');themeKey=b.dataset.theme;document.getElementById('bgColor').value=themes[themeKey].bg;renderCard();});
+document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
+document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
+
+['bgColor','titleText','subTitleText','bodyText','tableText','pageCount'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
+
+document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
+document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
+
+// init
+pages[0]={
+  title:'📈 새해 코스피는 내가 이끈다!',
+  subtitle:'케이뱅크 상장, 공모가 확정',
+  bodyType:'table',
+  bodyText:'',
+  tableText:'기업명,예상기업가치,주요 사업\n무신사,8조원 이상,패션 플랫폼\n한화에너지,5조원 이상,에너지 발전·공급\n케이뱅크,3조 3,673억,인터넷전문은행',
+  bodyImageData:''
+};
+fillInputsFromPage(); setBodyUI(); setPageLabel(); renderCard();
 </script>
 </body>
 </html>
