@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog Thumbnail Maker | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
+#thumbCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
+.input-area{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:66px}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+<div class="container">
+  <div class="tool-header">
+    <h1>Blog <span>Thumbnail Maker</span></h1>
+    <p>// 비율 선택 + 배경(단색/이미지) + 텍스트로 썸네일 생성</p>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="dot"></div>SETTINGS</div></div>
+
+        <div class="options-bar">
+          <span class="options-label">Ratio</span>
+          <div class="toggle-group">
+            <button class="toggle-btn ratio-btn active" data-ratio="1:1">1:1</button>
+            <button class="toggle-btn ratio-btn" data-ratio="16:9">16:9</button>
+            <button class="toggle-btn ratio-btn" data-ratio="4:3">4:3</button>
+            <button class="toggle-btn ratio-btn" data-ratio="3:2">3:2</button>
+          </div>
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Background</span>
+          <div class="toggle-group">
+            <button class="toggle-btn bgmode-btn active" data-bgmode="color">단색</button>
+            <button class="toggle-btn bgmode-btn" data-bgmode="image">이미지</button>
+          </div>
+        </div>
+
+        <div class="options-bar" id="bgColorBar" style="border-top:none;padding-top:0;">
+          <span class="options-label">BG Color</span>
+          <input id="bgColor" type="color" value="#5f6fdd" class="table-name-input" style="max-width:90px;padding:4px 6px;">
+        </div>
+
+        <div class="options-bar" id="bgImageBar" style="display:none;border-top:none;padding-top:0;">
+          <span class="options-label">BG Image</span>
+          <input id="bgImageInput" type="file" accept="image/*">
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Main</span>
+        </div>
+        <textarea id="mainText" class="input-area" placeholder="메인 텍스트">블로그 썸네일
+3분 제작</textarea>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Sub</span>
+        </div>
+        <textarea id="subText" class="input-area" placeholder="서브 텍스트">3분만에 블로그 썸네일 만들기</textarea>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Text Color</span>
+          <input id="textColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
+          <span class="options-label">Padding</span>
+          <input id="pad" type="number" value="90" min="20" max="220" class="table-name-input" style="max-width:80px;">
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <button class="generate-btn" onclick="renderThumb()">⚡ RENDER</button>
+          <button class="generate-btn" onclick="downloadThumb()">⬇ PNG 다운로드</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="canvas-wrap">
+          <canvas id="thumbCanvas" width="1200" height="1200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>// Thumbnail Maker</footer>
+</div>
+
+<script>
+let ratio = '1:1';
+let bgMode = 'color';
+let bgImage = null;
+
+const ratios = { '1:1':[1200,1200], '16:9':[1600,900], '4:3':[1200,900], '3:2':[1500,1000] };
+
+document.querySelectorAll('.ratio-btn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.ratio-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); ratio=b.dataset.ratio; renderThumb();
+});
+document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); bgMode=b.dataset.bgmode;
+  document.getElementById('bgColorBar').style.display = bgMode==='color' ? 'flex':'none';
+  document.getElementById('bgImageBar').style.display = bgMode==='image' ? 'flex':'none';
+  renderThumb();
+});
+
+document.getElementById('bgImageInput').addEventListener('change', e=>{
+  const f=e.target.files[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{ const img=new Image(); img.onload=()=>{ bgImage=img; renderThumb(); }; img.src=ev.target.result; };
+  r.readAsDataURL(f);
+});
+['bgColor','textColor','mainText','subText','pad'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>renderThumb());
+});
+
+function drawBg(ctx,w,h){
+  if(bgMode==='image' && bgImage){
+    const ir = bgImage.width / bgImage.height;
+    const cr = w / h;
+    let dw=w, dh=h, dx=0, dy=0;
+    if(ir>cr){ dh=h; dw=h*ir; dx=(w-dw)/2; }
+    else { dw=w; dh=w/ir; dy=(h-dh)/2; }
+    ctx.drawImage(bgImage,dx,dy,dw,dh);
+    ctx.fillStyle='rgba(0,0,0,0.18)'; ctx.fillRect(0,0,w,h);
+  } else {
+    ctx.fillStyle = document.getElementById('bgColor').value;
+    ctx.fillRect(0,0,w,h);
+  }
+}
+
+function fitFont(ctx,text,maxW,start){
+  let s=start;
+  while(s>18){ ctx.font = `700 ${s}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`; if(ctx.measureText(text).width<=maxW) return s; s-=2; }
+  return s;
+}
+
+function renderThumb(){
+  const [w,h]=ratios[ratio];
+  const pad=parseInt(document.getElementById('pad').value||'90',10);
+  const main=(document.getElementById('mainText').value||'').trim();
+  const sub=(document.getElementById('subText').value||'').trim();
+  const color=document.getElementById('textColor').value;
+
+  const cv=document.getElementById('thumbCanvas');
+  cv.width=w; cv.height=h;
+  const ctx=cv.getContext('2d');
+
+  drawBg(ctx,w,h);
+
+  // frame
+  ctx.strokeStyle='rgba(255,255,255,0.92)';
+  ctx.lineWidth=Math.max(8,Math.floor(w*0.008));
+  const m=Math.max(34,Math.floor(w*0.08));
+  ctx.strokeRect(m,m,w-m*2,h-m*2);
+
+  // quotes
+  ctx.fillStyle='rgba(255,255,255,0.95)';
+  ctx.font = `700 ${Math.floor(w*0.12)}px serif`;
+  ctx.fillText('“', m-38, m+130);
+  ctx.fillText('”', w-m-28, h-m+72);
+
+  // text
+  ctx.fillStyle=color;
+  const maxW=w-pad*2;
+  const mainLines=main.split('\n').filter(Boolean);
+  let y=h*0.43;
+  mainLines.forEach((line,idx)=>{
+    const fs=fitFont(ctx,line,maxW,Math.floor(w*0.105));
+    ctx.font = `800 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+    ctx.textAlign='center';
+    ctx.lineWidth=Math.max(1,Math.floor(fs*0.06));
+    if(idx===0){ ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.strokeText(line,w/2,y); }
+    ctx.fillText(line,w/2,y+ (idx===0?0:6));
+    y += fs*1.12;
+  });
+
+  const subFs = fitFont(ctx, sub.replace(/\n/g,' '), maxW, Math.floor(w*0.05));
+  ctx.font = `700 ${subFs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,0.96)';
+  ctx.fillText(sub,w/2,h*0.72);
+}
+
+function downloadThumb(){
+  renderThumb();
+  const a=document.createElement('a');
+  a.href=document.getElementById('thumbCanvas').toDataURL('image/png');
+  a.download=`thumbnail_${ratio.replace(':','x')}_${Date.now()}.png`;
+  a.click();
+}
+
+renderThumb();
+</script>
+</body>
+</html>

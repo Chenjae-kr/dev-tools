@@ -95,6 +95,13 @@ const TOOLS = [
     tags: ['Encode', 'Decode', 'Query Params', 'Parse'],
     footer: 'URL → Encode · Decode · Parse',
   },
+  {
+    category: 'Data/Format', href: 'thumbnail-maker.html', label: 'Thumbnail', icon: 'THMB',
+    title: 'Blog Thumbnail Maker',
+    desc: '블로그 썸네일을 빠르게 제작합니다. 이미지 비율 선택, 배경 단색/이미지, 텍스트 입력 및 PNG 다운로드를 지원합니다.',
+    tags: ['Thumbnail', 'Canvas', 'Ratio', 'PNG'],
+    footer: 'Text + Background → Thumbnail PNG',
+  },
 
   {
     category: 'Text/Compare', href: 'diff-viewer.html', label: 'Diff Viewer', icon: 'DIFF',
