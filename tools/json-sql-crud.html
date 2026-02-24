@@ -92,6 +92,14 @@ document.querySelectorAll('.dialect-btn').forEach(btn => {
 });
 
 const escHtml = UIUtils.escHtml;
+const renderSqlBlock = UIUtils.renderSqlBlock || function ({
+  badge = 'SQL', tag = '', copyBtnId = '', copyLabel = 'COPY', copyHandler = '', bodyHtml = ''
+} = {}) {
+  const copyBtn = copyBtnId && copyHandler
+    ? `<button class="copy-btn" id="${escHtml(copyBtnId)}" onclick="${copyHandler}">${escHtml(copyLabel)}</button>`
+    : '';
+  return `<div class="panel sql-block"><div class="sql-block-header"><span class="sql-type-badge badge-insert">${escHtml(badge)}</span><span class="sql-dialect-tag">${escHtml(tag)}</span>${copyBtn}</div>${bodyHtml}</div>`;
+};
 
 function quoteIdent(name) {
   if (selectedDialect === 'mysql') return `\`${name}\``;
@@ -154,7 +162,7 @@ function generateCRUD() {
     ].join('\n');
 
     const blockId = 'crud_' + Date.now();
-    out.innerHTML = UIUtils.renderSqlBlock({
+    out.innerHTML = renderSqlBlock({
       badge: 'CRUD',
       tag: `${selectedDialect.toUpperCase()} · ${keys.length} columns`,
       copyBtnId: `copy_${blockId}`,
