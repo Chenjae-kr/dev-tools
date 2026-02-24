@@ -11,7 +11,11 @@
 <style>
 .canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
 #thumbCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
-.input-area{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:66px}
+.input-area{width:100%;background:transparent;border:1px solid var(--border);outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:66px;border-radius:8px}
+.setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2)}
+.setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.setting-group .options-bar{border-top:none !important;padding:4px 0 !important;gap:8px;flex-wrap:wrap}
+#padHint{font-size:10px;color:var(--text-dim)}
 </style>
 </head>
 <body>
@@ -27,116 +31,104 @@
       <div class="panel">
         <div class="panel-header"><div class="panel-title"><div class="dot"></div>SETTINGS</div></div>
 
-        <div class="options-bar">
-          <span class="options-label">Ratio</span>
-          <div class="toggle-group">
-            <button class="toggle-btn ratio-btn active" data-ratio="1:1">1:1</button>
-            <button class="toggle-btn ratio-btn" data-ratio="16:9">16:9</button>
-            <button class="toggle-btn ratio-btn" data-ratio="4:3">4:3</button>
-            <button class="toggle-btn ratio-btn" data-ratio="3:2">3:2</button>
+        <div class="setting-group">
+          <div class="setting-title">Canvas & Background</div>
+          <div class="options-bar">
+            <span class="options-label">Ratio</span>
+            <div class="toggle-group">
+              <button class="toggle-btn ratio-btn active" data-ratio="1:1">1:1</button>
+              <button class="toggle-btn ratio-btn" data-ratio="16:9">16:9</button>
+              <button class="toggle-btn ratio-btn" data-ratio="4:3">4:3</button>
+              <button class="toggle-btn ratio-btn" data-ratio="3:2">3:2</button>
+            </div>
+            <span class="options-label">Preset</span>
+            <div class="toggle-group">
+              <button class="toggle-btn preset-btn active" data-preset="quote">Quote</button>
+              <button class="toggle-btn preset-btn" data-preset="blog">Blog</button>
+              <button class="toggle-btn preset-btn" data-preset="youtube">YouTube</button>
+            </div>
+          </div>
+          <div class="options-bar">
+            <span class="options-label">Background</span>
+            <div class="toggle-group">
+              <button class="toggle-btn bgmode-btn active" data-bgmode="color">단색</button>
+              <button class="toggle-btn bgmode-btn" data-bgmode="image">이미지</button>
+            </div>
+            <div id="bgColorBar"><input id="bgColor" type="color" value="#5f6fdd" class="table-name-input" style="max-width:90px;padding:4px 6px;"></div>
+            <div id="bgImageBar" style="display:none"><input id="bgImageInput" type="file" accept="image/*"></div>
+          </div>
+          <div class="options-bar">
+            <span class="options-label">Overlay</span>
+            <div class="toggle-group">
+              <button class="toggle-btn ov-btn active" data-ov="none">None</button>
+              <button class="toggle-btn ov-btn" data-ov="dim">Dim</button>
+              <button class="toggle-btn ov-btn" data-ov="gradient">Gradient</button>
+              <button class="toggle-btn ov-btn" data-ov="vignette">Vignette</button>
+            </div>
+            <span class="options-label">Strength</span>
+            <input id="ovStrength" type="number" value="28" min="0" max="100" class="table-name-input" style="max-width:70px;">
+          </div>
+          <div class="options-bar">
+            <span class="options-label">Decor</span>
+            <div class="toggle-group">
+              <button class="toggle-btn decor-btn active" data-decor="quote-frame">Style 1</button>
+              <button class="toggle-btn decor-btn" data-decor="double-frame">Style 2</button>
+              <button class="toggle-btn decor-btn" data-decor="corner-lines">Style 3</button>
+              <button class="toggle-btn decor-btn" data-decor="clean-box">Style 4</button>
+              <button class="toggle-btn decor-btn" data-decor="minimal">Style 5</button>
+            </div>
           </div>
         </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Preset</span>
-          <div class="toggle-group">
-            <button class="toggle-btn preset-btn active" data-preset="quote">Quote</button>
-            <button class="toggle-btn preset-btn" data-preset="blog">Blog</button>
-            <button class="toggle-btn preset-btn" data-preset="youtube">YouTube</button>
-          </div>
-        </div>
-
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Background</span>
-          <div class="toggle-group">
-            <button class="toggle-btn bgmode-btn active" data-bgmode="color">단색</button>
-            <button class="toggle-btn bgmode-btn" data-bgmode="image">이미지</button>
-          </div>
-        </div>
-
-        <div class="options-bar" id="bgColorBar" style="border-top:none;padding-top:0;">
-          <span class="options-label">BG Color</span>
-          <input id="bgColor" type="color" value="#5f6fdd" class="table-name-input" style="max-width:90px;padding:4px 6px;">
-        </div>
-
-        <div class="options-bar" id="bgImageBar" style="display:none;border-top:none;padding-top:0;">
-          <span class="options-label">BG Image</span>
-          <input id="bgImageInput" type="file" accept="image/*">
-        </div>
-
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Overlay</span>
-          <div class="toggle-group">
-            <button class="toggle-btn ov-btn active" data-ov="none">None</button>
-            <button class="toggle-btn ov-btn" data-ov="dim">Dim</button>
-            <button class="toggle-btn ov-btn" data-ov="gradient">Gradient</button>
-            <button class="toggle-btn ov-btn" data-ov="vignette">Vignette</button>
-          </div>
-          <span class="options-label">Strength</span>
-          <input id="ovStrength" type="number" value="28" min="0" max="100" class="table-name-input" style="max-width:70px;">
-        </div>
-
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Decor</span>
-          <div class="toggle-group">
-            <button class="toggle-btn decor-btn active" data-decor="quote-frame">Style 1</button>
-            <button class="toggle-btn decor-btn" data-decor="double-frame">Style 2</button>
-            <button class="toggle-btn decor-btn" data-decor="corner-lines">Style 3</button>
-            <button class="toggle-btn decor-btn" data-decor="clean-box">Style 4</button>
-            <button class="toggle-btn decor-btn" data-decor="minimal">Style 5</button>
-          </div>
-        </div>
-
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Main</span>
-        </div>
-        <textarea id="mainText" class="input-area" placeholder="메인 텍스트">블로그 썸네일
+        <div class="setting-group">
+          <div class="setting-title">Text Content</div>
+          <div class="options-bar"><span class="options-label">Main</span></div>
+          <textarea id="mainText" class="input-area" placeholder="메인 텍스트">블로그 썸네일
 3분 제작</textarea>
-
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Sub</span>
-        </div>
-        <textarea id="subText" class="input-area" placeholder="서브 텍스트">3분만에 블로그 썸네일 만들기</textarea>
-
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Text Color</span>
-          <input id="textColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
-          <span class="options-label">Stroke</span>
-          <input id="strokeColor" type="color" value="#000000" class="table-name-input" style="max-width:90px;padding:4px 6px;">
-          <span class="options-label">Stroke Px</span>
-          <input id="strokeWidth" type="number" value="6" min="0" max="24" class="table-name-input" style="max-width:70px;">
+          <div class="options-bar"><span class="options-label">Sub</span></div>
+          <textarea id="subText" class="input-area" placeholder="서브 텍스트">3분만에 블로그 썸네일 만들기</textarea>
         </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Text Area Padding</span>
-          <input id="pad" type="number" value="90" min="20" max="220" class="table-name-input" style="max-width:80px;">
-          <span class="options-label" id="padHint">값이 클수록 텍스트 폭이 좁아집니다</span>
-        </div>
-
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Main Size%</span>
-          <input id="mainScale" type="number" value="100" min="50" max="180" class="table-name-input" style="max-width:75px;">
-          <span class="options-label">Main Y%</span>
-          <input id="mainY" type="number" value="43" min="10" max="85" class="table-name-input" style="max-width:75px;">
-        </div>
-
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Sub Size%</span>
-          <input id="subScale" type="number" value="100" min="50" max="180" class="table-name-input" style="max-width:75px;">
-          <span class="options-label">Sub Y%</span>
-          <input id="subY" type="number" value="72" min="10" max="95" class="table-name-input" style="max-width:75px;">
-        </div>
-
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Save As</span>
-          <div class="toggle-group">
-            <button class="toggle-btn fmt-btn active" data-fmt="png">PNG</button>
-            <button class="toggle-btn fmt-btn" data-fmt="jpeg">JPG</button>
-            <button class="toggle-btn fmt-btn" data-fmt="webp">WEBP</button>
+        <div class="setting-group">
+          <div class="setting-title">Text Style & Position</div>
+          <div class="options-bar">
+            <span class="options-label">Text Color</span>
+            <input id="textColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
+            <span class="options-label">Stroke</span>
+            <input id="strokeColor" type="color" value="#000000" class="table-name-input" style="max-width:90px;padding:4px 6px;">
+            <span class="options-label">Stroke Px</span>
+            <input id="strokeWidth" type="number" value="6" min="0" max="24" class="table-name-input" style="max-width:70px;">
           </div>
-          <span class="options-label">Quality</span>
-          <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input" style="max-width:70px;">
-          <button class="generate-btn" onclick="downloadThumb()">⬇ 다운로드</button>
+          <div class="options-bar">
+            <span class="options-label">Text Area Padding</span>
+            <input id="pad" type="number" value="90" min="20" max="220" class="table-name-input" style="max-width:80px;">
+            <span class="options-label" id="padHint">값이 클수록 텍스트 폭이 좁아집니다</span>
+          </div>
+          <div class="options-bar">
+            <span class="options-label">Main Size%</span>
+            <input id="mainScale" type="number" value="100" min="50" max="180" class="table-name-input" style="max-width:75px;">
+            <span class="options-label">Main Y%</span>
+            <input id="mainY" type="number" value="43" min="10" max="85" class="table-name-input" style="max-width:75px;">
+            <span class="options-label">Sub Size%</span>
+            <input id="subScale" type="number" value="100" min="50" max="180" class="table-name-input" style="max-width:75px;">
+            <span class="options-label">Sub Y%</span>
+            <input id="subY" type="number" value="72" min="10" max="95" class="table-name-input" style="max-width:75px;">
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Export</div>
+          <div class="options-bar">
+            <span class="options-label">Save As</span>
+            <div class="toggle-group">
+              <button class="toggle-btn fmt-btn active" data-fmt="png">PNG</button>
+              <button class="toggle-btn fmt-btn" data-fmt="jpeg">JPG</button>
+              <button class="toggle-btn fmt-btn" data-fmt="webp">WEBP</button>
+            </div>
+            <span class="options-label">Quality</span>
+            <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input" style="max-width:70px;">
+            <button class="generate-btn" onclick="downloadThumb()">⬇ 다운로드</button>
+          </div>
         </div>
       </div>
     </div>
