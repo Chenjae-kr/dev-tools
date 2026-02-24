@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Card News Maker | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
+#cardCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
+.input-area{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:80px}
+.small{max-width:90px}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+<div class="container">
+  <div class="tool-header">
+    <h1>Instagram <span>Card News Maker</span></h1>
+    <p>// 카드뉴스 슬라이드 생성 (비율/배경/텍스트/페이지 내보내기)</p>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="dot"></div>SETTINGS</div></div>
+
+        <div class="options-bar">
+          <span class="options-label">Size</span>
+          <div class="toggle-group">
+            <button class="toggle-btn size-btn active" data-size="1:1">1:1</button>
+            <button class="toggle-btn size-btn" data-size="4:5">4:5</button>
+            <button class="toggle-btn size-btn" data-size="9:16">9:16</button>
+          </div>
+          <span class="options-label">Theme</span>
+          <div class="toggle-group">
+            <button class="toggle-btn theme-btn active" data-theme="navy">Navy</button>
+            <button class="toggle-btn theme-btn" data-theme="blue">Blue</button>
+            <button class="toggle-btn theme-btn" data-theme="green">Green</button>
+          </div>
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Background</span>
+          <div class="toggle-group">
+            <button class="toggle-btn bgmode-btn active" data-bgmode="color">단색</button>
+            <button class="toggle-btn bgmode-btn" data-bgmode="image">이미지</button>
+          </div>
+          <input id="bgColor" type="color" value="#0b122b" class="table-name-input small" style="padding:4px 6px;">
+          <input id="bgImageInput" type="file" accept="image/*" style="display:none">
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Title</span></div>
+        <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목">대한민국 TOP10 건설사
+아파트 브랜드·총정리</textarea>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Items (줄바꿈)</span></div>
+        <textarea id="itemsText" class="input-area" placeholder="1위 삼성물산\n2위 현대건설\n..."></textarea>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Pages</span>
+          <input id="pageCount" type="number" value="1" min="1" max="20" class="table-name-input small">
+          <button class="toggle-btn" onclick="prevPage()">◀</button>
+          <span id="pageLabel" class="options-label">1 / 1</span>
+          <button class="toggle-btn" onclick="nextPage()">▶</button>
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <button class="generate-btn" onclick="renderCard()">⚡ RENDER</button>
+          <button class="generate-btn" onclick="savePage()">💾 페이지 저장</button>
+          <button class="generate-btn" onclick="downloadCurrent()">⬇ 현재 PNG</button>
+          <button class="generate-btn" onclick="downloadAll()">⬇ 전체 PNG</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <div class="panel">
+        <div class="canvas-wrap"><canvas id="cardCanvas" width="1080" height="1080"></canvas></div>
+      </div>
+    </div>
+  </div>
+  <footer>// Instagram Card News Maker</footer>
+</div>
+
+<script>
+const sizes = { '1:1':[1080,1080], '4:5':[1080,1350], '9:16':[1080,1920] };
+const themes = {
+  navy:{bg:'#0b122b',box:'#111c3f',accent:'#ff4d5a',text:'#ffffff',sub:'#c9d3ff'},
+  blue:{bg:'#102c6d',box:'#1a3f93',accent:'#ff6a3d',text:'#ffffff',sub:'#d7e4ff'},
+  green:{bg:'#0f2f24',box:'#16513d',accent:'#f3b340',text:'#ffffff',sub:'#cde8dd'}
+};
+let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
+let page=1, pages=[{title:'',items:''}];
+
+function getCanvas(){return document.getElementById('cardCanvas');}
+function pageObj(){return pages[page-1] || {title:'',items:''};}
+function setInputsFromPage(){const p=pageObj();document.getElementById('titleText').value=p.title;document.getElementById('itemsText').value=p.items;}
+function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
+
+function syncPages(){
+  const n=Math.max(1,Math.min(20,parseInt(document.getElementById('pageCount').value||'1',10)));
+  while(pages.length<n) pages.push({title:'',items:''});
+  while(pages.length>n) pages.pop();
+  if(page>pages.length) page=pages.length;
+  setPageLabel();
+}
+
+document.querySelectorAll('.size-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');sizeKey=b.dataset.size;renderCard();});
+document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');themeKey=b.dataset.theme;document.getElementById('bgColor').value=themes[themeKey].bg;renderCard();});
+document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
+document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
+['bgColor','titleText','itemsText','pageCount'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
+
+function savePage(){pages[page-1]={title:document.getElementById('titleText').value,items:document.getElementById('itemsText').value};setPageLabel();}
+function prevPage(){savePage();if(page>1) page--;setInputsFromPage();setPageLabel();renderCard();}
+function nextPage(){savePage();if(page<pages.length) page++;setInputsFromPage();setPageLabel();renderCard();}
+
+function drawBg(ctx,w,h){
+  const th=themes[themeKey];
+  if(bgMode==='image' && bgImage){
+    const ir=bgImage.width/bgImage.height, cr=w/h; let dw=w,dh=h,dx=0,dy=0;
+    if(ir>cr){dh=h;dw=h*ir;dx=(w-dw)/2;} else {dw=w;dh=w/ir;dy=(h-dh)/2;}
+    ctx.drawImage(bgImage,dx,dy,dw,dh);
+    ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(0,0,w,h);
+  } else { ctx.fillStyle=document.getElementById('bgColor').value||th.bg; ctx.fillRect(0,0,w,h); }
+}
+
+function fit(ctx,text,maxW,start){let s=start;while(s>20){ctx.font=`800 ${s}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;if(ctx.measureText(text).width<=maxW)return s;s-=2;}return s;}
+
+function renderCard(){
+  const cv=getCanvas(); const [w,h]=sizes[sizeKey]; cv.width=w; cv.height=h; const ctx=cv.getContext('2d');
+  const th=themes[themeKey];
+  drawBg(ctx,w,h);
+
+  // header
+  ctx.fillStyle=th.accent; ctx.fillRect(0,0,w,Math.floor(h*0.08));
+  ctx.fillStyle='#fff'; ctx.font=`700 ${Math.floor(h*0.03)}px JetBrains Mono, sans-serif`; ctx.textAlign='center'; ctx.fillText(`CARD NEWS ${page}/${pages.length}`,w/2,Math.floor(h*0.055));
+
+  // title box
+  const margin=Math.floor(w*0.06), top=Math.floor(h*0.12), boxW=w-margin*2, boxH=Math.floor(h*0.22);
+  ctx.fillStyle=th.box; ctx.fillRect(margin,top,boxW,boxH);
+  const title=(document.getElementById('titleText').value||'').trim();
+  const titleLines=title.split('\n').filter(Boolean).slice(0,3);
+  let ty=top+Math.floor(boxH*0.36);
+  titleLines.forEach(line=>{const fs=fit(ctx,line,boxW-40,Math.floor(h*0.05));ctx.font=`800 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;ctx.fillStyle=th.text;ctx.fillText(line,w/2,ty);ty+=Math.floor(fs*1.1);});
+
+  // items grid
+  const items=(document.getElementById('itemsText').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  const gTop=top+boxH+Math.floor(h*0.03), gH=h-gTop-Math.floor(h*0.08);
+  const cols=2, rows=Math.max(1,Math.min(6,Math.ceil(items.length/cols)||3));
+  const cellGap=Math.floor(w*0.015), cellW=(boxW-cellGap)/2, cellH=(gH-(rows-1)*cellGap)/rows;
+  let idx=0;
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const x=margin+c*(cellW+cellGap), y=gTop+r*(cellH+cellGap);
+      ctx.fillStyle='rgba(255,255,255,0.1)'; ctx.fillRect(x,y,cellW,cellH);
+      if(items[idx]){
+        const txt=items[idx];
+        const fs=fit(ctx,txt,cellW-28,Math.floor(h*0.028));
+        ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+        ctx.fillStyle=th.sub;
+        ctx.textAlign='left';
+        ctx.fillText(`${idx+1}. ${txt}`,x+14,y+Math.floor(cellH*0.58));
+      }
+      idx++;
+    }
+  }
+
+  // footer
+  ctx.fillStyle='rgba(0,0,0,0.28)'; ctx.fillRect(0,h-Math.floor(h*0.05),w,Math.floor(h*0.05));
+  ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font=`600 ${Math.floor(h*0.018)}px JetBrains Mono, sans-serif`; ctx.fillText('@your_brand',w/2,h-Math.floor(h*0.018));
+}
+
+function downloadCurrent(){savePage();renderCard();const a=document.createElement('a');a.href=getCanvas().toDataURL('image/png');a.download=`card_${page}_${sizeKey.replace(':','x')}.png`;a.click();}
+async function downloadAll(){savePage();const current=page;for(let i=1;i<=pages.length;i++){page=i;setInputsFromPage();renderCard();const a=document.createElement('a');a.href=getCanvas().toDataURL('image/png');a.download=`card_${i}_${sizeKey.replace(':','x')}.png`;a.click();await new Promise(r=>setTimeout(r,120));}page=current;setInputsFromPage();renderCard();setPageLabel();}
+
+pages[0]={title:document.getElementById('titleText').value,items:'1위 삼성물산\n2위 현대건설\n3위 DL이앤씨\n4위 GS건설\n5위 포스코이앤씨\n6위 롯데건설'};
+setInputsFromPage();setPageLabel();renderCard();
+</script>
+</body>
+</html>

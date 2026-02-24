@@ -102,6 +102,13 @@ const TOOLS = [
     tags: ['Thumbnail', 'Canvas', 'Ratio', 'PNG'],
     footer: 'Text + Background → Thumbnail PNG',
   },
+  {
+    category: 'Data/Format', href: 'instagram-card-maker.html', label: 'Insta Card', icon: 'CARD',
+    title: 'Instagram Card News Maker',
+    desc: '인스타 카드뉴스를 제작합니다. 비율 선택, 배경 단색/이미지, 제목/항목 구성, 다중 페이지 PNG 내보내기를 지원합니다.',
+    tags: ['Instagram', 'Card News', 'Canvas', 'Multi Page'],
+    footer: 'Card News Template → PNG',
+  },
 
   {
     category: 'Text/Compare', href: 'diff-viewer.html', label: 'Diff Viewer', icon: 'DIFF',
