@@ -7,6 +7,7 @@
 <script src="../tools.js"></script>
 <script src="../nav.js"></script>
 <script src="../ui-utils.js"></script>
+<script src="../image-tools-utils.js"></script>
 <link rel="stylesheet" href="../styles.css">
 <style>
 .canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
@@ -253,12 +254,7 @@ function applyPreset(name){
 
 function drawBg(ctx,w,h){
   if(bgMode==='image' && bgImage){
-    const ir = bgImage.width / bgImage.height;
-    const cr = w / h;
-    let dw=w, dh=h, dx=0, dy=0;
-    if(ir>cr){ dh=h; dw=h*ir; dx=(w-dw)/2; }
-    else { dw=w; dh=w/ir; dy=(h-dh)/2; }
-    ctx.drawImage(bgImage,dx,dy,dw,dh);
+    ImageToolUtils.drawImageCover(ctx, bgImage, 0, 0, w, h);
   } else {
     ctx.fillStyle = document.getElementById('bgColor').value;
     ctx.fillRect(0,0,w,h);
@@ -294,11 +290,7 @@ function drawOverlay(ctx,w,h){
   }
 }
 
-function fitFont(ctx,text,maxW,start){
-  let s=start;
-  while(s>18){ ctx.font = `700 ${s}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`; if(ctx.measureText(text).width<=maxW) return s; s-=2; }
-  return s;
-}
+const fitFont = (ctx,text,maxW,start) => ImageToolUtils.fitTextSize(ctx, text, maxW, start, 18, 700);
 
 function drawOutlinedText(ctx, text, x, y, fillColor, strokeColor, outlinePx) {
   const o = Math.max(0, Math.round(outlinePx));
@@ -417,12 +409,11 @@ function renderThumb(){
 function downloadThumb(){
   renderThumb();
   const q = Math.max(1, Math.min(100, parseInt(document.getElementById('imgQuality').value || '92', 10))) / 100;
-  const mime = saveFormat === 'jpeg' ? 'image/jpeg' : (saveFormat === 'webp' ? 'image/webp' : 'image/png');
-  const ext = saveFormat === 'jpeg' ? 'jpg' : saveFormat;
-  const a=document.createElement('a');
-  a.href=document.getElementById('thumbCanvas').toDataURL(mime, q);
-  a.download=`thumbnail_${ratio.replace(':','x')}_${Date.now()}.${ext}`;
-  a.click();
+  ImageToolUtils.downloadCanvas(document.getElementById('thumbCanvas'), {
+    format: saveFormat,
+    quality: q,
+    filename: `thumbnail_${ratio.replace(':','x')}_${Date.now()}`
+  });
 }
 
 applyPreset('quote');
