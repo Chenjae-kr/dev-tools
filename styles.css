@@ -139,13 +139,38 @@ body::before {
 .nav-tools {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 8px;
   flex: 1;
   padding: 0 14px;
   overflow-x: auto;
 }
 
 .nav-tools::-webkit-scrollbar { display: none; }
+
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 8px;
+  margin-right: 6px;
+  border-right: 1px dashed var(--border);
+}
+.nav-group:last-child {
+  border-right: none;
+  margin-right: 0;
+  padding-right: 0;
+}
+
+.nav-group-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-right: 2px;
+  padding: 0 6px;
+  white-space: nowrap;
+}
 
 .nav-item {
   display: flex;
@@ -386,7 +411,7 @@ body::before {
     left: 0;
     right: 0;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
     padding: 10px 12px;
     background: var(--bg);
     border-bottom: 1px solid var(--border);
@@ -399,6 +424,24 @@ body::before {
   .topnav.nav-open .nav-tools {
     display: flex;
     animation: mobileNavSlideIn 0.2s ease forwards;
+  }
+
+  .nav-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  .nav-group-label {
+    margin: 2px 4px 0;
+    padding: 0 2px;
+    font-size: 10px;
+    color: var(--text-dim);
   }
 
   .nav-tools .nav-item {

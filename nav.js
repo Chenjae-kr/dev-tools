@@ -16,11 +16,21 @@ function renderNav() {
   const pathParts = pathname.split('/').filter(Boolean);
   const inTools   = pathParts.length >= 2 && pathParts[pathParts.length - 2] === 'tools';
 
-  const items = TOOLS.map(item => {
-    const active = filename === item.href ? ' active' : '';
-    // Compute correct relative href based on current location
-    const href   = inTools ? item.href : 'tools/' + item.href;
-    return `<a class="nav-item${active}" href="${href}"><span class="nav-item-dot"></span>${item.label}</a>`;
+  const categories = (typeof TOOL_CATEGORIES !== 'undefined' && TOOL_CATEGORIES.length)
+    ? TOOL_CATEGORIES
+    : [...new Set(TOOLS.map(t => t.category || 'Other'))];
+
+  const items = categories.map(cat => {
+    const grouped = TOOLS.filter(t => (t.category || 'Other') === cat);
+    if (!grouped.length) return '';
+
+    const links = grouped.map(item => {
+      const active = filename === item.href ? ' active' : '';
+      const href = inTools ? item.href : 'tools/' + item.href;
+      return `<a class="nav-item${active}" href="${href}"><span class="nav-item-dot"></span>${item.label}</a>`;
+    }).join('');
+
+    return `<div class="nav-group"><span class="nav-group-label">${cat}</span>${links}</div>`;
   }).join('');
 
   const brandHref = inTools ? '../index.html' : 'index.html';
