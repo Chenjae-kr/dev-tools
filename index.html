@@ -12,7 +12,18 @@
 .finder input{flex:1;min-width:220px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'JetBrains Mono',monospace}
 .cat-chips{display:flex;gap:8px;flex-wrap:wrap}
 .cat-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-muted);padding:7px 10px;border-radius:999px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}
-.cat-chip.active{color:var(--accent);border-color:rgba(79,255,176,.35);background:rgba(79,255,176,.08)}
+.cat-chip.active{transform:translateY(-1px)}
+.cat-chip-all.active{color:var(--accent);border-color:rgba(79,255,176,.42);background:rgba(79,255,176,.10)}
+.cat-chip-sql-db.active{color:#dbeafe;border-color:rgba(96,165,250,.55);background:rgba(96,165,250,.16)}
+.cat-chip-data-format.active{color:#ede9fe;border-color:rgba(167,139,250,.55);background:rgba(167,139,250,.16)}
+.cat-chip-image.active{color:#dcfce7;border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.16)}
+.cat-chip-text-compare.active{color:#fef3c7;border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.16)}
+.cat-chip-utility.active{color:#fee2e2;border-color:rgba(248,113,113,.55);background:rgba(248,113,113,.16)}
+[data-theme="light"] .cat-chip-sql-db.active{color:#1e3a8a;background:rgba(96,165,250,.20)}
+[data-theme="light"] .cat-chip-data-format.active{color:#5b21b6;background:rgba(167,139,250,.20)}
+[data-theme="light"] .cat-chip-image.active{color:#065f46;background:rgba(52,211,153,.20)}
+[data-theme="light"] .cat-chip-text-compare.active{color:#92400e;background:rgba(251,191,36,.22)}
+[data-theme="light"] .cat-chip-utility.active{color:#991b1b;background:rgba(248,113,113,.20)}
 .category-head{display:flex;justify-content:space-between;align-items:center;margin-top:22px}
 .category-head .count{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
 </style>
@@ -123,7 +134,10 @@
 
     function renderChips(){
       const all = ['ALL', ...categories];
-      chipsEl.innerHTML = all.map(cat => `<button class="cat-chip${cat===activeCategory?' active':''}" data-cat="${cat}">${cat}</button>`).join('');
+      chipsEl.innerHTML = all.map(cat => {
+        const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
+        return `<button class="cat-chip ${cls}${cat===activeCategory?' active':''}" data-cat="${cat}">${cat}</button>`;
+      }).join('');
       chipsEl.querySelectorAll('.cat-chip').forEach(btn=>btn.addEventListener('click', ()=>{
         activeCategory = btn.dataset.cat;
         renderChips();
