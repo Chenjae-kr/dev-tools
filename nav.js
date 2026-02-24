@@ -140,26 +140,35 @@ function toggleNavGroup(idx) {
 }
 
 function syncToolHeaderFromRegistry() {
-  if (!Array.isArray(window.TOOLS)) return;
+  if (!Array.isArray(window.TOOLS)) return false;
   const { inTools, currentToolPath } = getRouteInfo();
-  if (!inTools) return;
+  if (!inTools) return true;
 
   const meta = window.TOOLS.find(t => t.href === currentToolPath);
-  if (!meta) return;
+  if (!meta) return true;
 
   const header = document.querySelector('.tool-header');
-  if (!header) return;
+  if (!header) return false;
 
   const h1 = header.querySelector('h1');
   const p = header.querySelector('p');
   if (h1) h1.textContent = meta.title || meta.label || h1.textContent;
   if (p) p.textContent = `// ${meta.desc || ''}`;
+  return true;
+}
+
+function ensureToolHeaderSync(maxRetry = 20, intervalMs = 80) {
+  let n = 0;
+  const timer = setInterval(() => {
+    n += 1;
+    if (syncToolHeaderFromRegistry() || n >= maxRetry) clearInterval(timer);
+  }, intervalMs);
 }
 
 // ─── Init after DOM ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
   updateThemeIcon();
-  syncToolHeaderFromRegistry();
+  ensureToolHeaderSync();
 
   document.addEventListener('click', function (e) {
     // Close kebab when clicking outside
@@ -236,3 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
+
+if (document.readyState !== 'loading') {
+  ensureToolHeaderSync();
+}
