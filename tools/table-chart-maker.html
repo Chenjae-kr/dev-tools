@@ -10,9 +10,13 @@
 <link rel="stylesheet" href="../styles.css">
 <style>
 .setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
+.setting-group .options-label{min-width:88px}
+.control-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+.control-grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%}
 .input-area{width:100%;min-height:180px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;resize:vertical}
+.file-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);background:var(--surface)}
 .preview-wrap{position:sticky;top:74px}
-@media(max-width:980px){.preview-wrap{position:static;top:auto}}
+@media(max-width:980px){.preview-wrap{position:static;top:auto}.control-grid-4{grid-template-columns:repeat(2,minmax(0,1fr));}}
 </style>
 </head>
 <body>
@@ -32,9 +36,13 @@
               <button class="toggle-btn src-btn active" data-src="table">Table Text</button>
               <button class="toggle-btn src-btn" data-src="json">JSON</button>
             </div>
-            <input id="fileInput" type="file" accept=".txt,.csv,.tsv,.md,.json,text/plain,application/json">
             <button class="toggle-btn" onclick="loadSample()">샘플</button>
           </div>
+          <div class="options-bar">
+            <span class="options-label">Upload</span>
+            <input id="fileInput" class="file-input" type="file" accept=".txt,.csv,.tsv,.md,.json,text/plain,application/json">
+          </div>
+          <div class="options-bar"><span class="options-label">Data</span></div>
           <textarea id="sourceText" class="input-area" placeholder="label,value\nA,40\nB,28\nC,65"></textarea>
         </div>
 
@@ -48,8 +56,10 @@
               <button class="toggle-btn type-btn" data-type="pie">Pie</button>
             </div>
           </div>
-          <div class="control-grid-2">
+          <div class="options-bar">
+            <span class="options-label">Title</span>
             <input id="chartTitle" class="table-name-input" value="매출 추이" placeholder="차트 제목">
+            <span class="options-label">Series</span>
             <input id="seriesColor" type="color" class="table-name-input" value="#4fffb0" style="padding:4px 6px;max-width:160px">
           </div>
           <div class="control-grid-4" style="margin-top:8px">
