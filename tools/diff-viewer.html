@@ -107,6 +107,11 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
 }
+.inline-add{background:rgba(79,255,176,.25);border-radius:3px}
+.inline-del{background:rgba(255,106,106,.25);border-radius:3px}
+.split-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:12px}
+.split-cell{padding:6px 10px;white-space:pre;overflow:auto}
+.split-old{border-right:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -141,6 +146,11 @@
         <button class="toggle-btn active" data-mode="text">Text</button>
         <button class="toggle-btn" data-mode="json">JSON</button>
       </div>
+      <span class="options-label">View</span>
+      <div class="toggle-group">
+        <button class="toggle-btn active" data-view="unified">Unified</button>
+        <button class="toggle-btn" data-view="split">Split</button>
+      </div>
       <span class="options-label">Context</span>
       <div class="toggle-group">
         <button class="toggle-btn" data-ctx="0">없음</button>
@@ -153,6 +163,12 @@
         <button class="toggle-btn active" data-trim="on">공백 무시</button>
         <button class="toggle-btn" data-trim="off">공백 포함</button>
       </div>
+    </div>
+
+    <div class="options-bar" style="border-top:none;padding-top:0;">
+      <span class="options-label">파일</span>
+      <input id="origFile" type="file" accept=".txt,.json,.md,.csv,text/plain,application/json">
+      <input id="modFile" type="file" accept=".txt,.json,.md,.csv,text/plain,application/json">
     </div>
 
     <button class="generate-btn" id="diffBtn" onclick="runDiff()">
@@ -178,6 +194,7 @@
 let contextLines = 3;
 let trimWhitespace = true;
 let diffMode = 'text';
+let viewMode = 'unified';
 let lastPatchText = '';
 
 document.querySelectorAll('[data-ctx]').forEach(btn => {
@@ -203,6 +220,26 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
     diffMode = btn.dataset.mode;
   });
 });
+
+document.querySelectorAll('[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    viewMode = btn.dataset.view;
+  });
+});
+
+function bindFileInput(id, targetId){
+  document.getElementById(id).addEventListener('change', e => {
+    const f = e.target.files?.[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = ev => { document.getElementById(targetId).value = ev.target.result || ''; };
+    r.readAsText(f, 'utf-8');
+  });
+}
+bindFileInput('origFile','originalInput');
+bindFileInput('modFile','modifiedInput');
 
 // ─── LCS-based Line Diff ──────────────────────────────────
 function computeLCS(a, b) {
@@ -245,6 +282,7 @@ function renderDiff(ops, ctx) {
 
   let html = '';
   let addCount = 0, delCount = 0;
+  attachPairs(lines);
 
   if (ctx === -1) {
     // Show everything
@@ -282,13 +320,59 @@ function renderDiff(ops, ctx) {
   return { html, addCount, delCount };
 }
 
+function highlightInline(oldStr, newStr, type) {
+  if (oldStr == null || newStr == null) return escHtml(type === 'add' ? newStr : oldStr);
+  let s = 0;
+  const a = oldStr, b = newStr;
+  while (s < a.length && s < b.length && a[s] === b[s]) s++;
+  let ea = a.length - 1, eb = b.length - 1;
+  while (ea >= s && eb >= s && a[ea] === b[eb]) { ea--; eb--; }
+  const src = type === 'add' ? b : a;
+  const e1 = type === 'add' ? s : s;
+  const e2 = type === 'add' ? eb : ea;
+  const pre = escHtml(src.slice(0, e1));
+  const mid = escHtml(src.slice(e1, e2 + 1));
+  const suf = escHtml(src.slice(e2 + 1));
+  const cls = type === 'add' ? 'inline-add' : 'inline-del';
+  return mid ? `${pre}<span class="${cls}">${mid}</span>${suf}` : escHtml(src);
+}
+
 function renderLine(l) {
   const sign    = l.type === 'add' ? '+' : l.type === 'del' ? '−' : ' ';
   const cls     = l.type === 'add' ? 'diff-add' : l.type === 'del' ? 'diff-del' : 'diff-ctx';
   const oldNum  = l.oldN != null ? String(l.oldN) : '';
   const newNum  = l.newN != null ? String(l.newN) : '';
   const numStr  = `${oldNum.padStart(4,' ')} ${newNum.padStart(4,' ')}`;
-  return `<div class="diff-line ${cls}"><span class="diff-line-num">${numStr}</span><span class="diff-line-content">${sign} ${escHtml(l.val)}</span></div>`;
+  const body = (l.type === 'add' || l.type === 'del') && l.pair != null
+    ? highlightInline(l.type === 'del' ? l.val : l.pair, l.type === 'add' ? l.val : l.pair, l.type)
+    : escHtml(l.val);
+  return `<div class="diff-line ${cls}"><span class="diff-line-num">${numStr}</span><span class="diff-line-content">${sign} ${body}</span></div>`;
+}
+
+function attachPairs(lines){
+  for(let i=0;i<lines.length-1;i++){
+    const a=lines[i], b=lines[i+1];
+    if(a.type==='del' && b.type==='add'){ a.pair=b.val; b.pair=a.val; }
+  }
+}
+
+function renderSplit(lines){
+  let html='';
+  for(let i=0;i<lines.length;i++){
+    const l=lines[i];
+    if(l.type==='eq'){
+      html += `<div class="split-row"><div class="split-cell split-old diff-ctx">${escHtml(l.val)}</div><div class="split-cell diff-ctx">${escHtml(l.val)}</div></div>`;
+    } else if(l.type==='del' && i+1<lines.length && lines[i+1].type==='add'){
+      const n=lines[i+1];
+      html += `<div class="split-row"><div class="split-cell split-old diff-del">${highlightInline(l.val,n.val,'del')}</div><div class="split-cell diff-add">${highlightInline(l.val,n.val,'add')}</div></div>`;
+      i++;
+    } else if(l.type==='del'){
+      html += `<div class="split-row"><div class="split-cell split-old diff-del">${escHtml(l.val)}</div><div class="split-cell"></div></div>`;
+    } else if(l.type==='add'){
+      html += `<div class="split-row"><div class="split-cell split-old"></div><div class="split-cell diff-add">${escHtml(l.val)}</div></div>`;
+    }
+  }
+  return html;
 }
 
 function normalizeForDiff(raw) {
@@ -343,13 +427,22 @@ function runDiff() {
             <div class="diff-identical">✓ 두 텍스트가 동일합니다</div>
           </div>`;
       } else {
-        const { html, addCount, delCount } = renderDiff(ops, contextLines);
+        let html = '', addCount = ops.filter(o=>o.type==='add').length, delCount = ops.filter(o=>o.type==='del').length;
+        if (viewMode === 'split') {
+          const lines = ops.map(o => ({...o}));
+          attachPairs(lines);
+          html = renderSplit(lines);
+        } else {
+          const rendered = renderDiff(ops, contextLines);
+          html = rendered.html; addCount = rendered.addCount; delCount = rendered.delCount;
+        }
         const blockId = `diff_${Date.now()}`;
         const bodyHtml = `
           <div class="diff-summary">
             <span><span class="add-count">+${addCount}</span> 추가</span>
             <span><span class="del-count">−${delCount}</span> 삭제</span>
             <span>${origLines.length}줄 → ${modLines.length}줄</span>
+            <span>View: ${viewMode.toUpperCase()}</span>
           </div>
           <div class="diff-output-wrap" id="${blockId}">${html}</div>`;
 
