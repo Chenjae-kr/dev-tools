@@ -14,8 +14,8 @@
   --accent2: #7c6aff;
   --accent3: #ff6a6a;
   --text: #e8ecf5;
-  --text-muted: #5a6080;
-  --text-dim: #8892aa;
+  --text-muted: #8f9ab8;
+  --text-dim: #a8b2ca;
   --mysql: #f0a000;
   --oracle: #e04040;
   --postgres: #336dc8;
@@ -50,6 +50,12 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   transition: background 0.25s, color 0.25s;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.9;
 }
 
 /* ─── Grid Background ───────────────────────────────────── */
