@@ -76,6 +76,13 @@ const TOOLS = [
     footer: 'JSON → Prettify · Minify · Validate',
   },
   {
+    category: 'Data/Format', href: 'html-to-markdown.html', label: 'HTML → MD', icon: 'H2M',
+    title: 'HTML to Markdown Converter',
+    desc: 'HTML 코드를 입력하거나 파일 업로드하면 Markdown으로 변환합니다. heading/list/table/code block 변환을 지원합니다.',
+    tags: ['HTML', 'Markdown', 'Converter', 'Upload'],
+    footer: 'HTML → Markdown',
+  },
+  {
     category: 'Data/Format', href: 'mock-data-generator.html', label: 'Mock Data', icon: 'MOCK',
     title: 'Mock Data Generator',
     desc: '컬럼 스키마(DSL 또는 SQL DDL)를 기반으로 테스트 데이터를 생성합니다. CSV/JSON/SQL INSERT 출력, seed 기반 재현 가능한 랜덤 데이터 지원.',
