@@ -107,16 +107,20 @@ function closeMobileMenu() {
   }
 }
 
-function toggleNavGroup(idx) {
-  const menu = document.querySelector(`.nav-menu[data-menu="${idx}"]`);
-  if (!menu) return;
-
-  const willOpen = !menu.classList.contains('open');
+function closeAllNavMenus() {
   document.querySelectorAll('.nav-menu').forEach(m => {
     m.classList.remove('open');
     const b = m.querySelector('.nav-menu-btn');
     if (b) b.setAttribute('aria-expanded', 'false');
   });
+}
+
+function toggleNavGroup(idx) {
+  const menu = document.querySelector(`.nav-menu[data-menu="${idx}"]`);
+  if (!menu) return;
+
+  const willOpen = !menu.classList.contains('open');
+  closeAllNavMenus();
 
   if (willOpen) {
     menu.classList.add('open');
@@ -146,11 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Close desktop dropdown when clicking outside nav menus
     if (!e.target.closest('.nav-menu')) {
-      document.querySelectorAll('.nav-menu').forEach(m => {
-        m.classList.remove('open');
-        const b = m.querySelector('.nav-menu-btn');
-        if (b) b.setAttribute('aria-expanded', 'false');
-      });
+      closeAllNavMenus();
     }
   });
 
@@ -161,17 +161,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // On desktop: close opened dropdown when mouse moves outside menus
-  document.addEventListener('mousemove', function (e) {
-    if (window.innerWidth <= 768) return;
-    if (e.target.closest('.nav-menu')) return;
+  // On desktop: auto-close dropdown when pointer leaves top nav
+  const topnav = document.querySelector('.topnav');
+  if (topnav) {
+    let closeTimer = null;
 
-    document.querySelectorAll('.nav-menu.open').forEach(m => {
-      m.classList.remove('open');
-      const b = m.querySelector('.nav-menu-btn');
-      if (b) b.setAttribute('aria-expanded', 'false');
+    topnav.addEventListener('mouseleave', function () {
+      if (window.innerWidth <= 768) return;
+      closeTimer = setTimeout(() => closeAllNavMenus(), 120);
     });
-  });
+
+    topnav.addEventListener('mouseenter', function () {
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+    });
+  }
 
   // Close mobile menu when a nav item is clicked
   const navTools = document.getElementById('navTools');
