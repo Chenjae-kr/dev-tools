@@ -16,6 +16,9 @@
 .setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
 .setting-group .options-bar{border-top:none !important;padding:4px 0 !important;gap:8px;flex-wrap:wrap}
 #padHint{font-size:10px;color:var(--text-dim)}
+.main-grid > .output-panel{position:sticky;top:84px;align-self:start}
+.main-grid > .output-panel .panel{max-height:calc(100vh - 110px);overflow:auto}
+@media (max-width: 980px){.main-grid > .output-panel{position:static}.main-grid > .output-panel .panel{max-height:none;overflow:visible}}
 </style>
 </head>
 <body>
