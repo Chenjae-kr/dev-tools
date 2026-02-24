@@ -109,7 +109,11 @@
     padding-right: 20px;
     border-right: 1px solid var(--border);
     flex-shrink: 0;
+    text-decoration: none;
+    transition: opacity 0.15s;
   }
+
+  .nav-brand:hover { opacity: 0.8; }
 
   .nav-logo {
     width: 34px; height: 34px;
@@ -564,13 +568,13 @@
 <!-- ─── Top Navigation ─────────────────────────────────── -->
 <nav class="topnav">
   <div class="nav-inner container">
-    <div class="nav-brand">
+    <a class="nav-brand" href="index.html">
       <div class="nav-logo">DEV</div>
       <span class="nav-brand-name">Dev<em>Tools</em></span>
-    </div>
+    </a>
 
     <div class="nav-tools">
-      <a class="nav-item" href="index.html">
+      <a class="nav-item" href="ddl-crud.html">
         <span class="nav-item-dot"></span>
         DDL → CRUD
       </a>

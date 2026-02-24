@@ -3,17 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DDL → CRUD SQL Generator | Dev Tools</title>
+<title>Dev Tools</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <script>
-  /* Prevent theme flash on load */
   (function() {
     const t = localStorage.getItem('devtools-theme');
     if (t) document.documentElement.setAttribute('data-theme', t);
   })();
 </script>
 <style>
-  /* ─── Dark Theme (default) ───────────────────────────── */
   :root {
     --bg: #0d0f14;
     --surface: #151820;
@@ -25,14 +23,9 @@
     --text: #e8ecf5;
     --text-muted: #5a6080;
     --text-dim: #8892aa;
-    --mysql: #f0a000;
-    --oracle: #e04040;
-    --postgres: #336dc8;
-    --mybatis: #e8734a;
     --nav-h: 56px;
   }
 
-  /* ─── Light Theme ────────────────────────────────────── */
   [data-theme="light"] {
     --bg: #f4f6fb;
     --surface: #ffffff;
@@ -44,10 +37,6 @@
     --text: #1a1e2e;
     --text-muted: #6676a0;
     --text-dim: #4a5575;
-    --mysql: #c87800;
-    --oracle: #cc3333;
-    --postgres: #2b5eb0;
-    --mybatis: #cc5822;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -61,7 +50,6 @@
     transition: background 0.25s, color 0.25s;
   }
 
-  /* Grid bg */
   body::before {
     content: '';
     position: fixed;
@@ -88,7 +76,7 @@
     z-index: 1;
   }
 
-  /* ─── Top Navigation ─────────────────────────────────── */
+  /* ─── Navigation ─────────────────────────────────────── */
   .topnav {
     position: sticky;
     top: 0;
@@ -104,10 +92,8 @@
     display: flex;
     align-items: center;
     height: var(--nav-h);
-    gap: 0;
   }
 
-  /* Brand */
   .nav-brand {
     display: flex;
     align-items: center;
@@ -115,7 +101,11 @@
     padding-right: 20px;
     border-right: 1px solid var(--border);
     flex-shrink: 0;
+    text-decoration: none;
+    transition: opacity 0.15s;
   }
+
+  .nav-brand:hover { opacity: 0.8; }
 
   .nav-logo {
     width: 34px; height: 34px;
@@ -126,14 +116,12 @@
     font-weight: 700;
     font-size: 11px;
     color: var(--bg);
-    flex-shrink: 0;
-    box-shadow: 0 0 14px rgba(79,255,176,0.25);
+    /* home page: brighter glow */
+    box-shadow: 0 0 20px rgba(79,255,176,0.4);
     transition: background 0.25s, color 0.25s, box-shadow 0.25s;
   }
 
-  [data-theme="light"] .nav-logo {
-    box-shadow: 0 0 14px rgba(0,184,122,0.2);
-  }
+  [data-theme="light"] .nav-logo { box-shadow: 0 0 20px rgba(0,184,122,0.3); }
 
   .nav-brand-name {
     font-size: 14px;
@@ -143,12 +131,8 @@
     white-space: nowrap;
   }
 
-  .nav-brand-name em {
-    font-style: normal;
-    color: var(--accent);
-  }
+  .nav-brand-name em { font-style: normal; color: var(--accent); }
 
-  /* Tool nav items */
   .nav-tools {
     display: flex;
     align-items: center;
@@ -179,11 +163,7 @@
     letter-spacing: 0.3px;
   }
 
-  .nav-item:hover {
-    color: var(--text);
-    background: var(--surface2);
-    border-color: var(--border);
-  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); border-color: var(--border); }
 
   .nav-item.active {
     color: var(--accent);
@@ -202,25 +182,10 @@
     background: currentColor;
     opacity: 0.5;
     flex-shrink: 0;
-    transition: all 0.15s;
   }
 
-  .nav-item.active .nav-item-dot {
-    opacity: 1;
-    box-shadow: 0 0 6px currentColor;
-  }
+  .nav-item.active .nav-item-dot { opacity: 1; box-shadow: 0 0 6px currentColor; }
 
-  .nav-badge {
-    font-size: 9px;
-    padding: 1px 5px;
-    border-radius: 4px;
-    background: var(--surface2);
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-    letter-spacing: 0.3px;
-  }
-
-  /* Nav actions (theme toggle) */
   .nav-actions {
     display: flex;
     align-items: center;
@@ -238,9 +203,7 @@
     color: var(--text-dim);
     font-size: 15px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
     line-height: 1;
   }
@@ -252,427 +215,313 @@
     box-shadow: 0 0 10px rgba(79,255,176,0.15);
   }
 
-  [data-theme="light"] .theme-toggle:hover {
-    box-shadow: 0 0 10px rgba(0,184,122,0.15);
-  }
+  [data-theme="light"] .theme-toggle:hover { box-shadow: 0 0 10px rgba(0,184,122,0.15); }
 
-  /* ─── Tool Header ─────────────────────────────────────── */
-  .tool-header {
-    padding: 28px 0 20px;
+  /* ─── Hero ───────────────────────────────────────────── */
+  .hero {
+    padding: 72px 0 56px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 28px;
+    margin-bottom: 52px;
+    position: relative;
   }
 
-  .tool-header h1 {
-    font-size: 20px;
+  .hero-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-kicker::before {
+    content: '';
+    width: 28px;
+    height: 1px;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 5.5vw, 64px);
     font-weight: 800;
-    letter-spacing: -0.5px;
+    letter-spacing: -2.5px;
+    line-height: 1.08;
+    margin-bottom: 22px;
   }
 
-  .tool-header h1 span {
+  .hero h1 em {
+    font-style: normal;
     color: var(--accent);
   }
 
-  .tool-header p {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 3px;
+  .hero-sub {
     font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 460px;
+    margin-bottom: 36px;
   }
 
-  /* ─── Main Layout ─────────────────────────────────────── */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    align-items: start;
+  .hero-stats {
+    display: flex;
+    gap: 0;
+    flex-wrap: wrap;
   }
 
-  @media (max-width: 900px) {
-    .main-grid { grid-template-columns: 1fr; }
-  }
-
-  /* ─── Panel ──────────────────────────────────────────── */
-  .panel {
-    background: var(--surface);
+  .hero-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 24px;
     border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
+    background: var(--surface);
     transition: background 0.25s, border-color 0.25s;
   }
 
-  .panel-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface2);
-  }
+  .hero-stat:first-child { border-radius: 10px 0 0 10px; }
+  .hero-stat:last-child  { border-radius: 0 10px 10px 0; border-left: none; }
+  .hero-stat:not(:first-child):not(:last-child) { border-left: none; }
 
-  .panel-title {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .panel-title .dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
-  }
-
-  /* DDL Input */
-  .ddl-textarea {
-    width: 100%;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    line-height: 1.7;
-    padding: 20px;
-    resize: none;
-    min-height: 280px;
-    tab-size: 2;
-  }
-
-  .ddl-textarea::placeholder { color: var(--text-muted); }
-
-  /* Options Bar */
-  .options-bar {
-    padding: 16px 20px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-    background: var(--surface2);
-  }
-
-  .options-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .dialect-group {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-
-  .dialect-btn {
-    padding: 5px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-dim);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.5px;
-  }
-
-  .dialect-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  .dialect-btn.active[data-dialect="mysql"] {
-    background: rgba(240,160,0,0.12);
-    border-color: var(--mysql);
-    color: var(--mysql);
-  }
-
-  .dialect-btn.active[data-dialect="oracle"] {
-    background: rgba(224,64,64,0.12);
-    border-color: var(--oracle);
-    color: var(--oracle);
-  }
-
-  .dialect-btn.active[data-dialect="postgresql"] {
-    background: rgba(51,109,200,0.15);
-    border-color: var(--postgres);
-    color: var(--postgres);
-  }
-
-  .dialect-btn.active[data-dialect="mybatis"] {
-    background: rgba(232,115,74,0.12);
-    border-color: var(--mybatis);
-    color: var(--mybatis);
-  }
-
-  /* CRUD Toggles */
-  .crud-group {
-    display: flex;
-    gap: 6px;
-  }
-
-  .crud-toggle {
-    padding: 5px 10px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-muted);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .crud-toggle:hover { border-color: var(--accent2); color: var(--accent2); }
-
-  .crud-toggle.active {
-    background: rgba(124,106,255,0.15);
-    border-color: var(--accent2);
-    color: var(--accent2);
-  }
-
-  [data-theme="light"] .crud-toggle.active {
-    background: rgba(96,80,216,0.1);
-  }
-
-  /* Generate Button */
-  .generate-btn {
-    width: calc(100% - 40px);
-    margin: 0 20px 20px;
-    padding: 14px;
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    border-radius: 10px;
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
+  .stat-num {
+    font-size: 22px;
     font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
     letter-spacing: 1px;
     text-transform: uppercase;
-    cursor: pointer;
+  }
+
+  /* ─── Tools Section ──────────────────────────────────── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 80px;
+  }
+
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+    margin-bottom: 60px;
+  }
+
+  /* ─── Tool Card ──────────────────────────────────────── */
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     transition: all 0.2s;
     position: relative;
     overflow: hidden;
   }
 
-  .generate-btn:hover {
-    background: #6fffbe;
-    box-shadow: 0 0 30px rgba(79,255,176,0.4);
-    transform: translateY(-1px);
-  }
-
-  [data-theme="light"] .generate-btn:hover {
-    background: #00d090;
-    box-shadow: 0 4px 20px rgba(0,184,122,0.35);
-  }
-
-  .generate-btn:active { transform: translateY(0); }
-
-  .generate-btn.loading {
-    background: var(--surface2);
-    color: var(--text-muted);
-    pointer-events: none;
-  }
-
-  /* Output Panel */
-  .output-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  /* SQL Block */
-  .sql-block {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    animation: fadeSlideIn 0.3s ease forwards;
+  /* corner glow on hover */
+  .tool-card::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    background: var(--accent);
     opacity: 0;
-    transform: translateY(8px);
+    transition: opacity 0.3s;
+    pointer-events: none;
+    filter: blur(40px);
   }
 
-  @keyframes fadeSlideIn {
-    to { opacity: 1; transform: translateY(0); }
+  .tool-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.25);
   }
 
-  .sql-block-header {
-    padding: 12px 16px;
+  [data-theme="light"] .tool-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+
+  .tool-card:hover::after { opacity: 0.06; }
+
+  .card-top {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2);
+    gap: 12px;
   }
 
-  .sql-type-badge {
+  .card-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: rgba(79,255,176,0.1);
+    border: 1px solid rgba(79,255,176,0.22);
+    display: flex; align-items: center; justify-content: center;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1px;
-    padding: 3px 10px;
-    border-radius: 5px;
+    color: var(--accent);
+    flex-shrink: 0;
+    transition: all 0.2s;
   }
 
-  .badge-insert { background: rgba(79,255,176,0.12); color: var(--accent); }
-  .badge-select { background: rgba(124,106,255,0.12); color: var(--accent2); }
-  .badge-update { background: rgba(240,160,0,0.12); color: var(--mysql); }
-  .badge-delete { background: rgba(255,106,106,0.12); color: var(--accent3); }
+  [data-theme="light"] .card-icon {
+    background: rgba(0,184,122,0.08);
+    border-color: rgba(0,184,122,0.2);
+  }
 
-  [data-theme="light"] .badge-insert { background: rgba(0,184,122,0.1); }
-  [data-theme="light"] .badge-select { background: rgba(96,80,216,0.08); }
-  [data-theme="light"] .badge-update { background: rgba(200,120,0,0.1); }
-  [data-theme="light"] .badge-delete { background: rgba(224,53,53,0.08); }
+  .tool-card:hover .card-icon {
+    background: rgba(79,255,176,0.16);
+    border-color: rgba(79,255,176,0.4);
+    box-shadow: 0 0 16px rgba(79,255,176,0.2);
+  }
 
-  .sql-dialect-tag {
+  [data-theme="light"] .tool-card:hover .card-icon {
+    background: rgba(0,184,122,0.14);
+    border-color: rgba(0,184,122,0.35);
+  }
+
+  .card-arrow {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+    font-size: 14px;
     color: var(--text-muted);
-    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    opacity: 0;
+    transform: translateX(-4px);
   }
 
-  .copy-btn {
-    background: transparent;
-    border: 1px solid var(--border);
+  .tool-card:hover .card-arrow {
+    opacity: 1;
+    color: var(--accent);
+    transform: translateX(0);
+  }
+
+  .card-title {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+  }
+
+  .card-desc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
     color: var(--text-muted);
+    line-height: 1.75;
+    flex: 1;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 4px;
+  }
+
+  .card-tag {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
   }
 
-  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .copy-btn.copied { border-color: var(--accent); color: var(--accent); }
-
-  .sql-code {
-    padding: 16px 20px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12.5px;
-    line-height: 1.8;
-    white-space: pre;
-    overflow-x: auto;
-    color: var(--text);
-  }
-
-  /* Syntax highlight — dark */
-  .kw  { color: #7c6aff; font-weight: 600; }
-  .tbl { color: #4fffb0; }
-  .col { color: #e8ecf5; }
-  .val { color: #ff9d5c; }
-  .cmt { color: #3a4060; font-style: italic; }
-  .ph  { color: #ff6a6a; }
-
-  /* Syntax highlight — light */
-  [data-theme="light"] .kw  { color: #5040c0; }
-  [data-theme="light"] .tbl { color: #007050; }
-  [data-theme="light"] .col { color: #1a1e2e; }
-  [data-theme="light"] .val { color: #b85800; }
-  [data-theme="light"] .cmt { color: #8898c0; font-style: italic; }
-  [data-theme="light"] .ph  { color: #c02828; }
-
-  /* Empty state */
-  .empty-state {
-    padding: 60px 20px;
-    text-align: center;
+  .tool-card:hover .card-tag {
+    border-color: rgba(79,255,176,0.2);
     color: var(--text-muted);
   }
 
-  .empty-state .icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-    opacity: 0.4;
-  }
+  [data-theme="light"] .tool-card:hover .card-tag { border-color: rgba(0,184,122,0.2); }
 
-  .empty-state p {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 1.8;
-  }
-
-  /* Table info chip */
-  .table-info {
-    padding: 8px 20px;
-    background: rgba(79,255,176,0.05);
-    border-bottom: 1px solid var(--border);
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: border-color 0.2s;
+  }
+
+  .tool-card:hover .card-footer { border-color: rgba(79,255,176,0.2); }
+  [data-theme="light"] .tool-card:hover .card-footer { border-color: rgba(0,184,122,0.2); }
+
+  .card-cta {
     color: var(--accent);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    transition: gap 0.2s;
   }
 
-  [data-theme="light"] .table-info {
-    background: rgba(0,184,122,0.05);
-  }
+  .tool-card:hover .card-cta { gap: 10px; }
 
-  .table-info span { color: var(--text-muted); }
-
-  /* Error */
-  .error-msg {
-    padding: 16px 20px;
-    background: rgba(255,106,106,0.08);
-    border: 1px solid rgba(255,106,106,0.3);
-    border-radius: 10px;
+  /* ─── Footer ─────────────────────────────────────────── */
+  footer {
+    text-align: center;
+    padding: 32px 0;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--accent3);
-    line-height: 1.6;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
   }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-  /* Select all toggle */
-  .all-toggle {
-    font-size: 11px;
-    color: var(--text-muted);
-    cursor: pointer;
-    text-decoration: underline;
-    font-family: 'JetBrains Mono', monospace;
-    background: none;
-    border: none;
-    padding: 0;
-    transition: color 0.15s;
-  }
-  .all-toggle:hover { color: var(--accent); }
-
-  footer {
-    text-align: center;
-    padding: 40px 0 32px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
-  }
 </style>
 </head>
 <body>
 
-<!-- ─── Top Navigation ─────────────────────────────────── -->
+<!-- ─── Navigation ─────────────────────────────────────── -->
 <nav class="topnav">
   <div class="nav-inner container">
-    <div class="nav-brand">
+    <a class="nav-brand" href="index.html">
       <div class="nav-logo">DEV</div>
       <span class="nav-brand-name">Dev<em>Tools</em></span>
-    </div>
+    </a>
 
     <div class="nav-tools">
-      <a class="nav-item active" href="index.html">
+      <a class="nav-item" href="ddl-crud.html">
         <span class="nav-item-dot"></span>
         DDL → CRUD
       </a>
@@ -688,78 +537,91 @@
   </div>
 </nav>
 
+<!-- ─── Hero ─────────────────────────────────────────── -->
 <div class="container">
-  <!-- Tool Header -->
-  <div class="tool-header">
-    <h1>DDL <span>→</span> CRUD Generator</h1>
-    <p>// paste your CREATE TABLE statement and generate queries instantly</p>
-  </div>
-
-  <div class="main-grid">
-    <!-- LEFT: Input Panel -->
-    <div>
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">
-            <div class="dot"></div>
-            DDL INPUT
-          </div>
-        </div>
-
-        <textarea class="ddl-textarea" id="ddlInput" placeholder="CREATE TABLE users (
-  user_id     NUMBER(10)    NOT NULL,
-  username    VARCHAR2(50)  NOT NULL,
-  email       VARCHAR2(100) NOT NULL,
-  created_at  DATE          DEFAULT SYSDATE,
-  is_active   NUMBER(1)     DEFAULT 1,
-  CONSTRAINT pk_users PRIMARY KEY (user_id)
-);"></textarea>
-
-        <!-- Dialect -->
-        <div class="options-bar">
-          <span class="options-label">Dialect</span>
-          <div class="dialect-group">
-            <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
-            <button class="dialect-btn" data-dialect="oracle">Oracle</button>
-            <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
-            <button class="dialect-btn" data-dialect="mybatis">MyBatis</button>
-          </div>
-        </div>
-
-        <!-- CRUD -->
-        <div class="options-bar" style="border-top:none; padding-top: 0;">
-          <span class="options-label">CRUD</span>
-          <div class="crud-group">
-            <button class="crud-toggle active" data-crud="INSERT">INSERT</button>
-            <button class="crud-toggle active" data-crud="SELECT">SELECT</button>
-            <button class="crud-toggle active" data-crud="UPDATE">UPDATE</button>
-            <button class="crud-toggle active" data-crud="DELETE">DELETE</button>
-          </div>
-          <button class="all-toggle" id="allToggle">전체해제</button>
-        </div>
-
-        <button class="generate-btn" id="generateBtn" onclick="generate()">
-          ⚡ SQL 생성
-        </button>
+  <section class="hero">
+    <p class="hero-kicker">developer utilities</p>
+    <h1>Dev<em>Tools</em></h1>
+    <p class="hero-sub">// 개발 작업을 빠르게 처리하는<br>웹 기반 유틸리티 모음</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="stat-num" id="toolCount">2</span>
+        <span class="stat-label">Tools</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-num">4</span>
+        <span class="stat-label">Dialects</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-num">SQL</span>
+        <span class="stat-label">Output</span>
       </div>
     </div>
+  </section>
 
-    <!-- RIGHT: Output Panel -->
-    <div class="output-panel" id="outputPanel">
-      <div class="panel">
-        <div class="empty-state">
-          <div class="icon">⬅</div>
-          <p>DDL을 입력하고<br>SQL 생성 버튼을 누르세요</p>
-        </div>
+  <!-- ─── Tools Grid ──────────────────────────────────── -->
+  <p class="section-label">Tools</p>
+
+  <div class="tools-grid">
+
+    <!-- DDL → CRUD -->
+    <a class="tool-card" href="ddl-crud.html">
+      <div class="card-top">
+        <div class="card-icon">SQL</div>
+        <span class="card-arrow">→</span>
       </div>
-    </div>
+      <div>
+        <div class="card-title">DDL → CRUD Generator</div>
+      </div>
+      <p class="card-desc">
+        CREATE TABLE DDL을 입력하면 INSERT, SELECT,
+        UPDATE, DELETE 쿼리를 자동 생성합니다.
+        PK 자동 감지, MyBatis XML 지원.
+      </p>
+      <div class="card-tags">
+        <span class="card-tag">MySQL</span>
+        <span class="card-tag">Oracle</span>
+        <span class="card-tag">PostgreSQL</span>
+        <span class="card-tag">MyBatis</span>
+      </div>
+      <div class="card-footer">
+        <span>DDL → INSERT · SELECT · UPDATE · DELETE</span>
+        <span class="card-cta">열기 <span>→</span></span>
+      </div>
+    </a>
+
+    <!-- MD → INSERT -->
+    <a class="tool-card" href="md-to-insert.html">
+      <div class="card-top">
+        <div class="card-icon">MD</div>
+        <span class="card-arrow">→</span>
+      </div>
+      <div>
+        <div class="card-title">Markdown → INSERT SQL</div>
+      </div>
+      <p class="card-desc">
+        마크다운 테이블 형식을 INSERT SQL 쿼리로 변환합니다.
+        숫자·불리언·NULL 타입 자동 감지,
+        Individual / Bulk 모드 선택 지원.
+      </p>
+      <div class="card-tags">
+        <span class="card-tag">MySQL</span>
+        <span class="card-tag">Oracle</span>
+        <span class="card-tag">PostgreSQL</span>
+        <span class="card-tag">Bulk INSERT</span>
+      </div>
+      <div class="card-footer">
+        <span>Markdown Table → INSERT</span>
+        <span class="card-cta">열기 <span>→</span></span>
+      </div>
+    </a>
+
   </div>
 
-  <footer>// DDL CRUD Generator — supports MySQL · Oracle · PostgreSQL · MyBatis</footer>
+  <footer>// Dev Tools — a collection of developer utilities</footer>
 </div>
 
 <script>
-// ─── Theme ───────────────────────────────────────────────
 function updateThemeIcon() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   document.getElementById('themeToggle').textContent = isDark ? '☀' : '🌙';
@@ -773,400 +635,7 @@ function toggleTheme() {
   updateThemeIcon();
 }
 
-// Sync icon with current theme on load
 updateThemeIcon();
-
-// ─── State ───────────────────────────────────────────────
-let selectedDialect = 'mysql';
-let selectedCrud = new Set(['INSERT', 'SELECT', 'UPDATE', 'DELETE']);
-
-// ─── Dialect toggle ──────────────────────────────────────
-document.querySelectorAll('.dialect-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.dialect-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedDialect = btn.dataset.dialect;
-  });
-});
-
-// ─── CRUD toggle ─────────────────────────────────────────
-document.querySelectorAll('.crud-toggle').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const type = btn.dataset.crud;
-    if (selectedCrud.has(type)) {
-      selectedCrud.delete(type);
-      btn.classList.remove('active');
-    } else {
-      selectedCrud.add(type);
-      btn.classList.add('active');
-    }
-  });
-});
-
-const allToggleBtn = document.getElementById('allToggle');
-allToggleBtn.addEventListener('click', () => {
-  const allActive = selectedCrud.size === 4;
-  if (allActive) {
-    selectedCrud.clear();
-    document.querySelectorAll('.crud-toggle').forEach(b => b.classList.remove('active'));
-    allToggleBtn.textContent = '전체선택';
-  } else {
-    ['INSERT','SELECT','UPDATE','DELETE'].forEach(t => selectedCrud.add(t));
-    document.querySelectorAll('.crud-toggle').forEach(b => b.classList.add('active'));
-    allToggleBtn.textContent = '전체해제';
-  }
-});
-
-// ─── DDL Parser ──────────────────────────────────────────
-function parseDDL(ddl) {
-  // Remove comments
-  ddl = ddl.replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
-
-  const tableMatch = ddl.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"\[]?(\w+)[`"\]]?\s*\(/i);
-  if (!tableMatch) throw new Error('CREATE TABLE 구문을 찾을 수 없습니다.\n올바른 DDL 형식으로 입력해주세요.');
-
-  const tableName = tableMatch[1];
-
-  // Extract body between first ( and matching )
-  let depth = 0, start = -1, end = -1;
-  for (let i = 0; i < ddl.length; i++) {
-    if (ddl[i] === '(') { if (depth === 0) start = i; depth++; }
-    else if (ddl[i] === ')') { depth--; if (depth === 0) { end = i; break; } }
-  }
-  if (start === -1 || end === -1) throw new Error('괄호 구조를 파싱할 수 없습니다.');
-
-  const body = ddl.substring(start + 1, end);
-  const lines = splitColumns(body);
-
-  const columns = [];
-  const primaryKeys = [];
-
-  // Check for table-level PK constraint
-  const pkMatch = body.match(/(?:CONSTRAINT\s+\w+\s+)?PRIMARY\s+KEY\s*\(([^)]+)\)/i);
-  if (pkMatch) {
-    pkMatch[1].split(',').forEach(c => primaryKeys.push(c.trim().replace(/[`"[\]]/g, '')));
-  }
-
-  lines.forEach(line => {
-    line = line.trim();
-    if (!line) return;
-
-    // Skip constraint lines
-    if (/^(?:CONSTRAINT|PRIMARY\s+KEY|UNIQUE|INDEX|KEY|CHECK|FOREIGN)/i.test(line)) return;
-
-    // Parse column: name type [options]
-    const colMatch = line.match(/^[`"[\s]?(\w+)[`"[\s]?\s+(\S+(?:\s*\([^)]+\))?)(.*)?$/);
-    if (!colMatch) return;
-
-    const colName = colMatch[1];
-    const colType = colMatch[2];
-    const rest = colMatch[3] || '';
-
-    const isNotNull = /NOT\s+NULL/i.test(rest);
-    const hasDefault = /DEFAULT/i.test(rest);
-    const isColPK = /PRIMARY\s+KEY/i.test(rest);
-    const isAutoInc = /AUTO_INCREMENT|AUTOINCREMENT|GENERATED\s+ALWAYS/i.test(rest);
-
-    if (isColPK) primaryKeys.push(colName);
-
-    columns.push({ name: colName, type: colType, isNotNull, hasDefault, isAutoInc: isAutoInc || isColPK });
-  });
-
-  if (columns.length === 0) throw new Error('컬럼을 파싱할 수 없습니다.');
-
-  // Mark PKs
-  columns.forEach(c => { if (primaryKeys.includes(c.name)) c.isPK = true; });
-
-  return { tableName, columns, primaryKeys };
-}
-
-function splitColumns(body) {
-  const parts = [];
-  let depth = 0, current = '';
-  for (let i = 0; i < body.length; i++) {
-    const ch = body[i];
-    if (ch === '(') depth++;
-    else if (ch === ')') depth--;
-    else if (ch === ',' && depth === 0) {
-      parts.push(current.trim());
-      current = '';
-      continue;
-    }
-    current += ch;
-  }
-  if (current.trim()) parts.push(current.trim());
-  return parts;
-}
-
-// ─── SQL Generators ──────────────────────────────────────
-function getPlaceholder(col, dialect, index) {
-  if (dialect === 'oracle') return `:${col.name}`;
-  if (dialect === 'postgresql') return `$${index}`;
-  return `?`; // MySQL/default — named shown in comment
-}
-
-function quote(name, dialect) {
-  if (dialect === 'mysql') return `\`${name}\``;
-  if (dialect === 'oracle') return name.toUpperCase();
-  return `"${name}"`;
-}
-
-function generateInsert(tableName, columns, dialect) {
-  const insertCols = columns.filter(c => !c.isAutoInc);
-  const tbl = quote(tableName, dialect);
-  const cols = insertCols.map(c => quote(c.name, dialect)).join(',\n           ');
-  const vals = insertCols.map((c, i) => getPlaceholder(c, dialect, i + 1)).join(',\n           ');
-
-  let sql = `<span class="cmt">-- INSERT: ${tableName}에 새 행 삽입</span>\n`;
-  sql += `<span class="kw">INSERT INTO</span> <span class="tbl">${tbl}</span> (\n`;
-  sql += `           ${insertCols.map(c => `<span class="col">${quote(c.name, dialect)}</span>`).join(',\n           ')}\n`;
-  sql += `)\n<span class="kw">VALUES</span> (\n`;
-  sql += `           ${insertCols.map((c, i) => `<span class="ph">${getPlaceholder(c, dialect, i + 1)}</span> <span class="cmt">-- ${c.name}</span>`).join(',\n           ')}\n`;
-  sql += `);`;
-  return sql;
-}
-
-function generateSelect(tableName, columns, dialect) {
-  const tbl = quote(tableName, dialect);
-  const pkCols = columns.filter(c => c.isPK);
-  const allCols = columns.map(c => `    <span class="col">${quote(c.name, dialect)}</span>`).join(',\n');
-
-  let sql = `<span class="cmt">-- SELECT ALL: 전체 목록 조회</span>\n`;
-  sql += `<span class="kw">SELECT</span>\n${allCols}\n`;
-  sql += `<span class="kw">FROM</span>   <span class="tbl">${tbl}</span>\n`;
-  sql += `<span class="kw">ORDER BY</span> <span class="col">${pkCols.length ? quote(pkCols[0].name, dialect) : quote(columns[0].name, dialect)}</span> <span class="kw">DESC</span>;\n`;
-
-  if (pkCols.length > 0) {
-    sql += `\n<span class="cmt">-- SELECT ONE: PK로 단건 조회</span>\n`;
-    sql += `<span class="kw">SELECT</span>\n${allCols}\n`;
-    sql += `<span class="kw">FROM</span>   <span class="tbl">${tbl}</span>\n`;
-    sql += `<span class="kw">WHERE</span>  ${pkCols.map((c, i) => `<span class="col">${quote(c.name, dialect)}</span> <span class="kw">=</span> <span class="ph">${getPlaceholder(c, dialect, i + 1)}</span>`).join('\n   <span class="kw">AND</span> ')};`;
-  }
-  return sql;
-}
-
-function generateUpdate(tableName, columns, dialect) {
-  const tbl = quote(tableName, dialect);
-  const pkCols = columns.filter(c => c.isPK);
-  const updateCols = columns.filter(c => !c.isPK && !c.isAutoInc);
-
-  if (updateCols.length === 0) return `<span class="cmt">-- UPDATE: PK 외 수정 가능한 컬럼이 없습니다.</span>`;
-
-  let sql = `<span class="cmt">-- UPDATE: PK로 행 수정</span>\n`;
-  sql += `<span class="kw">UPDATE</span> <span class="tbl">${tbl}</span>\n`;
-  sql += `<span class="kw">SET</span>    `;
-  sql += updateCols.map((c, i) =>
-    `<span class="col">${quote(c.name, dialect)}</span> <span class="kw">=</span> <span class="ph">${getPlaceholder(c, dialect, i + 1)}</span>`
-  ).join(',\n       ');
-  sql += `\n<span class="kw">WHERE</span>  `;
-  if (pkCols.length > 0) {
-    sql += pkCols.map((c, i) =>
-      `<span class="col">${quote(c.name, dialect)}</span> <span class="kw">=</span> <span class="ph">${getPlaceholder(c, dialect, updateCols.length + i + 1)}</span>`
-    ).join('\n   <span class="kw">AND</span> ');
-  } else {
-    sql += `<span class="cmt">/* PK 컬럼을 지정하세요 */</span>`;
-  }
-  sql += `;`;
-  return sql;
-}
-
-function generateDelete(tableName, columns, dialect) {
-  const tbl = quote(tableName, dialect);
-  const pkCols = columns.filter(c => c.isPK);
-
-  let sql = `<span class="cmt">-- DELETE: PK로 행 삭제</span>\n`;
-  sql += `<span class="kw">DELETE FROM</span> <span class="tbl">${tbl}</span>\n`;
-  sql += `<span class="kw">WHERE</span>  `;
-  if (pkCols.length > 0) {
-    sql += pkCols.map((c, i) =>
-      `<span class="col">${quote(c.name, dialect)}</span> <span class="kw">=</span> <span class="ph">${getPlaceholder(c, dialect, i + 1)}</span>`
-    ).join('\n   <span class="kw">AND</span> ');
-  } else {
-    sql += `<span class="cmt">/* PK 컬럼을 지정하세요 */</span>`;
-  }
-  sql += `;`;
-  return sql;
-}
-
-// ─── MyBatis Helpers ─────────────────────────────────────
-function toCamelCase(name) {
-  return name.toLowerCase().replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
-}
-
-function toPascalCase(name) {
-  const c = toCamelCase(name);
-  return c.charAt(0).toUpperCase() + c.slice(1);
-}
-
-// ─── MyBatis XML Generators ───────────────────────────────
-function generateInsertMyBatis(tableName, columns) {
-  const insertCols = columns.filter(c => !c.isAutoInc);
-  const className = toPascalCase(tableName);
-  const autoInc = columns.find(c => c.isAutoInc);
-  const genKeys = autoInc
-    ? ` <span class="val">useGeneratedKeys</span>=<span class="tbl">"true"</span> <span class="val">keyProperty</span>=<span class="tbl">"${toCamelCase(autoInc.name)}"</span>`
-    : '';
-
-  let sql = `<span class="cmt">&lt;!-- INSERT: ${tableName}에 새 행 삽입 --&gt;</span>\n`;
-  sql += `<span class="kw">&lt;insert</span> <span class="val">id</span>=<span class="tbl">"insert${className}"</span> <span class="val">parameterType</span>=<span class="tbl">"com.example.model.${className}"</span>${genKeys}<span class="kw">&gt;</span>\n`;
-  sql += `    <span class="kw">INSERT INTO</span> <span class="tbl">${tableName}</span> (\n`;
-  sql += `        ${insertCols.map(c => `<span class="col">${c.name}</span>`).join(',\n        ')}\n`;
-  sql += `    ) <span class="kw">VALUES</span> (\n`;
-  sql += `        ${insertCols.map(c => `<span class="ph">#{${toCamelCase(c.name)}}</span> <span class="cmt">&lt;!-- ${c.name} --&gt;</span>`).join(',\n        ')}\n`;
-  sql += `    )\n`;
-  sql += `<span class="kw">&lt;/insert&gt;</span>`;
-  return sql;
-}
-
-function generateSelectMyBatis(tableName, columns) {
-  const pkCols = columns.filter(c => c.isPK);
-  const className = toPascalCase(tableName);
-  const allCols = columns.map(c => `        <span class="col">${c.name}</span>`).join(',\n');
-
-  let sql = `<span class="cmt">&lt;!-- SELECT ALL: 전체 목록 조회 --&gt;</span>\n`;
-  sql += `<span class="kw">&lt;select</span> <span class="val">id</span>=<span class="tbl">"selectAll${className}"</span> <span class="val">resultType</span>=<span class="tbl">"com.example.model.${className}"</span><span class="kw">&gt;</span>\n`;
-  sql += `    <span class="kw">SELECT</span>\n${allCols}\n`;
-  sql += `    <span class="kw">FROM</span> <span class="tbl">${tableName}</span>\n`;
-  sql += `    <span class="kw">ORDER BY</span> <span class="col">${pkCols.length ? pkCols[0].name : columns[0].name}</span> <span class="kw">DESC</span>\n`;
-  sql += `<span class="kw">&lt;/select&gt;</span>`;
-
-  if (pkCols.length > 0) {
-    sql += `\n\n<span class="cmt">&lt;!-- SELECT ONE: PK로 단건 조회 --&gt;</span>\n`;
-    sql += `<span class="kw">&lt;select</span> <span class="val">id</span>=<span class="tbl">"select${className}ById"</span> <span class="val">parameterType</span>=<span class="tbl">"com.example.model.${className}"</span> <span class="val">resultType</span>=<span class="tbl">"com.example.model.${className}"</span><span class="kw">&gt;</span>\n`;
-    sql += `    <span class="kw">SELECT</span>\n${allCols}\n`;
-    sql += `    <span class="kw">FROM</span> <span class="tbl">${tableName}</span>\n`;
-    sql += `    <span class="kw">WHERE</span> ${pkCols.map(c => `<span class="col">${c.name}</span> <span class="kw">=</span> <span class="ph">#{${toCamelCase(c.name)}}</span>`).join('\n      <span class="kw">AND</span> ')}\n`;
-    sql += `<span class="kw">&lt;/select&gt;</span>`;
-  }
-  return sql;
-}
-
-function generateUpdateMyBatis(tableName, columns) {
-  const pkCols = columns.filter(c => c.isPK);
-  const updateCols = columns.filter(c => !c.isPK && !c.isAutoInc);
-  const className = toPascalCase(tableName);
-
-  if (updateCols.length === 0) return `<span class="cmt">&lt;!-- UPDATE: PK 외 수정 가능한 컬럼이 없습니다. --&gt;</span>`;
-
-  let sql = `<span class="cmt">&lt;!-- UPDATE: PK로 행 수정 --&gt;</span>\n`;
-  sql += `<span class="kw">&lt;update</span> <span class="val">id</span>=<span class="tbl">"update${className}"</span> <span class="val">parameterType</span>=<span class="tbl">"com.example.model.${className}"</span><span class="kw">&gt;</span>\n`;
-  sql += `    <span class="kw">UPDATE</span> <span class="tbl">${tableName}</span>\n`;
-  sql += `    <span class="kw">SET</span>\n`;
-  sql += `        ${updateCols.map(c => `<span class="col">${c.name}</span> <span class="kw">=</span> <span class="ph">#{${toCamelCase(c.name)}}</span>`).join(',\n        ')}\n`;
-  sql += `    <span class="kw">WHERE</span>\n`;
-  if (pkCols.length > 0) {
-    sql += `        ${pkCols.map(c => `<span class="col">${c.name}</span> <span class="kw">=</span> <span class="ph">#{${toCamelCase(c.name)}}</span>`).join('\n        <span class="kw">AND</span> ')}\n`;
-  } else {
-    sql += `        <span class="cmt">&lt;!-- PK 컬럼을 지정하세요 --&gt;</span>\n`;
-  }
-  sql += `<span class="kw">&lt;/update&gt;</span>`;
-  return sql;
-}
-
-function generateDeleteMyBatis(tableName, columns) {
-  const pkCols = columns.filter(c => c.isPK);
-  const className = toPascalCase(tableName);
-
-  let sql = `<span class="cmt">&lt;!-- DELETE: PK로 행 삭제 --&gt;</span>\n`;
-  sql += `<span class="kw">&lt;delete</span> <span class="val">id</span>=<span class="tbl">"delete${className}"</span> <span class="val">parameterType</span>=<span class="tbl">"com.example.model.${className}"</span><span class="kw">&gt;</span>\n`;
-  sql += `    <span class="kw">DELETE FROM</span> <span class="tbl">${tableName}</span>\n`;
-  sql += `    <span class="kw">WHERE</span>\n`;
-  if (pkCols.length > 0) {
-    sql += `        ${pkCols.map(c => `<span class="col">${c.name}</span> <span class="kw">=</span> <span class="ph">#{${toCamelCase(c.name)}}</span>`).join('\n        <span class="kw">AND</span> ')}\n`;
-  } else {
-    sql += `        <span class="cmt">&lt;!-- PK 컬럼을 지정하세요 --&gt;</span>\n`;
-  }
-  sql += `<span class="kw">&lt;/delete&gt;</span>`;
-  return sql;
-}
-
-// ─── Main Generate ────────────────────────────────────────
-function generate() {
-  const ddl = document.getElementById('ddlInput').value.trim();
-  const output = document.getElementById('outputPanel');
-  const btn = document.getElementById('generateBtn');
-
-  if (!ddl) {
-    output.innerHTML = `<div class="error-msg">⚠ DDL을 입력해주세요.</div>`;
-    return;
-  }
-  if (selectedCrud.size === 0) {
-    output.innerHTML = `<div class="error-msg">⚠ 생성할 CRUD 타입을 1개 이상 선택해주세요.</div>`;
-    return;
-  }
-
-  btn.textContent = '⏳ 생성 중...';
-  btn.classList.add('loading');
-
-  setTimeout(() => {
-    try {
-      const { tableName, columns, primaryKeys } = parseDDL(ddl);
-
-      const isMybatis = selectedDialect === 'mybatis';
-      const generators = isMybatis ? {
-        INSERT: () => generateInsertMyBatis(tableName, columns),
-        SELECT: () => generateSelectMyBatis(tableName, columns),
-        UPDATE: () => generateUpdateMyBatis(tableName, columns),
-        DELETE: () => generateDeleteMyBatis(tableName, columns),
-      } : {
-        INSERT: () => generateInsert(tableName, columns, selectedDialect),
-        SELECT: () => generateSelect(tableName, columns, selectedDialect),
-        UPDATE: () => generateUpdate(tableName, columns, selectedDialect),
-        DELETE: () => generateDelete(tableName, columns, selectedDialect),
-      };
-
-      const badgeClass = { INSERT: 'badge-insert', SELECT: 'badge-select', UPDATE: 'badge-update', DELETE: 'badge-delete' };
-      const dialectLabel = { mysql: 'MySQL', oracle: 'Oracle', postgresql: 'PostgreSQL', mybatis: 'MyBatis XML' };
-      const colSummary = columns.map(c => `${c.name}${c.isPK ? ' [PK]' : ''}`).join(' · ');
-
-      let html = '';
-
-      ['INSERT', 'SELECT', 'UPDATE', 'DELETE'].forEach((type, blockIdx) => {
-        if (!selectedCrud.has(type)) return;
-        const sqlHtml = generators[type]();
-        const id = `block_${type}_${Date.now()}`;
-        html += `
-          <div class="panel sql-block" style="animation-delay: ${blockIdx * 0.08}s">
-            <div class="sql-block-header">
-              <span class="sql-type-badge ${badgeClass[type]}">${type}</span>
-              <span class="sql-dialect-tag">${dialectLabel[selectedDialect]}</span>
-              <button class="copy-btn" id="copy_${id}" onclick="copySQL('${id}')">COPY</button>
-            </div>
-            <div class="table-info">
-              <span>TABLE</span> ${tableName}
-              <span style="margin-left:8px">COLUMNS</span> ${columns.length}
-              ${primaryKeys.length ? `<span style="margin-left:8px">PK</span> ${primaryKeys.join(', ')}` : ''}
-            </div>
-            <pre class="sql-code" id="${id}">${sqlHtml}</pre>
-          </div>`;
-      });
-
-      output.innerHTML = html;
-
-    } catch (e) {
-      output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
-    }
-
-    btn.textContent = '⚡ SQL 생성';
-    btn.classList.remove('loading');
-  }, 200);
-}
-
-function copySQL(id) {
-  const el = document.getElementById(id);
-  const rawText = el.innerText || el.textContent;
-  navigator.clipboard.writeText(rawText).then(() => {
-    const btn = document.getElementById(`copy_${id}`);
-    btn.textContent = '✓ COPIED';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1500);
-  });
-}
-
-// Enter shortcut: Ctrl/Cmd + Enter to generate
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generate();
-});
 </script>
 </body>
 </html>
