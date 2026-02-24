@@ -78,4 +78,13 @@ const TOOLS = [
     tags:   ['Encode', 'Decode', 'Query Params', 'Parse'],
     footer: 'URL → Encode · Decode · Parse',
   },
+  {
+    href:   'sql-formatter.html',
+    label:  'SQL Format',
+    icon:   'FMT',
+    title:  'SQL Formatter + Lint',
+    desc:   'SQL 구문을 자동 정렬하고 위험 패턴을 빠르게 점검합니다. DELETE/UPDATE without WHERE, SELECT *, DROP/TRUNCATE TABLE 경고를 제공합니다.',
+    tags:   ['Format', 'Lint', 'MySQL', 'PostgreSQL', 'Oracle'],
+    footer: 'SQL → Format · Quick Safety Lint',
+  },
 ];

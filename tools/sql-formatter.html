@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Formatter + Lint | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.sql-input {
+  width: 100%;
+  min-height: 260px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 14px 20px;
+  resize: vertical;
+}
+.warn-box {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: var(--bg);
+}
+.warn-item { margin: 6px 0; color: #ff9c9c; }
+.warn-ok { color: var(--accent); }
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+
+<div class="container">
+  <div class="tool-header">
+    <h1>SQL <span>Formatter + Lint</span></h1>
+    <p>// SQL 정렬 + 위험 구문 빠른 점검 (MySQL · PostgreSQL · Oracle 공용)</p>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><div class="dot"></div>SQL INPUT</div>
+        </div>
+
+        <textarea id="sqlInput" class="sql-input" placeholder="SELECT * FROM users WHERE id=1;"></textarea>
+
+        <div class="options-bar">
+          <span class="options-label">Keyword Case</span>
+          <div class="toggle-group">
+            <button class="toggle-btn case-btn active" data-case="upper">UPPER</button>
+            <button class="toggle-btn case-btn" data-case="lower">lower</button>
+          </div>
+
+          <span class="options-label">Indent</span>
+          <input id="indentSize" class="table-name-input" type="number" value="2" min="1" max="8" style="max-width:70px">
+        </div>
+
+        <button class="generate-btn" onclick="runFormatLint()">⚡ FORMAT + LINT</button>
+      </div>
+    </div>
+
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">⬅</div>
+          <p>SQL을 입력하고 FORMAT + LINT를 누르세요</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// SQL Formatter + Quick Safety Lint</footer>
+</div>
+
+<script>
+let keywordCase = 'upper';
+document.querySelectorAll('.case-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.case-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    keywordCase = btn.dataset.case;
+  });
+});
+
+const KEYWORDS = [
+  'SELECT','FROM','WHERE','GROUP BY','ORDER BY','HAVING','LIMIT','OFFSET',
+  'INSERT INTO','VALUES','UPDATE','SET','DELETE FROM','JOIN','LEFT JOIN','RIGHT JOIN','INNER JOIN','OUTER JOIN',
+  'ON','AND','OR','IN','IS NULL','IS NOT NULL','UNION','UNION ALL','MERGE INTO','USING','WHEN MATCHED THEN','WHEN NOT MATCHED THEN',
+  'CREATE TABLE','ALTER TABLE','DROP TABLE','TRUNCATE TABLE'
+];
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function normalizeSpaces(sql) {
+  return sql
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\s*,\s*/g, ', ')
+    .replace(/\s*\(\s*/g, ' (')
+    .replace(/\s*\)\s*/g, ') ')
+    .replace(/\s*;\s*/g, ';\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function applyKeywordCase(sql) {
+  let out = sql;
+  const sorted = [...KEYWORDS].sort((a,b) => b.length - a.length);
+  sorted.forEach(kw => {
+    const pattern = kw.replace(/ /g, '\\s+');
+    const re = new RegExp('\\b' + pattern + '\\b', 'gi');
+    out = out.replace(re, keywordCase === 'upper' ? kw.toUpperCase() : kw.toLowerCase());
+  });
+  return out;
+}
+
+function formatLines(sql, indentSize) {
+  const IND = ' '.repeat(indentSize);
+  let out = sql;
+
+  const breaks = [
+    /\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|LIMIT|OFFSET|INSERT INTO|VALUES|UPDATE|SET|DELETE FROM|MERGE INTO|USING|WHEN MATCHED THEN|WHEN NOT MATCHED THEN|CREATE TABLE|ALTER TABLE|DROP TABLE|TRUNCATE TABLE)\b/gi,
+    /\b(LEFT JOIN|RIGHT JOIN|INNER JOIN|OUTER JOIN|JOIN|ON)\b/gi,
+    /\b(AND|OR)\b/gi
+  ];
+
+  breaks.forEach(re => {
+    out = out.replace(re, '\n$1');
+  });
+
+  out = out.split('\n').map((line, idx) => {
+    const t = line.trim();
+    if (!t) return '';
+    if (/^(AND|OR)\b/i.test(t)) return IND + t;
+    if (/^(ON)\b/i.test(t)) return IND + t;
+    return t;
+  }).join('\n');
+
+  return out.replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function lintSQL(sql) {
+  const warnings = [];
+  const q = sql.toLowerCase();
+
+  if (/\bdelete\s+from\b/.test(q) && !/\bdelete\s+from\b[\s\S]*?\bwhere\b/.test(q)) {
+    warnings.push('DELETE without WHERE 감지');
+  }
+  if (/\bupdate\b/.test(q) && /\bset\b/.test(q) && !/\bupdate\b[\s\S]*?\bwhere\b/.test(q)) {
+    warnings.push('UPDATE without WHERE 감지');
+  }
+  if (/\bselect\s+\*/.test(q)) {
+    warnings.push('SELECT * 사용 감지 (명시적 컬럼 권장)');
+  }
+  if (/\bdrop\s+table\b/.test(q)) {
+    warnings.push('DROP TABLE 감지 (운영환경 주의)');
+  }
+  if (/\btruncate\s+table\b/.test(q)) {
+    warnings.push('TRUNCATE TABLE 감지 (복구 어려움 주의)');
+  }
+
+  return warnings;
+}
+
+function runFormatLint() {
+  const input = document.getElementById('sqlInput').value.trim();
+  const output = document.getElementById('outputPanel');
+  if (!input) {
+    output.innerHTML = `<div class="error-msg">⚠ SQL을 입력해주세요.</div>`;
+    return;
+  }
+
+  const indentSize = Math.max(1, Math.min(8, parseInt(document.getElementById('indentSize').value || '2', 10)));
+  const normalized = normalizeSpaces(input);
+  const cased = applyKeywordCase(normalized);
+  const formatted = formatLines(cased, indentSize);
+  const warns = lintSQL(formatted);
+
+  const blockId = 'sql_block_' + Date.now();
+  output.innerHTML = `
+    <div class="panel sql-block">
+      <div class="sql-block-header">
+        <span class="sql-type-badge badge-insert">SQL</span>
+        <span class="sql-dialect-tag">Formatted · Linted</span>
+        <button class="copy-btn" id="copy_${blockId}" onclick="copySQL('${blockId}')">COPY</button>
+      </div>
+      <pre class="sql-code" id="${blockId}">${escHtml(formatted)}</pre>
+      <div class="warn-box">
+        ${warns.length
+          ? warns.map(w => `<div class="warn-item">⚠ ${escHtml(w)}</div>`).join('')
+          : `<div class="warn-ok">✓ 위험 패턴이 감지되지 않았습니다.</div>`}
+      </div>
+    </div>`;
+}
+
+function copySQL(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => {
+    const btn = document.getElementById(`copy_${id}`);
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1200);
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runFormatLint();
+});
+</script>
+</body>
+</html>
