@@ -104,6 +104,26 @@
   text-transform: uppercase;
   padding: 0 20px 8px;
 }
+.mapping-wrap {
+  padding: 0 20px 10px;
+}
+.mapping-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.mapping-input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
 </style>
 </head>
 <body>
@@ -150,6 +170,11 @@
 1,Alice,30,alice@example.com
 2,Bob,25,bob@example.com
 3,Charlie,,charlie@example.com"></textarea>
+
+        <p class="csv-divider">컬럼 매핑 (생성 시 자동 인식)</p>
+        <div class="mapping-wrap" id="mappingWrap">
+          <div class="drop-text" style="margin:0">아직 매핑이 없습니다. INSERT 생성을 누르면 컬럼 매핑 UI가 나타납니다.</div>
+        </div>
 
         <!-- Table Name -->
         <div class="options-bar">
@@ -201,6 +226,13 @@
           <input type="text" id="conflictKeys" class="table-name-input" placeholder="id 또는 id,email" style="flex:1;max-width:none;">
         </div>
 
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Preview</span>
+          <input type="number" id="previewRows" class="table-name-input" value="10" min="1" max="100" style="max-width:90px">
+          <span class="options-label">Chunk</span>
+          <input type="number" id="chunkSize" class="table-name-input" value="1000" min="1" style="max-width:110px">
+        </div>
+
         <button class="generate-btn" id="generateBtn" onclick="generate()">
           ⚡ INSERT 생성
         </button>
@@ -228,6 +260,8 @@ let insertMode = 'individual';
 let nullMode = 'null';
 let selectedDelim = ',';
 let upsertMode = 'off';
+let columnMappings = [];
+let lastHeaderSignature = '';
 
 // ─── Toggle handlers ─────────────────────────────────────
 function refreshUpsertUI() {
@@ -235,6 +269,45 @@ function refreshUpsertUI() {
   const unsupported = selectedDialect === 'oracle';
   const show = upsertMode === 'on' && !unsupported;
   bar.style.display = show ? 'flex' : 'none';
+}
+
+function renderMappingUI() {
+  const wrap = document.getElementById('mappingWrap');
+  if (!columnMappings.length) {
+    wrap.innerHTML = `<div class="drop-text" style="margin:0">아직 매핑이 없습니다. INSERT 생성을 누르면 컬럼 매핑 UI가 나타납니다.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = columnMappings.map((m, idx) => `
+    <div class="mapping-row">
+      <input type="checkbox" ${m.include ? 'checked' : ''} onchange="toggleMappingInclude(${idx}, this.checked)">
+      <input class="mapping-input" value="${escHtml(m.source)}" disabled>
+      <input class="mapping-input" value="${escHtml(m.target)}" onchange="setMappingTarget(${idx}, this.value)">
+    </div>
+  `).join('');
+}
+
+function initMappings(headers) {
+  columnMappings = headers.map(h => ({ source: h, target: h, include: true }));
+  lastHeaderSignature = headers.join('\u0001');
+  renderMappingUI();
+}
+
+function ensureMappings(headers) {
+  const sig = headers.join('\u0001');
+  if (!columnMappings.length || sig !== lastHeaderSignature || columnMappings.length !== headers.length) {
+    initMappings(headers);
+  }
+}
+
+function toggleMappingInclude(idx, checked) {
+  if (!columnMappings[idx]) return;
+  columnMappings[idx].include = checked;
+}
+
+function setMappingTarget(idx, value) {
+  if (!columnMappings[idx]) return;
+  columnMappings[idx].target = value.trim() || columnMappings[idx].source;
 }
 
 document.querySelectorAll('.dialect-btn').forEach(btn => {
@@ -289,6 +362,7 @@ document.querySelectorAll('.delim-btn').forEach(btn => {
 });
 
 refreshUpsertUI();
+renderMappingUI();
 
 // ─── File Upload ─────────────────────────────────────────
 const dropZone = document.getElementById('dropZone');
@@ -382,6 +456,9 @@ function clearFile() {
   document.getElementById('csvFileSize').textContent = '';
   document.getElementById('csvInput').value = '';
   document.getElementById('tableName').value = '';
+  columnMappings = [];
+  lastHeaderSignature = '';
+  renderMappingUI();
 }
 
 // ─── CSV Parser ───────────────────────────────────────────
@@ -519,52 +596,83 @@ function generate() {
   setTimeout(() => {
     try {
       const { headers, rows } = parseCSV(csvText, selectedDelim);
+      ensureMappings(headers);
+
+      const activeMappings = columnMappings.filter(m => m.include);
+      if (!activeMappings.length) throw new Error('최소 1개 이상의 컬럼을 포함해야 합니다.');
+
+      const activeIndexes = activeMappings.map(m => headers.findIndex(h => h === m.source));
+      const mappedHeaders = activeMappings.map(m => m.target || m.source);
+      const mappedRows = rows.map(r => activeIndexes.map(i => r[i] !== undefined ? r[i] : ''));
+
       const useNull = nullMode === 'null';
       const tbl = quoteIdent(tableName, selectedDialect);
-      const colsHtml = headers.map(h => `<span class="col">${quoteIdent(h, selectedDialect)}</span>`);
+      const colsHtml = mappedHeaders.map(h => `<span class="col">${quoteIdent(h, selectedDialect)}</span>`);
       const dialectLabel = { mysql: 'MySQL', oracle: 'Oracle', postgresql: 'PostgreSQL' };
-      const upsertClause = buildUpsertClause(headers, selectedDialect, document.getElementById('conflictKeys').value);
+      const upsertClause = buildUpsertClause(mappedHeaders, selectedDialect, document.getElementById('conflictKeys').value);
+      const previewCount = Math.max(1, Math.min(100, parseInt(document.getElementById('previewRows').value || '10', 10)));
+      const chunkSize = Math.max(1, parseInt(document.getElementById('chunkSize').value || '1000', 10));
 
       let sqlHtml = '';
 
       if (insertMode === 'bulk') {
-        sqlHtml += `<span class="cmt">-- Bulk INSERT: ${escHtml(tableName)}에 ${rows.length}행 삽입</span>\n`;
-        sqlHtml += `<span class="kw">INSERT INTO</span> <span class="tbl">${tbl}</span> (\n`;
-        sqlHtml += `    ${colsHtml.join(',\n    ')}\n)\n<span class="kw">VALUES</span>\n`;
-        rows.forEach((row, i) => {
-          const vals = row.map(v => formatValue(v, selectedDialect, useNull));
-          const isLast = i === rows.length - 1;
-          sqlHtml += `    (${vals.join(', ')})${isLast ? '' : ','}`;
-          if (!isLast) sqlHtml += `  <span class="cmt">-- row ${i + 1}</span>`;
-          sqlHtml += '\n';
-        });
-        if (upsertClause) sqlHtml += upsertClause;
-        sqlHtml += ';';
+        const totalChunks = Math.ceil(mappedRows.length / chunkSize);
+        for (let c = 0; c < totalChunks; c++) {
+          const start = c * chunkSize;
+          const end = Math.min(start + chunkSize, mappedRows.length);
+          const chunkRows = mappedRows.slice(start, end);
+
+          if (c > 0) sqlHtml += '\n\n';
+          sqlHtml += `<span class="cmt">-- Bulk INSERT: ${escHtml(tableName)} ${start + 1}-${end} / ${mappedRows.length}행</span>\n`;
+          sqlHtml += `<span class="kw">INSERT INTO</span> <span class="tbl">${tbl}</span> (\n`;
+          sqlHtml += `    ${colsHtml.join(',\n    ')}\n)\n<span class="kw">VALUES</span>\n`;
+          chunkRows.forEach((row, i) => {
+            const vals = row.map(v => formatValue(v, selectedDialect, useNull));
+            const isLast = i === chunkRows.length - 1;
+            sqlHtml += `    (${vals.join(', ')})${isLast ? '' : ','}`;
+            if (!isLast) sqlHtml += `  <span class="cmt">-- row ${start + i + 1}</span>`;
+            sqlHtml += '\n';
+          });
+          if (upsertClause) sqlHtml += upsertClause;
+          sqlHtml += ';';
+        }
       } else {
-        rows.forEach((row, i) => {
+        mappedRows.forEach((row, i) => {
           if (i > 0) sqlHtml += '\n\n';
           sqlHtml += `<span class="cmt">-- Row ${i + 1}</span>\n`;
           sqlHtml += `<span class="kw">INSERT INTO</span> <span class="tbl">${tbl}</span> (\n`;
           sqlHtml += `    ${colsHtml.join(',\n    ')}\n)\n<span class="kw">VALUES</span> (\n`;
           const vals = row.map((v, j) =>
-            `    ${formatValue(v, selectedDialect, useNull)} <span class="cmt">-- ${escHtml(headers[j])}</span>`
+            `    ${formatValue(v, selectedDialect, useNull)} <span class="cmt">-- ${escHtml(mappedHeaders[j])}</span>`
           );
           sqlHtml += vals.join(',\n') + `\n)${upsertClause};`;
         });
       }
 
       const blockId = `block_csv_${Date.now()}`;
+      const previewRows = mappedRows.slice(0, previewCount);
+      const previewHead = mappedHeaders.map(h => `<th style="text-align:left;padding:6px;border-bottom:1px solid var(--border)">${escHtml(h)}</th>`).join('');
+      const previewBody = previewRows.map(r => `<tr>${r.map(v => `<td style="padding:6px;border-bottom:1px solid var(--border)">${escHtml(v)}</td>`).join('')}</tr>`).join('');
+
       output.innerHTML = `
         <div class="panel sql-block">
           <div class="sql-block-header">
             <span class="sql-type-badge badge-insert">${upsertMode === 'on' ? 'UPSERT' : 'INSERT'}</span>
-            <span class="sql-dialect-tag">${dialectLabel[selectedDialect]} · ${insertMode} · ${rows.length} rows${upsertMode === 'on' ? ' · upsert' : ''}</span>
+            <span class="sql-dialect-tag">${dialectLabel[selectedDialect]} · ${insertMode} · ${mappedRows.length} rows${upsertMode === 'on' ? ' · upsert' : ''}</span>
             <button class="copy-btn" id="copy_${blockId}" onclick="copySQL('${blockId}')">COPY ALL</button>
+            <button class="copy-btn" onclick="downloadSQL('${blockId}')">DOWNLOAD .SQL</button>
           </div>
           <div class="table-info">
             <span>TABLE</span> ${escHtml(tableName)}
-            <span style="margin-left:8px">COLUMNS</span> ${headers.length}
-            <span style="margin-left:8px">ROWS</span> ${rows.length}
+            <span style="margin-left:8px">COLUMNS</span> ${mappedHeaders.length}
+            <span style="margin-left:8px">ROWS</span> ${mappedRows.length}
+            <span style="margin-left:8px">CHUNK</span> ${chunkSize}
+          </div>
+          <div style="overflow:auto; max-height:220px; margin:10px 0 14px; border:1px solid var(--border); border-radius:8px;">
+            <table style="width:100%; border-collapse:collapse; font-size:11px; font-family:'JetBrains Mono', monospace;">
+              <thead><tr>${previewHead}</tr></thead>
+              <tbody>${previewBody || '<tr><td style="padding:8px;" colspan="99">(데이터 없음)</td></tr>'}</tbody>
+            </table>
           </div>
           <pre class="sql-code" id="${blockId}">${sqlHtml}</pre>
         </div>`;
@@ -586,6 +694,21 @@ function copySQL(id) {
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = 'COPY ALL'; btn.classList.remove('copied'); }, 1500);
   });
+}
+
+function downloadSQL(id) {
+  const el = document.getElementById(id);
+  const sql = el.innerText || el.textContent || '';
+  const blob = new Blob([sql], { type: 'text/sql;charset=utf-8' });
+  const a = document.createElement('a');
+  const tableName = document.getElementById('tableName').value || 'export';
+  const safeName = String(tableName).replace(/[^a-zA-Z0-9_\-]/g, '_');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${safeName}_${Date.now()}.sql`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
 }
 
 // Ctrl/Cmd + Enter to generate
