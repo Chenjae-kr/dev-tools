@@ -1261,7 +1261,9 @@ footer {
   letter-spacing: 0.25px;
   line-height: 1.25;
   transition: all 0.2s;
+  cursor: pointer;
 }
+button.card-tag { appearance:none; -webkit-appearance:none; }
 
 .card-tag-more {
   background: color-mix(in srgb, var(--surface2) 90%, transparent) !important;

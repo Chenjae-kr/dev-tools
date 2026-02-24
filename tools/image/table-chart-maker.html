@@ -81,6 +81,7 @@
             </div>
             <span class="options-label">Quality</span>
             <input id="quality" type="number" class="table-name-input input-xs" value="92" min="1" max="100">
+            <button class="toggle-btn" onclick="resetForm()">RESET</button>
             <button class="toggle-btn" onclick="downloadOut()">⬇ 다운로드</button>
           </div>
         </div>
@@ -249,6 +250,21 @@ function loadSample(){
   } else {
     document.getElementById('sourceText').value = 'label,value\n1Q,120\n2Q,180\n3Q,145\n4Q,230';
   }
+}
+
+function resetForm(){
+  UIUtils.resetFields({
+    chartTitle: '매출 추이',
+    seriesColor: '#4fffb0',
+    outW: 1200,
+    outH: 1200,
+    fontScale: 100,
+    bgColor: '#0d0f14',
+    quality: 92,
+  }, () => {
+    loadSample();
+    renderChart();
+  });
 }
 
 UIUtils.wireTextFileInput('fileInput', (text) => {

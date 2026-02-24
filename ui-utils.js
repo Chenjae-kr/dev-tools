@@ -96,6 +96,18 @@
     URL.revokeObjectURL(a.href);
   }
 
+  function resetFields(defaults = {}, afterReset) {
+    Object.entries(defaults).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.type === 'checkbox') el.checked = !!val;
+      else el.value = val;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    if (typeof afterReset === 'function') afterReset();
+  }
+
   window.UIUtils = {
     escHtml,
     showError,
@@ -105,5 +117,6 @@
     bindToggleGroup,
     wireTextFileInput,
     downloadTextFile,
+    resetFields,
   };
 })();

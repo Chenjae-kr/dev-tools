@@ -35,6 +35,7 @@
           <div class="setting-title">Convert</div>
           <div class="options-bar row-tight">
             <button class="generate-btn" onclick="convertNow()">⚡ 변환</button>
+            <button class="toggle-btn" onclick="resetForm()">RESET</button>
             <button class="toggle-btn" onclick="copyOut()">COPY</button>
             <button class="toggle-btn" id="downloadBtn" onclick="downloadOut()">⬇ 다운로드</button>
           </div>
@@ -253,6 +254,13 @@ function downloadOut(){
   const blob=new Blob([lastOut],{type:`${mime};charset=utf-8`});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download=`converted_${Date.now()}.${ext}`; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function resetForm(){
+  UIUtils.resetFields({ sourceInput: '' }, () => {
+    lastOut='';
+    document.getElementById('outPanel').innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">↔</div><p>HTML 또는 Markdown 입력 후 변환</p></div></div>`;
+  });
 }
 </script>
 </body>

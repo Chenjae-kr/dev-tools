@@ -65,6 +65,7 @@
     <div class="cat-chips" id="catChips"></div>
   </div>
 
+  <div id="recentGroups"></div>
   <div id="favoriteGroups"></div>
   <div id="toolsGroups"></div>
 
@@ -103,7 +104,7 @@
       const isFav = favorites.has(href);
 
       return `
-        <a class="tool-card ${catClass}" href="tools/${href}">
+        <a class="tool-card ${catClass}" href="tools/${href}" data-tool-href="${href}">
           <div class="card-top">
             <div class="card-icon">${icon}</div>
             <div>
@@ -115,7 +116,7 @@
           <p class="card-desc">${oneLineSummary({ desc, tags })}</p>
           <div class="card-io" title="${ioText}">입출력: ${ioText}</div>
           <div class="card-tags">
-            ${shownTags.map(t => `<span class="card-tag" style="${tagStyle(t, category)}">${t}</span>`).join('')}
+            ${shownTags.map(t => `<button class="card-tag" data-tag="${t}" style="${tagStyle(t, category)}">${t}</button>`).join('')}
             ${hiddenTagCount > 0 ? `<span class="card-tag card-tag-more">+${hiddenTagCount}</span>` : ''}
           </div>
           <div class="card-footer">
@@ -125,6 +126,7 @@
     }
 
     const groupsEl = document.getElementById('toolsGroups');
+    const recentGroupsEl = document.getElementById('recentGroups');
     const favoriteGroupsEl = document.getElementById('favoriteGroups');
     const searchEl = document.getElementById('toolSearch');
     const chipsEl = document.getElementById('catChips');
@@ -134,7 +136,9 @@
 
     let activeCategory = 'ALL';
     let favorites = new Set(JSON.parse(localStorage.getItem('devtools-favorites') || '[]'));
+    let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
     function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
+    function saveRecents(){ localStorage.setItem('devtools-recents', JSON.stringify(recents.slice(0,5))); }
 
     function matchesQuery(tool, q){
       if(!q) return true;
@@ -155,7 +159,7 @@
       }));
     }
 
-    function bindFavoriteButtons(){
+    function bindCardButtons(){
       document.querySelectorAll('[data-fav]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
@@ -167,9 +171,42 @@
           renderGroups();
         });
       });
+
+      document.querySelectorAll('[data-tag]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          searchEl.value = btn.dataset.tag;
+          renderGroups();
+        });
+      });
+
+      document.querySelectorAll('.tool-card[data-tool-href]').forEach(card => {
+        card.addEventListener('click', () => {
+          const href = card.dataset.toolHref;
+          recents = [href, ...recents.filter(x => x !== href)].slice(0, 5);
+          saveRecents();
+        });
+      });
+    }
+
+    function renderRecents(){
+      const recentTools = recents.map(h => TOOLS.find(t => t.href === h)).filter(Boolean);
+      if (!recentTools.length) {
+        recentGroupsEl.innerHTML = '';
+        return;
+      }
+      recentGroupsEl.innerHTML = `
+        <div class="category-head">
+          <p class="section-label">Recent</p>
+          <span class="count">${recentTools.length} tools</span>
+        </div>
+        <div class="tools-grid">${recentTools.map(renderToolCard).join('')}</div>
+      `;
     }
 
     function renderFavorites(){
+
       const favTools = TOOLS.filter(t => favorites.has(t.href));
       if (!favTools.length) {
         favoriteGroupsEl.innerHTML = '';
@@ -209,8 +246,9 @@
         groupsEl.innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">🔎</div><p>검색 결과가 없어</p></div></div>`;
       }
 
+      renderRecents();
       renderFavorites();
-      bindFavoriteButtons();
+      bindCardButtons();
     }
 
     renderChips();

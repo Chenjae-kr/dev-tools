@@ -34,6 +34,7 @@
           <div class="options-bar">
             <label class="options-label"><input type="checkbox" id="keepLines" checked> 줄바꿈 유지</label>
             <button class="generate-btn" onclick="extractTextNow()">⚡ 추출</button>
+            <button class="toggle-btn" onclick="resetForm()">RESET</button>
             <button class="toggle-btn" onclick="copyOut()">COPY</button>
             <button class="toggle-btn" onclick="downloadOut()">⬇ .txt</button>
           </div>
@@ -127,6 +128,13 @@ function copyOut(){ if(!lastText) return; navigator.clipboard.writeText(lastText
 function downloadOut(){
   if(!lastText) return;
   UIUtils.downloadTextFile(lastText, `extracted_${Date.now()}.txt`, 'text/plain;charset=utf-8');
+}
+
+function resetForm(){
+  UIUtils.resetFields({ htmlInput: '', keepLines: true }, () => {
+    lastText='';
+    document.getElementById('outputPanel').innerHTML = '<div class="panel"><div class="empty-state"><div class="icon">TXT</div><p>HTML 입력 후 텍스트 추출</p></div></div>';
+  });
 }
 </script>
 </body>
