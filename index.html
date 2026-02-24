@@ -26,6 +26,8 @@
 [data-theme="light"] .cat-chip-utility.active{color:#991b1b;background:rgba(248,113,113,.20)}
 .category-head{display:flex;justify-content:space-between;align-items:center;margin-top:22px}
 .category-head .count{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
+.fav-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px}
+.fav-btn.active{color:#fbbf24;border-color:#fbbf24;background:rgba(251,191,36,.12)}
 </style>
 </head>
 <body>
@@ -63,6 +65,7 @@
     <div class="cat-chips" id="catChips"></div>
   </div>
 
+  <div id="favoriteGroups"></div>
   <div id="toolsGroups"></div>
 
   <script>
@@ -97,12 +100,16 @@
       const shownTags = (tags || []).slice(0, 3);
       const hiddenTagCount = Math.max(0, (tags || []).length - shownTags.length);
       const ioText = String(footer || '').replace(/\s+/g, ' ').trim();
+      const isFav = favorites.has(href);
 
       return `
         <a class="tool-card ${catClass}" href="tools/${href}">
           <div class="card-top">
             <div class="card-icon">${icon}</div>
-            <span class="card-arrow">→</span>
+            <div>
+              <button class="fav-btn ${isFav ? 'active' : ''}" data-fav="${href}" title="즐겨찾기">★</button>
+              <span class="card-arrow">→</span>
+            </div>
           </div>
           <div class="card-title">${title}</div>
           <p class="card-desc">${oneLineSummary({ desc, tags })}</p>
@@ -118,6 +125,7 @@
     }
 
     const groupsEl = document.getElementById('toolsGroups');
+    const favoriteGroupsEl = document.getElementById('favoriteGroups');
     const searchEl = document.getElementById('toolSearch');
     const chipsEl = document.getElementById('catChips');
     const categories = (typeof TOOL_CATEGORIES !== 'undefined' && TOOL_CATEGORIES.length)
@@ -125,6 +133,8 @@
       : [...new Set(TOOLS.map(t => t.category || 'Other'))];
 
     let activeCategory = 'ALL';
+    let favorites = new Set(JSON.parse(localStorage.getItem('devtools-favorites') || '[]'));
+    function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
 
     function matchesQuery(tool, q){
       if(!q) return true;
@@ -143,6 +153,35 @@
         renderChips();
         renderGroups();
       }));
+    }
+
+    function bindFavoriteButtons(){
+      document.querySelectorAll('[data-fav]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const href = btn.dataset.fav;
+          if (favorites.has(href)) favorites.delete(href);
+          else favorites.add(href);
+          saveFavorites();
+          renderGroups();
+        });
+      });
+    }
+
+    function renderFavorites(){
+      const favTools = TOOLS.filter(t => favorites.has(t.href));
+      if (!favTools.length) {
+        favoriteGroupsEl.innerHTML = '';
+        return;
+      }
+      favoriteGroupsEl.innerHTML = `
+        <div class="category-head">
+          <p class="section-label">Favorites</p>
+          <span class="count">${favTools.length} tools</span>
+        </div>
+        <div class="tools-grid">${favTools.map(renderToolCard).join('')}</div>
+      `;
     }
 
     function renderGroups(){
@@ -169,6 +208,9 @@
       if (!groupsEl.innerHTML.trim()) {
         groupsEl.innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">🔎</div><p>검색 결과가 없어</p></div></div>`;
       }
+
+      renderFavorites();
+      bindFavoriteButtons();
     }
 
     renderChips();
