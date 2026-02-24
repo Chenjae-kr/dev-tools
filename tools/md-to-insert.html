@@ -28,6 +28,7 @@
             <div class="dot"></div>
             MARKDOWN TABLE INPUT
           </div>
+          <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
         <!-- Table Name -->
@@ -69,6 +70,7 @@
         <button class="generate-btn" id="generateBtn" onclick="generate()">
           ⚡ INSERT 생성
         </button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -270,7 +272,10 @@ function generate() {
           <div class="sql-block-header">
             <span class="sql-type-badge badge-insert">INSERT</span>
             <span class="sql-dialect-tag">${dialectLabel[selectedDialect]} · ${insertMode} · ${rows.length} rows</span>
-            <button class="copy-btn" id="copy_${blockId}" onclick="copySQL('${blockId}')">COPY ALL</button>
+            <div class="block-actions">
+              <button class="wrap-btn" id="wrap_${blockId}" onclick="toggleWrap('${blockId}')">WRAP</button>
+              <button class="copy-btn" id="copy_${blockId}" onclick="copySQL('${blockId}')">COPY ALL</button>
+            </div>
           </div>
           <div class="table-info">
             <span>TABLE</span> ${tableName}
@@ -281,6 +286,7 @@ function generate() {
         </div>`;
 
       output.innerHTML = html;
+      scrollToOutput(output);
 
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
@@ -306,6 +312,16 @@ function copySQL(id) {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generate();
 });
+
+function loadSample() {
+  document.getElementById('tableName').value = 'users';
+  document.getElementById('mdInput').value =
+`| user_id | username | age | email               | is_active |
+|---------|----------|-----|---------------------|-----------|
+| 1       | alice    | 30  | alice@example.com   | true      |
+| 2       | bob      | 25  | bob@example.com     | false     |
+| 3       | charlie  |     | charlie@example.com | true      |`;
+}
 </script>
 </body>
 </html>

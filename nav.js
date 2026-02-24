@@ -92,6 +92,22 @@ function closeMobileMenu() {
   }
 }
 
+// ─── Output Wrap Toggle (global, used by all tool pages) ─
+function toggleWrap(id) {
+  const el  = document.getElementById(id);
+  const btn = document.getElementById('wrap_' + id);
+  if (!el) return;
+  el.classList.toggle('wrapped');
+  if (btn) btn.classList.toggle('active');
+}
+
+// ─── Mobile: scroll to output after generate ─────────────
+function scrollToOutput(outputEl) {
+  if (window.innerWidth <= 900) {
+    setTimeout(() => outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  }
+}
+
 // ─── Init after DOM ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
   updateThemeIcon();

@@ -26,6 +26,7 @@
             <div class="dot"></div>
             DDL INPUT
           </div>
+          <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
         <textarea class="ddl-textarea" id="ddlInput" placeholder="CREATE TABLE users (
@@ -61,6 +62,7 @@
         <button class="generate-btn" id="generateBtn" onclick="generate()">
           ⚡ SQL 생성
         </button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -345,11 +347,14 @@ function generate() {
         const sqlHtml = generators[type]();
         const id = `block_${type}_${Date.now()}`;
         html += `
-          <div class="panel sql-block" style="animation-delay: ${blockIdx * 0.08}s">
+          <div class="panel sql-block" style="animation-delay: ${blockIdx * 0.04}s">
             <div class="sql-block-header">
               <span class="sql-type-badge ${badgeClass[type]}">${type}</span>
               <span class="sql-dialect-tag">${dialectLabel[selectedDialect]}</span>
-              <button class="copy-btn" id="copy_${id}" onclick="copySQL('${id}')">COPY</button>
+              <div class="block-actions">
+                <button class="wrap-btn" id="wrap_${id}" onclick="toggleWrap('${id}')">WRAP</button>
+                <button class="copy-btn" id="copy_${id}" onclick="copySQL('${id}')">COPY</button>
+              </div>
             </div>
             <div class="table-info">
               <span>TABLE</span> ${tableName}
@@ -360,6 +365,7 @@ function generate() {
           </div>`;
       });
       output.innerHTML = html;
+      scrollToOutput(output);
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
     }
@@ -381,6 +387,18 @@ function copySQL(id) {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generate();
 });
+
+function loadSample() {
+  document.getElementById('ddlInput').value =
+`CREATE TABLE users (
+  user_id    NUMBER(10)    NOT NULL,
+  username   VARCHAR2(50)  NOT NULL,
+  email      VARCHAR2(100) NOT NULL,
+  created_at DATE          DEFAULT SYSDATE,
+  is_active  NUMBER(1)     DEFAULT 1,
+  CONSTRAINT pk_users PRIMARY KEY (user_id)
+);`;
+}
 </script>
 </body>
 </html>

@@ -122,6 +122,7 @@
   <div class="panel" style="margin-bottom:16px;">
     <div class="panel-header">
       <div class="panel-title"><div class="dot"></div>INPUT</div>
+      <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
     </div>
     <div class="diff-grid">
       <div>
@@ -152,6 +153,7 @@
     <button class="generate-btn" id="diffBtn" onclick="runDiff()">
       ⚡ 비교하기
     </button>
+    <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
   </div>
 
   <!-- Output -->
@@ -308,7 +310,10 @@ function runDiff() {
           <div class="sql-block-header">
             <span class="sql-type-badge badge-select">DIFF</span>
             <span class="sql-dialect-tag">${origLines.length} → ${modLines.length} lines</span>
+            <div class="block-actions">
+            <button class="wrap-btn" id="wrap_${blockId}" onclick="toggleWrap('${blockId}')">WRAP</button>
             <button class="copy-btn" id="copy_${blockId}" onclick="copyDiff('${blockId}')">COPY PATCH</button>
+          </div>
           </div>
           <div class="diff-summary">
             <span><span class="add-count">+${addCount}</span> 추가</span>
@@ -319,6 +324,7 @@ function runDiff() {
         </div>`;
     }
 
+    scrollToOutput(output);
     btn.textContent = '⚡ 비교하기';
     btn.classList.remove('loading');
   }, 50);
@@ -339,6 +345,20 @@ function copyDiff(id) {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runDiff();
 });
+
+function loadSample() {
+  document.getElementById('originalInput').value =
+`function greet(name) {
+  console.log('Hello, ' + name);
+  return true;
+}`;
+  document.getElementById('modifiedInput').value =
+`function greet(name, greeting = 'Hello') {
+  console.log(\`\${greeting}, \${name}!\`);
+  // Updated greeting logic
+  return name.length > 0;
+}`;
+}
 </script>
 </body>
 </html>
