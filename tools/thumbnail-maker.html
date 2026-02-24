@@ -101,6 +101,20 @@
         </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Main Size%</span>
+          <input id="mainScale" type="number" value="100" min="50" max="180" class="table-name-input" style="max-width:75px;">
+          <span class="options-label">Main Y%</span>
+          <input id="mainY" type="number" value="43" min="10" max="85" class="table-name-input" style="max-width:75px;">
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">Sub Size%</span>
+          <input id="subScale" type="number" value="100" min="50" max="180" class="table-name-input" style="max-width:75px;">
+          <span class="options-label">Sub Y%</span>
+          <input id="subY" type="number" value="72" min="10" max="95" class="table-name-input" style="max-width:75px;">
+        </div>
+
+        <div class="options-bar" style="border-top:none;padding-top:0;">
           <span class="options-label">Save As</span>
           <div class="toggle-group">
             <button class="toggle-btn fmt-btn active" data-fmt="png">PNG</button>
@@ -136,14 +150,17 @@ const ratios = { '1:1':[1200,1200], '16:9':[1600,900], '4:3':[1200,900], '3:2':[
 const presets = {
   quote: {
     ratio: '1:1', bgColor: '#5f6fdd', textColor: '#ffffff', strokeColor: '#ffffff', pad: 90, ov: 'none', ovStrength: 28,
+    mainScale: 100, subScale: 100, mainY: 43, subY: 72,
     main: '블로그 썸네일\n3분 제작', sub: '3분만에 블로그 썸네일 만들기'
   },
   blog: {
     ratio: '4:3', bgColor: '#2e3f8f', textColor: '#ffffff', strokeColor: '#ffffff', pad: 80, ov: 'gradient', ovStrength: 32,
+    mainScale: 100, subScale: 95, mainY: 41, subY: 73,
     main: '실전 가이드\n핵심 요약', sub: '바로 적용 가능한 블로그 포스트 템플릿'
   },
   youtube: {
     ratio: '16:9', bgColor: '#1c1f2a', textColor: '#ffffff', strokeColor: '#ffd24a', pad: 70, ov: 'vignette', ovStrength: 40,
+    mainScale: 110, subScale: 95, mainY: 42, subY: 74,
     main: '조회수 올리는\n썸네일', sub: '클릭을 부르는 타이틀 디자인'
   }
 };
@@ -186,7 +203,7 @@ document.getElementById('bgImageInput').addEventListener('change', e=>{
   r.onload=ev=>{ const img=new Image(); img.onload=()=>{ bgImage=img; renderThumb(); }; img.src=ev.target.result; };
   r.readAsDataURL(f);
 });
-['bgColor','textColor','strokeColor','mainText','subText','pad','ovStrength'].forEach(id=>{
+['bgColor','textColor','strokeColor','mainText','subText','pad','ovStrength','mainScale','subScale','mainY','subY'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>renderThumb());
 });
 
@@ -207,6 +224,10 @@ function applyPreset(name){
   document.getElementById('ovStrength').value = p.ovStrength;
   document.getElementById('mainText').value = p.main;
   document.getElementById('subText').value = p.sub;
+  if (p.mainScale) document.getElementById('mainScale').value = p.mainScale;
+  if (p.subScale) document.getElementById('subScale').value = p.subScale;
+  if (p.mainY) document.getElementById('mainY').value = p.mainY;
+  if (p.subY) document.getElementById('subY').value = p.subY;
   renderThumb();
 }
 
@@ -287,6 +308,10 @@ function renderThumb(){
   const sub=(document.getElementById('subText').value||'').trim();
   const color=document.getElementById('textColor').value;
   const strokeColor=document.getElementById('strokeColor').value;
+  const mainScale = Math.max(50, Math.min(180, parseInt(document.getElementById('mainScale').value || '100', 10))) / 100;
+  const subScale = Math.max(50, Math.min(180, parseInt(document.getElementById('subScale').value || '100', 10))) / 100;
+  const mainYPct = Math.max(10, Math.min(85, parseInt(document.getElementById('mainY').value || '43', 10))) / 100;
+  const subYPct = Math.max(10, Math.min(95, parseInt(document.getElementById('subY').value || '72', 10))) / 100;
 
   const cv=document.getElementById('thumbCanvas');
   cv.width=w; cv.height=h;
@@ -311,19 +336,19 @@ function renderThumb(){
   ctx.fillStyle=color;
   const maxW=w-pad*2;
   const mainLines=main.split('\n').filter(Boolean);
-  let y=h*0.43;
+  let y=h*mainYPct;
   mainLines.forEach((line)=>{
-    const fs=fitFont(ctx,line,maxW,Math.floor(w*0.105));
+    const fs=fitFont(ctx,line,maxW,Math.floor(w*0.105*mainScale));
     ctx.font = `800 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     ctx.textAlign='center';
     drawOutlinedText(ctx, line, w/2, y, color, strokeColor, Math.max(2, fs*0.06));
     y += fs*1.12;
   });
 
-  const subFs = fitFont(ctx, sub.replace(/\n/g,' '), maxW, Math.floor(w*0.05));
+  const subFs = fitFont(ctx, sub.replace(/\n/g,' '), maxW, Math.floor(w*0.05*subScale));
   ctx.font = `700 ${subFs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
   ctx.textAlign='center';
-  drawOutlinedText(ctx, sub, w/2, h*0.72, 'rgba(255,255,255,0.96)', strokeColor, Math.max(1, subFs*0.05));
+  drawOutlinedText(ctx, sub, w/2, h*subYPct, 'rgba(255,255,255,0.96)', strokeColor, Math.max(1, subFs*0.05));
 }
 
 function downloadThumb(){
