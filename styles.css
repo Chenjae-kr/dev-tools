@@ -1190,11 +1190,8 @@ footer {
 }
 
 .tool-card:hover .card-tag {
-  border-color: rgba(79,255,176,0.2);
-  color: var(--text-muted);
+  filter: brightness(1.08);
 }
-
-[data-theme="light"] .tool-card:hover .card-tag { border-color: rgba(0,184,122,0.2); }
 
 .card-footer {
   display: flex;
