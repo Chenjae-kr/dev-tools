@@ -12,9 +12,11 @@
 function renderNav() {
   const pathname = window.location.pathname;
   const filename = pathname.split('/').pop() || 'index.html';
-  // Detect if current page is inside the tools/ subdirectory
-  const pathParts = pathname.split('/').filter(Boolean);
-  const inTools   = pathParts.length >= 2 && pathParts[pathParts.length - 2] === 'tools';
+  const toolsIdx = pathname.indexOf('/tools/');
+  const inTools = toolsIdx !== -1;
+  const appBase = inTools ? pathname.slice(0, toolsIdx) : '';
+  const toolsRoot = inTools ? `${appBase}/tools/` : 'tools/';
+  const currentToolPath = inTools ? pathname.slice(toolsIdx + '/tools/'.length) : filename;
 
   const categories = (typeof TOOL_CATEGORIES !== 'undefined' && TOOL_CATEGORIES.length)
     ? TOOL_CATEGORIES
@@ -25,12 +27,12 @@ function renderNav() {
     if (!grouped.length) return '';
 
     const links = grouped.map(item => {
-      const active = filename === item.href ? ' active' : '';
-      const href = inTools ? item.href : 'tools/' + item.href;
+      const active = currentToolPath === item.href ? ' active' : '';
+      const href = inTools ? `${toolsRoot}${item.href}` : `tools/${item.href}`;
       return `<a class="nav-item${active}" href="${href}"><span class="nav-item-dot"></span>${item.title || item.label}</a>`;
     }).join('');
 
-    const hasActive = grouped.some(item => filename === item.href);
+    const hasActive = grouped.some(item => currentToolPath === item.href);
     return `
       <div class="nav-menu${hasActive ? ' open' : ''}" data-menu="${idx}">
         <button class="nav-menu-btn" onclick="toggleNavGroup(${idx})" aria-expanded="${hasActive ? 'true' : 'false'}">${cat}<span class="nav-caret">▾</span></button>
@@ -38,7 +40,7 @@ function renderNav() {
       </div>`;
   }).join('');
 
-  const brandHref = inTools ? '../index.html' : 'index.html';
+  const brandHref = inTools ? `${appBase}/index.html` : 'index.html';
 
   document.write(`
 <nav class="topnav">
