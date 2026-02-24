@@ -11,9 +11,12 @@
 <style>
 .canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
 #cardCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
-.input-area{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:72px}
+.input-area{width:100%;background:transparent;border:1px solid var(--border);outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:72px;border-radius:8px}
 .small{max-width:90px}
 .hidden{display:none}
+.setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2)}
+.setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.setting-group .options-bar{border-top:none !important;padding:4px 0 !important;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -29,20 +32,22 @@
       <div class="panel">
         <div class="panel-header"><div class="panel-title"><div class="dot"></div>SETTINGS</div></div>
 
-        <div class="options-bar">
-          <span class="options-label">Size</span>
-          <div class="toggle-group">
-            <button class="toggle-btn size-btn active" data-size="1:1">1:1</button>
-            <button class="toggle-btn size-btn" data-size="4:5">4:5</button>
-            <button class="toggle-btn size-btn" data-size="9:16">9:16</button>
+        <div class="setting-group">
+          <div class="setting-title">Canvas & Background</div>
+          <div class="options-bar">
+            <span class="options-label">Size</span>
+            <div class="toggle-group">
+              <button class="toggle-btn size-btn active" data-size="1:1">1:1</button>
+              <button class="toggle-btn size-btn" data-size="4:5">4:5</button>
+              <button class="toggle-btn size-btn" data-size="9:16">9:16</button>
+            </div>
+            <span class="options-label">Theme</span>
+            <div class="toggle-group">
+              <button class="toggle-btn theme-btn active" data-theme="navy">Navy</button>
+              <button class="toggle-btn theme-btn" data-theme="blue">Blue</button>
+              <button class="toggle-btn theme-btn" data-theme="green">Green</button>
+            </div>
           </div>
-          <span class="options-label">Theme</span>
-          <div class="toggle-group">
-            <button class="toggle-btn theme-btn active" data-theme="navy">Navy</button>
-            <button class="toggle-btn theme-btn" data-theme="blue">Blue</button>
-            <button class="toggle-btn theme-btn" data-theme="green">Green</button>
-          </div>
-        </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
           <span class="options-label">Background</span>
@@ -53,6 +58,10 @@
           <input id="bgColor" type="color" value="#0b122b" class="table-name-input small" style="padding:4px 6px;">
           <input id="bgImageInput" type="file" accept="image/*" style="display:none">
         </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Headline & Subtitle</div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;"><span class="options-label">Headline Line 1</span></div>
         <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목 1줄"></textarea>
@@ -75,6 +84,16 @@
         </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
+          <span class="options-label">H1 Size%</span><input id="h1Scale" type="number" value="100" min="60" max="180" class="table-name-input small">
+          <span class="options-label">H2 Size%</span><input id="h2Scale" type="number" value="100" min="60" max="180" class="table-name-input small">
+          <span class="options-label">Sub Size%</span><input id="subScale" type="number" value="100" min="60" max="180" class="table-name-input small">
+          <span class="options-label">Top Y%</span><input id="titleY" type="number" value="8" min="2" max="30" class="table-name-input small">
+        </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Body</div>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
           <span class="options-label">Body Type</span>
           <div class="toggle-group">
             <button class="toggle-btn bodytype-btn active" data-body="text">Text</button>
@@ -99,13 +118,20 @@
         </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Footer Source</span>
-          <input id="sourceText" class="table-name-input" value="출처: 관련 자료" placeholder="출처: ...">
+          <span class="options-label">Body Size%</span><input id="bodyScale" type="number" value="100" min="60" max="180" class="table-name-input small">
         </div>
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <span class="options-label">Watermark</span>
-          <input id="brandText" class="table-name-input" value="@flow.itself" placeholder="@your_brand">
         </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Footer & Paging</div>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
+            <span class="options-label">Footer Source</span>
+            <input id="sourceText" class="table-name-input" value="출처: 관련 자료" placeholder="출처: ...">
+          </div>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
+            <span class="options-label">Watermark</span>
+            <input id="brandText" class="table-name-input" value="@flow.itself" placeholder="@your_brand">
+          </div>
 
         <div class="options-bar" style="border-top:none;padding-top:0;">
           <span class="options-label">Pages</span>
@@ -114,11 +140,25 @@
           <span id="pageLabel" class="options-label">1 / 1</span>
           <button class="toggle-btn" onclick="nextPage()">▶</button>
         </div>
+        </div>
 
-        <div class="options-bar" style="border-top:none;padding-top:0;">
-          <button class="generate-btn" onclick="savePage()">💾 페이지 저장</button>
-          <button class="generate-btn" onclick="downloadCurrent()">⬇ 현재 PNG</button>
-          <button class="generate-btn" onclick="downloadAll()">⬇ 전체 PNG</button>
+        <div class="setting-group">
+          <div class="setting-title">Export</div>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
+            <span class="options-label">Format</span>
+            <div class="toggle-group">
+              <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
+              <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
+              <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+            </div>
+            <span class="options-label">Quality</span>
+            <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input small">
+          </div>
+          <div class="options-bar" style="border-top:none;padding-top:0;">
+            <button class="generate-btn" onclick="savePage()">💾 페이지 저장</button>
+            <button class="generate-btn" onclick="downloadCurrent()">⬇ 현재 다운로드</button>
+            <button class="generate-btn" onclick="downloadAll()">⬇ 전체 다운로드</button>
+          </div>
         </div>
       </div>
     </div>
@@ -141,8 +181,9 @@ const themes = {
 };
 let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
 let page=1, pages=[{}], bodyType='text';
+let exportFormat='png';
 
-function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@flow.itself',bodyType:'text',bodyText:'',tableText:'',bodyImageData:''}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@flow.itself',h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:''}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -161,6 +202,11 @@ function fillInputsFromPage(){
   document.getElementById('labelText').value=p.label||'';
   document.getElementById('bodyText').value=p.bodyText||'';
   document.getElementById('tableText').value=p.tableText||'';
+  document.getElementById('h1Scale').value=p.h1Scale ?? 100;
+  document.getElementById('h2Scale').value=p.h2Scale ?? 100;
+  document.getElementById('subScale').value=p.subScale ?? 100;
+  document.getElementById('titleY').value=p.titleY ?? 8;
+  document.getElementById('bodyScale').value=p.bodyScale ?? 100;
   document.getElementById('sourceText').value=p.source||'출처: 관련 자료';
   document.getElementById('brandText').value=p.brand||'@flow.itself';
   bodyType=p.bodyType||'text';
@@ -178,6 +224,11 @@ function savePage(){
     bodyType,
     source:document.getElementById('sourceText').value,
     brand:document.getElementById('brandText').value,
+    h1Scale:parseInt(document.getElementById('h1Scale').value || '100',10),
+    h2Scale:parseInt(document.getElementById('h2Scale').value || '100',10),
+    subScale:parseInt(document.getElementById('subScale').value || '100',10),
+    titleY:parseInt(document.getElementById('titleY').value || '8',10),
+    bodyScale:parseInt(document.getElementById('bodyScale').value || '100',10),
     bodyText:document.getElementById('bodyText').value,
     tableText:document.getElementById('tableText').value,
   };
@@ -238,9 +289,15 @@ function renderCard(){
   const titleColor1=document.getElementById('titleColor1').value;
   const titleColor2=document.getElementById('titleColor2').value;
 
-  let y=panelY+Math.floor(panelH*0.08);
+  const h1Scale=Math.max(60,Math.min(180,p.h1Scale||100))/100;
+  const h2Scale=Math.max(60,Math.min(180,p.h2Scale||100))/100;
+  const subScale=Math.max(60,Math.min(180,p.subScale||100))/100;
+  const titleY=Math.max(2,Math.min(30,p.titleY||8))/100;
+  const bodyScale=Math.max(60,Math.min(180,p.bodyScale||100))/100;
+
+  let y=panelY+Math.floor(panelH*titleY);
   if (t1) {
-    const fs1=fit(ctx,t1,panelW-60,Math.floor(h*0.055));
+    const fs1=fit(ctx,t1,panelW-60,Math.floor(h*0.055*h1Scale));
     ctx.font=`900 ${fs1}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     ctx.fillStyle=titleColor1;
     ctx.textAlign='center';
@@ -248,7 +305,7 @@ function renderCard(){
     y += Math.floor(fs1*1.08);
   }
   if (t2) {
-    const fs2=fit(ctx,t2,panelW-60,Math.floor(h*0.06));
+    const fs2=fit(ctx,t2,panelW-60,Math.floor(h*0.06*h2Scale));
     ctx.font=`900 ${fs2}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     ctx.fillStyle=titleColor2;
     ctx.fillText(t2,panelX+panelW/2,y);
@@ -256,7 +313,7 @@ function renderCard(){
   }
 
   subLines.slice(0,2).forEach(line=>{
-    const fs=fit(ctx,line,panelW-100,Math.floor(h*0.03));
+    const fs=fit(ctx,line,panelW-100,Math.floor(h*0.03*subScale));
     ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     ctx.fillStyle=th.sub;
     ctx.fillText(line,panelX+panelW/2,y);
@@ -291,7 +348,7 @@ function renderCard(){
     const lines=(p.bodyText||'').split('\n').filter(Boolean);
     let ty=contentY+36;
     lines.forEach(line=>{
-      const fs=fit(ctx,line,contentW-30,Math.floor(h*0.03));
+      const fs=fit(ctx,line,contentW-30,Math.floor(h*0.03*bodyScale));
       ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
       ctx.fillStyle='#1b1f2a';
       ctx.textAlign='left';
@@ -308,7 +365,7 @@ function renderCard(){
       // header
       for(let c=0;c<cols;c++){
         ctx.fillStyle='#0f2f7d'; ctx.fillRect(contentX+c*cw,contentY,cw,rh);
-        ctx.fillStyle='#fff'; ctx.font=`700 ${Math.floor(rh*0.34)}px sans-serif`; ctx.textAlign='center';
+        ctx.fillStyle='#fff'; ctx.font=`700 ${Math.floor(rh*0.34*bodyScale)}px sans-serif`; ctx.textAlign='center';
         ctx.fillText((t.head[c]||'').slice(0,14), contentX+c*cw+cw/2, contentY+Math.floor(rh*0.62));
       }
       // rows
@@ -317,7 +374,7 @@ function renderCard(){
           const y0=contentY+rh*(r+1), x0=contentX+c*cw;
           ctx.fillStyle=(r%2===0)?'#f6f8ff':'#ffffff'; ctx.fillRect(x0,y0,cw,rh);
           ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.strokeRect(x0,y0,cw,rh);
-          ctx.fillStyle='#111'; ctx.font=`600 ${Math.floor(rh*0.33)}px sans-serif`; ctx.textAlign='center';
+          ctx.fillStyle='#111'; ctx.font=`600 ${Math.floor(rh*0.33*bodyScale)}px sans-serif`; ctx.textAlign='center';
           const v=((t.body[r]&&t.body[r][c])||'').slice(0,16);
           ctx.fillText(v, x0+cw/2, y0+Math.floor(rh*0.6));
         }
@@ -352,16 +409,45 @@ function renderCard(){
   ctx.textAlign='right'; ctx.font='700 18px JetBrains Mono, sans-serif'; ctx.fillText(`${brand}  ${page}/${pages.length}`, panelX+panelW-12,panelY+panelH-11);
 }
 
-function downloadCurrent(){ savePage(); renderCard(); const a=document.createElement('a'); a.href=getCanvas().toDataURL('image/png'); a.download=`card_${page}_${sizeKey.replace(':','x')}.png`; a.click(); }
-async function downloadAll(){ savePage(); const cur=page; for(let i=1;i<=pages.length;i++){ page=i; fillInputsFromPage(); renderCard(); const a=document.createElement('a'); a.href=getCanvas().toDataURL('image/png'); a.download=`card_${i}_${sizeKey.replace(':','x')}.png`; a.click(); await new Promise(r=>setTimeout(r,120)); } page=cur; fillInputsFromPage(); renderCard(); setPageLabel(); }
+function getExportOptions(){
+  const q = Math.max(1, Math.min(100, parseInt(document.getElementById('imgQuality').value || '92', 10))) / 100;
+  const mime = exportFormat === 'jpeg' ? 'image/jpeg' : (exportFormat === 'webp' ? 'image/webp' : 'image/png');
+  const ext = exportFormat === 'jpeg' ? 'jpg' : exportFormat;
+  return { q, mime, ext };
+}
+
+function downloadCurrent(){
+  savePage(); renderCard();
+  const { q, mime, ext } = getExportOptions();
+  const a=document.createElement('a');
+  a.href=getCanvas().toDataURL(mime, q);
+  a.download=`card_${page}_${sizeKey.replace(':','x')}.${ext}`;
+  a.click();
+}
+
+async function downloadAll(){
+  savePage();
+  const cur=page;
+  const { q, mime, ext } = getExportOptions();
+  for(let i=1;i<=pages.length;i++){
+    page=i; fillInputsFromPage(); renderCard();
+    const a=document.createElement('a');
+    a.href=getCanvas().toDataURL(mime, q);
+    a.download=`card_${i}_${sizeKey.replace(':','x')}.${ext}`;
+    a.click();
+    await new Promise(r=>setTimeout(r,120));
+  }
+  page=cur; fillInputsFromPage(); renderCard(); setPageLabel();
+}
 
 // UI bindings
 document.querySelectorAll('.size-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');sizeKey=b.dataset.size;renderCard();});
 document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');themeKey=b.dataset.theme;document.getElementById('bgColor').value=themes[themeKey].bg;renderCard();});
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').style.display=bgMode==='image'?'':'none';renderCard();});
 document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
+document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
-['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','sourceText','brandText','bodyText','tableText','pageCount'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
+['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{if(id==='pageCount')syncPages();renderCard();}));
 
 document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
 document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
@@ -374,6 +460,11 @@ pages[0]={
   label:'2026년 IPO 예상 주요 기업',
   source:'출처: 관련 언론보도',
   brand:'@flow.itself',
+  h1Scale:100,
+  h2Scale:100,
+  subScale:100,
+  titleY:8,
+  bodyScale:100,
   bodyType:'table',
   bodyText:'',
   tableText:'기업명,예상기업가치,주요 사업\n무신사,8조원 이상,패션 플랫폼\n한화에너지,5조원 이상,에너지 발전·공급\n케이뱅크,3조 3,673억,인터넷전문은행',
