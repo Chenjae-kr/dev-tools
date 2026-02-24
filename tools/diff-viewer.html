@@ -115,7 +115,7 @@
 <div class="container">
   <div class="tool-header">
     <h1>Diff <span>Viewer</span></h1>
-    <p>// 두 텍스트 또는 소스 코드의 변경 사항을 한눈에 비교합니다</p>
+    <p>// 텍스트/JSON 변경 사항 비교 + unified patch 복사</p>
   </div>
 
   <!-- Input area: two side-by-side textareas -->
@@ -135,6 +135,11 @@
     </div>
 
     <div class="options-bar">
+      <span class="options-label">Mode</span>
+      <div class="toggle-group">
+        <button class="toggle-btn active" data-mode="text">Text</button>
+        <button class="toggle-btn" data-mode="json">JSON</button>
+      </div>
       <span class="options-label">Context</span>
       <div class="toggle-group">
         <button class="toggle-btn" data-ctx="0">없음</button>
@@ -171,6 +176,8 @@
 // ─── State ───────────────────────────────────────────────
 let contextLines = 3;
 let trimWhitespace = true;
+let diffMode = 'text';
+let lastPatchText = '';
 
 document.querySelectorAll('[data-ctx]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -185,6 +192,14 @@ document.querySelectorAll('[data-trim]').forEach(btn => {
     document.querySelectorAll('[data-trim]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     trimWhitespace = btn.dataset.trim === 'on';
+  });
+});
+
+document.querySelectorAll('[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    diffMode = btn.dataset.mode;
   });
 });
 
@@ -277,6 +292,30 @@ function renderLine(l) {
   return `<div class="diff-line ${cls}"><span class="diff-line-num">${numStr}</span><span class="diff-line-content">${sign} ${escHtml(l.val)}</span></div>`;
 }
 
+function normalizeForDiff(raw) {
+  if (diffMode === 'json') {
+    try {
+      const parsed = JSON.parse(raw || '');
+      raw = JSON.stringify(parsed, null, 2);
+    } catch (e) {
+      throw new Error(`JSON 파싱 실패: ${e.message}`);
+    }
+  }
+  return raw;
+}
+
+function buildUnifiedPatch(ops, oldName = 'a/original', newName = 'b/modified') {
+  let patch = `--- ${oldName}\n+++ ${newName}\n`;
+  let oldLine = 1, newLine = 1;
+  patch += `@@ -${oldLine},${ops.filter(o=>o.type!=='add').length} +${newLine},${ops.filter(o=>o.type!=='del').length} @@\n`;
+  ops.forEach(op => {
+    if (op.type === 'eq') patch += ` ${op.val}\n`;
+    if (op.type === 'del') patch += `-${op.val}\n`;
+    if (op.type === 'add') patch += `+${op.val}\n`;
+  });
+  return patch;
+}
+
 // ─── Main ─────────────────────────────────────────────────
 function runDiff() {
   const origRaw = document.getElementById('originalInput').value;
@@ -288,35 +327,43 @@ function runDiff() {
   btn.classList.add('loading');
 
   setTimeout(() => {
-    const normalise = s => trimWhitespace ? s.trimEnd() : s;
-    const origLines = origRaw.split('\n').map(normalise);
-    const modLines  = modRaw.split('\n').map(normalise);
+    try {
+      const origNormalized = normalizeForDiff(origRaw);
+      const modNormalized = normalizeForDiff(modRaw);
+      const normalise = s => trimWhitespace ? s.trimEnd() : s;
+      const origLines = origNormalized.split('\n').map(normalise);
+      const modLines  = modNormalized.split('\n').map(normalise);
 
-    const ops = computeLCS(origLines, modLines);
-    const hasChanges = ops.some(o => o.type !== 'eq');
+      const ops = computeLCS(origLines, modLines);
+      const hasChanges = ops.some(o => o.type !== 'eq');
+      lastPatchText = buildUnifiedPatch(ops);
 
-    if (!hasChanges) {
-      output.innerHTML = `
-        <div class="panel">
-          <div class="diff-identical">✓ 두 텍스트가 동일합니다</div>
-        </div>`;
-    } else {
-      const { html, addCount, delCount } = renderDiff(ops, contextLines);
-      const blockId = `diff_${Date.now()}`;
-      output.innerHTML = `
-        <div class="panel sql-block">
-          <div class="sql-block-header">
-            <span class="sql-type-badge badge-select">DIFF</span>
-            <span class="sql-dialect-tag">${origLines.length} → ${modLines.length} lines</span>
-            <button class="copy-btn" id="copy_${blockId}" onclick="copyDiff('${blockId}')">COPY PATCH</button>
-          </div>
-          <div class="diff-summary">
-            <span><span class="add-count">+${addCount}</span> 추가</span>
-            <span><span class="del-count">−${delCount}</span> 삭제</span>
-            <span>${origLines.length}줄 → ${modLines.length}줄</span>
-          </div>
-          <div class="diff-output-wrap" id="${blockId}">${html}</div>
-        </div>`;
+      if (!hasChanges) {
+        output.innerHTML = `
+          <div class="panel">
+            <div class="diff-identical">✓ 두 텍스트가 동일합니다</div>
+          </div>`;
+      } else {
+        const { html, addCount, delCount } = renderDiff(ops, contextLines);
+        const blockId = `diff_${Date.now()}`;
+        output.innerHTML = `
+          <div class="panel sql-block">
+            <div class="sql-block-header">
+              <span class="sql-type-badge badge-select">DIFF</span>
+              <span class="sql-dialect-tag">${origLines.length} → ${modLines.length} lines · ${diffMode.toUpperCase()}</span>
+              <button class="copy-btn" id="copy_${blockId}" onclick="copyDiff('${blockId}')">COPY PATCH</button>
+            </div>
+            <div class="diff-summary">
+              <span><span class="add-count">+${addCount}</span> 추가</span>
+              <span><span class="del-count">−${delCount}</span> 삭제</span>
+              <span>${origLines.length}줄 → ${modLines.length}줄</span>
+            </div>
+            <div class="diff-output-wrap" id="${blockId}">${html}</div>
+          </div>`;
+      }
+    } catch (e) {
+      output.innerHTML = `<div class="error-msg">❌ ${escHtml(e.message)}</div>`;
+      lastPatchText = '';
     }
 
     btn.textContent = '⚡ 비교하기';
@@ -325,9 +372,8 @@ function runDiff() {
 }
 
 function copyDiff(id) {
-  const el = document.getElementById(id);
-  const raw = el.innerText || el.textContent;
-  navigator.clipboard.writeText(raw).then(() => {
+  const text = lastPatchText || '';
+  navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById(`copy_${id}`);
     btn.textContent = '✓ COPIED';
     btn.classList.add('copied');

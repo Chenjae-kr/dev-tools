@@ -47,9 +47,9 @@ const TOOLS = [
     label:  'Diff Viewer',
     icon:   'DIFF',
     title:  'Text / Code Diff Viewer',
-    desc:   '두 텍스트 또는 소스 코드를 비교하여 변경된 부분을 한눈에 확인합니다. 추가·삭제·수정 라인을 색상으로 구분합니다.',
-    tags:   ['Line Diff', 'Code Compare', 'Unified View'],
-    footer: 'Original vs Modified — line-by-line diff',
+    desc:   '두 텍스트 또는 JSON을 비교하여 변경된 부분을 한눈에 확인합니다. 추가·삭제·수정 라인 하이라이트와 unified patch 복사를 지원합니다.',
+    tags:   ['Line Diff', 'JSON Diff', 'Patch Copy', 'Unified View'],
+    footer: 'Original vs Modified — diff + patch',
   },
   {
     href:   'sql-erd.html',
