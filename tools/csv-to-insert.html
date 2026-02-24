@@ -266,8 +266,7 @@ let lastHeaderSignature = '';
 // ─── Toggle handlers ─────────────────────────────────────
 function refreshUpsertUI() {
   const bar = document.getElementById('upsertKeysBar');
-  const unsupported = selectedDialect === 'oracle';
-  const show = upsertMode === 'on' && !unsupported;
+  const show = upsertMode === 'on';
   bar.style.display = show ? 'flex' : 'none';
 }
 
@@ -316,12 +315,6 @@ document.querySelectorAll('.dialect-btn').forEach(btn => {
     btn.classList.add('active');
     selectedDialect = btn.dataset.dialect;
 
-    if (selectedDialect === 'oracle' && upsertMode === 'on') {
-      upsertMode = 'off';
-      document.querySelectorAll('.upsert-btn').forEach(b => b.classList.remove('active'));
-      const offBtn = document.querySelector('.upsert-btn[data-upsert="off"]');
-      if (offBtn) offBtn.classList.add('active');
-    }
     refreshUpsertUI();
   });
 });
@@ -344,8 +337,6 @@ document.querySelectorAll('.null-btn').forEach(btn => {
 
 document.querySelectorAll('.upsert-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    if (selectedDialect === 'oracle' && btn.dataset.upsert === 'on') return;
-
     document.querySelectorAll('.upsert-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     upsertMode = btn.dataset.upsert;
@@ -543,22 +534,25 @@ function formatValue(val, dialect, useNull) {
   return `<span class="ph">'${escHtml(sql)}'</span>`;
 }
 
-function buildUpsertClause(headers, dialect, keyInput) {
+function parseConflictKeys(headers, keyInput) {
   const keys = (keyInput || '')
     .split(',')
     .map(k => k.trim())
     .filter(Boolean);
 
-  if (upsertMode !== 'on') return '';
-  if (dialect === 'oracle') throw new Error('Oracle UPSERT는 현재 지원하지 않습니다.');
+  if (upsertMode !== 'on') return [];
   if (!keys.length) throw new Error('UPSERT 사용 시 Conflict Keys를 입력해주세요. (예: id 또는 id,email)');
 
   const validMap = new Map(headers.map(h => [h.toLowerCase(), h]));
-  const keyHeaders = keys.map(k => {
+  return keys.map(k => {
     const hit = validMap.get(k.toLowerCase());
     if (!hit) throw new Error(`Conflict Key '${k}'가 헤더에 없습니다.`);
     return hit;
   });
+}
+
+function buildUpsertClause(headers, dialect, keyHeaders) {
+  if (upsertMode !== 'on') return '';
 
   const nonKeyHeaders = headers.filter(h => !keyHeaders.includes(h));
   const updateHeaders = nonKeyHeaders.length ? nonKeyHeaders : headers;
@@ -570,12 +564,32 @@ function buildUpsertClause(headers, dialect, keyInput) {
     return `\n<span class="kw">ON DUPLICATE KEY UPDATE</span> ${assigns}`;
   }
 
-  // postgresql
-  const conflictCols = keyHeaders.map(h => quoteIdent(h, dialect)).join(', ');
-  const assigns = updateHeaders
-    .map(h => `${quoteIdent(h, dialect)} = <span class="kw">EXCLUDED</span>.${quoteIdent(h, dialect)}`)
-    .join(', ');
-  return `\n<span class="kw">ON CONFLICT</span> (${conflictCols}) <span class="kw">DO UPDATE SET</span> ${assigns}`;
+  if (dialect === 'postgresql') {
+    const conflictCols = keyHeaders.map(h => quoteIdent(h, dialect)).join(', ');
+    const assigns = updateHeaders
+      .map(h => `${quoteIdent(h, dialect)} = <span class="kw">EXCLUDED</span>.${quoteIdent(h, dialect)}`)
+      .join(', ');
+    return `\n<span class="kw">ON CONFLICT</span> (${conflictCols}) <span class="kw">DO UPDATE SET</span> ${assigns}`;
+  }
+
+  return '';
+}
+
+function buildOracleMergeStatement(tbl, headers, row, keyHeaders, useNull) {
+  const quotedHeaders = headers.map(h => quoteIdent(h, 'oracle'));
+  const sourceSelect = headers.map((h, idx) => `${formatValue(row[idx], 'oracle', useNull)} <span class="kw">AS</span> ${quoteIdent(h, 'oracle')}`).join(', ');
+  const onCond = keyHeaders.map(h => `t.${quoteIdent(h, 'oracle')} = s.${quoteIdent(h, 'oracle')}`).join(' <span class="kw">AND</span> ');
+  const nonKeyHeaders = headers.filter(h => !keyHeaders.includes(h));
+  const updateHeaders = nonKeyHeaders.length ? nonKeyHeaders : headers;
+  const updateSet = updateHeaders.map(h => `t.${quoteIdent(h, 'oracle')} = s.${quoteIdent(h, 'oracle')}`).join(', ');
+  const insertVals = headers.map(h => `s.${quoteIdent(h, 'oracle')}`).join(', ');
+
+  return `<span class="kw">MERGE INTO</span> <span class="tbl">${tbl}</span> t\n`
+    + `<span class="kw">USING</span> (<span class="kw">SELECT</span> ${sourceSelect} <span class="kw">FROM</span> <span class="tbl">DUAL</span>) s\n`
+    + `<span class="kw">ON</span> (${onCond})\n`
+    + `<span class="kw">WHEN MATCHED THEN UPDATE SET</span> ${updateSet}\n`
+    + `<span class="kw">WHEN NOT MATCHED THEN INSERT</span> (${quotedHeaders.join(', ')})\n`
+    + `<span class="kw">VALUES</span> (${insertVals});`;
 }
 
 // ─── Main Generate ────────────────────────────────────────
@@ -609,13 +623,20 @@ function generate() {
       const tbl = quoteIdent(tableName, selectedDialect);
       const colsHtml = mappedHeaders.map(h => `<span class="col">${quoteIdent(h, selectedDialect)}</span>`);
       const dialectLabel = { mysql: 'MySQL', oracle: 'Oracle', postgresql: 'PostgreSQL' };
-      const upsertClause = buildUpsertClause(mappedHeaders, selectedDialect, document.getElementById('conflictKeys').value);
+      const keyHeaders = upsertMode === 'on' ? parseConflictKeys(mappedHeaders, document.getElementById('conflictKeys').value) : [];
+      const upsertClause = buildUpsertClause(mappedHeaders, selectedDialect, keyHeaders);
       const previewCount = Math.max(1, Math.min(100, parseInt(document.getElementById('previewRows').value || '10', 10)));
       const chunkSize = Math.max(1, parseInt(document.getElementById('chunkSize').value || '1000', 10));
 
       let sqlHtml = '';
 
-      if (insertMode === 'bulk') {
+      if (upsertMode === 'on' && selectedDialect === 'oracle') {
+        mappedRows.forEach((row, i) => {
+          if (i > 0) sqlHtml += '\n\n';
+          sqlHtml += `<span class="cmt">-- Row ${i + 1}</span>\n`;
+          sqlHtml += buildOracleMergeStatement(tbl, mappedHeaders, row, keyHeaders, useNull);
+        });
+      } else if (insertMode === 'bulk') {
         const totalChunks = Math.ceil(mappedRows.length / chunkSize);
         for (let c = 0; c < totalChunks; c++) {
           const start = c * chunkSize;
