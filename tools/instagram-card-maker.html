@@ -247,11 +247,33 @@ function nextPage(){savePage();if(page<pages.length) page++;fillInputsFromPage()
 
 function fit(ctx,text,maxW,start){ let s=start; while(s>18){ ctx.font=`800 ${s}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`; if(ctx.measureText(text).width<=maxW) return s; s-=2;} return s; }
 
+function parseCsvLine(line){
+  const out=[]; let cur=''; let q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){
+      if(q && line[i+1]==='"'){ cur+='"'; i++; }
+      else q=!q;
+      continue;
+    }
+    if(ch===',' && !q){ out.push(cur.trim()); cur=''; continue; }
+    cur+=ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
 function parseCsvTable(text){
   const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   if(lines.length<2) return null;
-  const rows=lines.map(l=>l.split(',').map(c=>c.trim()));
-  return {head:rows[0], body:rows.slice(1)};
+  const rows=lines.map(l=>parseCsvLine(l));
+  const cols=rows[0].length;
+  const normalized=rows.map(r=>{
+    const x=r.slice(0,cols);
+    while(x.length<cols) x.push('');
+    return x;
+  });
+  return {head:normalized[0], body:normalized.slice(1)};
 }
 
 function drawCoverImage(ctx,w,h,img){
@@ -340,7 +362,10 @@ function renderCard(){
   } else {
     y += Math.floor(h*0.02);
   }
-  const contentX=panelX+24, contentY=y, contentW=panelW-48, contentH=panelY+panelH-y-28;
+  const fh = 34; // footer height reserved
+  const contentX=panelX+24, contentY=y, contentW=panelW-48;
+  const contentBottom = panelY + panelH - fh - 10;
+  const contentH = Math.max(120, contentBottom - contentY);
 
   // body by type
   if(p.bodyType==='text'){
@@ -360,7 +385,9 @@ function renderCard(){
     if(!t){
       ctx.fillStyle='#777'; ctx.font=`600 ${Math.floor(h*0.024)}px sans-serif`; ctx.fillText('표 데이터(CSV)를 입력하세요', contentX+8, contentY+40);
     } else {
-      const cols=t.head.length; const rows=Math.min(t.body.length,10);
+      const cols=t.head.length;
+      const maxRowsByHeight = Math.max(1, Math.floor(contentH / 46) - 1);
+      const rows=Math.min(t.body.length, maxRowsByHeight, 12);
       const rh=Math.floor(contentH/(rows+1)); const cw=Math.floor(contentW/cols);
       // header
       for(let c=0;c<cols;c++){
@@ -403,7 +430,6 @@ function renderCard(){
   // footer
   const source = (p.source || '출처: 관련 자료').trim();
   const brand = (p.brand || '@flow.itself').trim();
-  const fh = 34;
   ctx.fillStyle='rgba(5,10,25,0.9)'; ctx.fillRect(panelX,panelY+panelH-fh,panelW,fh);
   ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.font='600 16px Pretendard, sans-serif'; ctx.fillText(source, panelX+12,panelY+panelH-11);
   ctx.textAlign='right'; ctx.font='700 18px JetBrains Mono, sans-serif'; ctx.fillText(`${brand}  ${page}/${pages.length}`, panelX+panelW-12,panelY+panelH-11);
