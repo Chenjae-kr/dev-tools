@@ -80,6 +80,10 @@
 
     function renderToolCard({ href, icon, title, desc, tags, footer, category }) {
       const catClass = `cat-${slugCategory(category)}`;
+      const shownTags = (tags || []).slice(0, 3);
+      const hiddenTagCount = Math.max(0, (tags || []).length - shownTags.length);
+      const ioText = String(footer || '').replace(/\s+/g, ' ').trim();
+
       return `
         <a class="tool-card ${catClass}" href="tools/${href}">
           <div class="card-top">
@@ -88,8 +92,10 @@
           </div>
           <div class="card-title">${title}</div>
           <p class="card-desc">${oneLineSummary({ desc, tags })}</p>
+          <div class="card-io" title="${ioText}">입출력: ${ioText}</div>
           <div class="card-tags">
-            ${(tags || []).map(t => `<span class="card-tag" style="${tagStyle(t)}">${t}</span>`).join('')}
+            ${shownTags.map(t => `<span class="card-tag" style="${tagStyle(t)}">${t}</span>`).join('')}
+            ${hiddenTagCount > 0 ? `<span class="card-tag card-tag-more">+${hiddenTagCount}</span>` : ''}
           </div>
           <div class="card-footer">
             <span>${footer}</span>
