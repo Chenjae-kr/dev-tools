@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(where:*)",
+      "Bash(py:*)",
+      "Bash(node --version:*)",
+      "Bash(node -e:*)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Bash(/c/proj/dev-tools/diff-viewer.html:*)",
+      "Bash(printf:*)",
+      "Bash(/tmp/gen_diff.js:*)"
+    ]
+  }
+}
