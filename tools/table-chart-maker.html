@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table/JSON → Chart Image | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<script src="../image-tools-utils.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
+.input-area{width:100%;min-height:180px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;resize:vertical}
+.preview-wrap{position:sticky;top:74px}
+@media(max-width:980px){.preview-wrap{position:static;top:auto}}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+<div class="container">
+  <div class="tool-header"><h1>Table/JSON <span>→</span> Chart Image</h1><p>// JSON 또는 테이블 데이터로 차트 이미지 생성</p></div>
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="dot"></div>Input</div></div>
+
+        <div class="setting-group">
+          <div class="setting-title">Source</div>
+          <div class="options-bar">
+            <span class="options-label">Input Type</span>
+            <div class="toggle-group">
+              <button class="toggle-btn src-btn active" data-src="table">Table Text</button>
+              <button class="toggle-btn src-btn" data-src="json">JSON</button>
+            </div>
+            <input id="fileInput" type="file" accept=".txt,.csv,.tsv,.md,.json,text/plain,application/json">
+            <button class="toggle-btn" onclick="loadSample()">샘플</button>
+          </div>
+          <textarea id="sourceText" class="input-area" placeholder="label,value\nA,40\nB,28\nC,65"></textarea>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Chart</div>
+          <div class="options-bar">
+            <span class="options-label">Type</span>
+            <div class="toggle-group">
+              <button class="toggle-btn type-btn active" data-type="bar">Bar</button>
+              <button class="toggle-btn type-btn" data-type="line">Line</button>
+              <button class="toggle-btn type-btn" data-type="pie">Pie</button>
+            </div>
+          </div>
+          <div class="control-grid-2">
+            <input id="chartTitle" class="table-name-input" value="매출 추이" placeholder="차트 제목">
+            <input id="seriesColor" type="color" class="table-name-input" value="#4fffb0" style="padding:4px 6px;max-width:160px">
+          </div>
+          <div class="control-grid-4" style="margin-top:8px">
+            <input id="outW" type="number" class="table-name-input" value="1200" min="600" max="2400" placeholder="Width">
+            <input id="outH" type="number" class="table-name-input" value="1200" min="600" max="2400" placeholder="Height">
+            <input id="fontScale" type="number" class="table-name-input" value="100" min="70" max="150" placeholder="Font %">
+            <input id="bgColor" type="color" class="table-name-input" value="#0d0f14" style="padding:4px 6px">
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Export</div>
+          <div class="options-bar">
+            <span class="options-label">Format</span>
+            <div class="toggle-group">
+              <button class="toggle-btn fmt-btn active" data-fmt="png">PNG</button>
+              <button class="toggle-btn fmt-btn" data-fmt="jpeg">JPG</button>
+              <button class="toggle-btn fmt-btn" data-fmt="webp">WEBP</button>
+            </div>
+            <span class="options-label">Quality</span>
+            <input id="quality" type="number" class="table-name-input" value="92" min="1" max="100" style="max-width:90px">
+            <button class="generate-btn" onclick="renderChart()">⚡ 렌더</button>
+            <button class="toggle-btn" onclick="downloadOut()">⬇ 다운로드</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-wrap">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="dot"></div>Preview</div></div>
+        <canvas id="chartCanvas" width="1200" height="1200" style="width:100%;height:auto;border-radius:10px;border:1px solid var(--border);"></canvas>
+      </div>
+    </div>
+  </div>
+  <footer>// Table/JSON to Chart Image</footer>
+</div>
+
+<script>
+let sourceType='table';
+let chartType='bar';
+let exportFormat='png';
+const canvas=document.getElementById('chartCanvas');
+const ctx=canvas.getContext('2d');
+
+function parseDelimitedLine(line, sep=','){
+  const out=[]; let cur=''; let q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){ if(q && line[i+1]==='"'){ cur+='"'; i++; } else q=!q; continue; }
+    if(ch===sep && !q){ out.push(cur.trim()); cur=''; continue; }
+    cur+=ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+function parseMarkdownTable(text){
+  const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const only=lines.filter(l=>l.includes('|'));
+  if(only.length<2) return null;
+  const isSep=l=>/^[\s|:\-]+$/.test(l);
+  const row=l=>l.replace(/^\s*\||\|\s*$/g,'').split('|').map(c=>c.trim());
+  const hi=only.findIndex(l=>!isSep(l));
+  if(hi<0) return null;
+  const head=row(only[hi]);
+  const body=only.slice(hi+1).filter(l=>!isSep(l)).map(row);
+  return {head, body};
+}
+function parseTableText(text){
+  const md=parseMarkdownTable(text);
+  if(md && md.head.length>=2){
+    return md.body.map(r=>({label:r[0]||'', value:Number(String(r[1]||'').replace(/,/g,''))||0})).filter(x=>x.label);
+  }
+  const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  if(lines.length<2) throw new Error('2줄 이상 데이터가 필요합니다.');
+  let sep=',';
+  const first=lines[0];
+  const cTab=(first.match(/\t/g)||[]).length;
+  const cPipe=(first.match(/\|/g)||[]).length;
+  const cComma=(first.match(/,/g)||[]).length;
+  if(cTab>=cPipe && cTab>=cComma) sep='\t'; else if(cPipe>=cComma) sep='|';
+  const rows=lines.map(l=>parseDelimitedLine(l,sep));
+  const hasHeader=isNaN(Number(String(rows[0][1]||'').replace(/,/g,'')));
+  const body=hasHeader?rows.slice(1):rows;
+  return body.map(r=>({label:String(r[0]||'').trim(), value:Number(String(r[1]||'').replace(/,/g,''))||0})).filter(x=>x.label);
+}
+function parseJson(text){
+  const j=JSON.parse(text);
+  if(!Array.isArray(j)) throw new Error('JSON은 배열 형태여야 합니다.');
+  return j.map(it=>({label:String(it.label ?? it.name ?? ''), value:Number(it.value ?? it.y ?? 0)})).filter(x=>x.label);
+}
+
+function drawTitle(title, fs, w){
+  ctx.fillStyle='#e8ecf5';
+  ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+  ctx.textAlign='left';
+  ctx.fillText(title||'Chart', w*0.08, w*0.1);
+}
+
+function renderBar(data,w,h,base,color,fs){
+  const left=w*0.1, right=w*0.92, top=h*0.18, bottom=h*0.86;
+  ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(left,top); ctx.lineTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
+  const max=Math.max(...data.map(d=>d.value),1);
+  const bw=(right-left)/data.length*0.62;
+  const gap=(right-left)/data.length;
+  data.forEach((d,i)=>{
+    const x=left + i*gap + (gap-bw)/2;
+    const bh=((d.value/base.max)||0)*(bottom-top);
+    const y=bottom-bh;
+    ctx.fillStyle=color; ctx.fillRect(x,y,bw,bh);
+    ctx.fillStyle='#e8ecf5'; ctx.font=`600 ${Math.floor(fs*0.68)}px JetBrains Mono, monospace`; ctx.textAlign='center';
+    ctx.fillText(String(d.value), x+bw/2, y-8);
+    ctx.fillStyle='#a8b2ca';
+    ctx.fillText(d.label, x+bw/2, bottom+28);
+  });
+}
+function renderLine(data,w,h,color,fs){
+  const left=w*0.1, right=w*0.92, top=h*0.18, bottom=h*0.86;
+  ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(left,top); ctx.lineTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
+  const max=Math.max(...data.map(d=>d.value),1);
+  const step=(right-left)/Math.max(1,data.length-1);
+  ctx.strokeStyle=color; ctx.lineWidth=4; ctx.beginPath();
+  data.forEach((d,i)=>{ const x=left+i*step; const y=bottom-(d.value/max)*(bottom-top); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);});
+  ctx.stroke();
+  data.forEach((d,i)=>{
+    const x=left+i*step; const y=bottom-(d.value/max)*(bottom-top);
+    ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#e8ecf5'; ctx.font=`600 ${Math.floor(fs*0.62)}px JetBrains Mono, monospace`; ctx.textAlign='center';
+    ctx.fillText(String(d.value), x, y-12);
+    ctx.fillStyle='#a8b2ca'; ctx.fillText(d.label, x, bottom+28);
+  });
+}
+function renderPie(data,w,h,fs){
+  const total=Math.max(1,data.reduce((s,d)=>s+Math.max(0,d.value),0));
+  const cx=w*0.38, cy=h*0.55, r=Math.min(w,h)*0.26;
+  let a=-Math.PI/2;
+  data.forEach((d,i)=>{
+    const val=Math.max(0,d.value); const da=(val/total)*Math.PI*2;
+    const color=`hsl(${(i*61)%360} 78% 58%)`;
+    ctx.fillStyle=color; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a,a+da); ctx.closePath(); ctx.fill();
+    a+=da;
+  });
+  ctx.font=`600 ${Math.floor(fs*0.6)}px JetBrains Mono, monospace`;
+  ctx.textAlign='left';
+  data.forEach((d,i)=>{
+    const y=h*0.32 + i*(fs*0.92);
+    const color=`hsl(${(i*61)%360} 78% 58%)`;
+    ctx.fillStyle=color; ctx.fillRect(w*0.64,y-14,18,18);
+    ctx.fillStyle='#e8ecf5'; ctx.fillText(`${d.label} (${d.value})`, w*0.67, y);
+  });
+}
+
+function renderChart(){
+  try{
+    const w=Math.max(600,Math.min(2400,parseInt(document.getElementById('outW').value||'1200',10)));
+    const h=Math.max(600,Math.min(2400,parseInt(document.getElementById('outH').value||'1200',10)));
+    canvas.width=w; canvas.height=h;
+    const bg=document.getElementById('bgColor').value;
+    ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+
+    const text=document.getElementById('sourceText').value.trim();
+    const data=sourceType==='json'?parseJson(text):parseTableText(text);
+    if(!data.length) throw new Error('데이터가 비어 있습니다.');
+    const fs=Math.floor((w/24)*(Math.max(70,Math.min(150,parseInt(document.getElementById('fontScale').value||'100',10)))/100));
+    const title=document.getElementById('chartTitle').value.trim();
+    const color=document.getElementById('seriesColor').value;
+    drawTitle(title,fs,w);
+
+    const max=Math.max(...data.map(d=>d.value),1);
+    if(chartType==='bar') renderBar(data,w,h,{max},color,fs);
+    else if(chartType==='line') renderLine(data,w,h,color,fs);
+    else renderPie(data,w,h,fs);
+  }catch(e){ alert(e.message || String(e)); }
+}
+
+function downloadOut(){
+  const q=Math.max(1,Math.min(100,parseInt(document.getElementById('quality').value||'92',10)))/100;
+  ImageToolUtils.downloadCanvas(canvas,{format:exportFormat,quality:q,filename:`chart_${Date.now()}`});
+}
+
+function loadSample(){
+  if(sourceType==='json'){
+    document.getElementById('sourceText').value = JSON.stringify([
+      {"label":"1Q","value":120},{"label":"2Q","value":180},{"label":"3Q","value":145},{"label":"4Q","value":230}
+    ], null, 2);
+  } else {
+    document.getElementById('sourceText').value = 'label,value\n1Q,120\n2Q,180\n3Q,145\n4Q,230';
+  }
+}
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=ev=>{ document.getElementById('sourceText').value = ev.target.result || ''; renderChart(); }; r.readAsText(f,'utf-8');
+});
+document.querySelectorAll('.src-btn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.src-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); sourceType=b.dataset.src;
+  document.getElementById('sourceText').placeholder = sourceType==='json'
+    ? '[{"label":"A","value":40},{"label":"B","value":30}]'
+    : 'label,value\nA,40\nB,30';
+});
+document.querySelectorAll('.type-btn').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.type-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); chartType=b.dataset.type; renderChart(); });
+document.querySelectorAll('.fmt-btn').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.fmt-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); exportFormat=b.dataset.fmt; });
+['sourceText','chartTitle','seriesColor','outW','outH','fontScale','bgColor'].forEach(id=>document.getElementById(id).addEventListener('input', ()=>renderChart()));
+
+loadSample();
+renderChart();
+</script>
+</body>
+</html>

@@ -124,6 +124,13 @@ const TOOLS = [
     tags: ['Watermark', 'Text', 'PNG', 'Image Edit'],
     footer: 'Image + Watermark → Export',
   },
+  {
+    category: 'Image', href: 'table-chart-maker.html', label: 'Table Chart', icon: 'CHRT',
+    title: 'Table/JSON → Chart Image Maker',
+    desc: 'JSON 배열 또는 테이블 텍스트(CSV/TSV/PIPE/Markdown)를 입력하면 Bar/Line/Pie 차트 이미지를 생성합니다.',
+    tags: ['Chart', 'Bar', 'Line', 'Pie', 'JSON', 'CSV'],
+    footer: 'Data → Chart Image',
+  },
 
   {
     category: 'Text/Compare', href: 'diff-viewer.html', label: 'Diff Viewer', icon: 'DIFF',
