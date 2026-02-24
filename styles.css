@@ -1069,6 +1069,13 @@ footer {
   overflow: hidden;
 }
 
+/* Category tint for better visual grouping */
+.tool-card.cat-sql-db { background: color-mix(in srgb, var(--surface) 88%, #3b82f6 12%); }
+.tool-card.cat-data-format { background: color-mix(in srgb, var(--surface) 88%, #8b5cf6 12%); }
+.tool-card.cat-image { background: color-mix(in srgb, var(--surface) 88%, #10b981 12%); }
+.tool-card.cat-text-compare { background: color-mix(in srgb, var(--surface) 88%, #f59e0b 12%); }
+.tool-card.cat-utility { background: color-mix(in srgb, var(--surface) 88%, #ef4444 12%); }
+
 .tool-card::after {
   content: '';
   position: absolute;
