@@ -96,5 +96,5 @@ dev-tools/
 ## 의존성
 
 - 기본은 Vanilla HTML/CSS/JS
-- `csv-to-insert.html`의 Excel 파싱은 **SheetJS CDN** 사용
-  - 오프라인 완전 지원이 필요하면 SheetJS를 로컬 번들로 교체하세요.
+- Excel 파싱용 SheetJS는 로컬 번들 사용: `vendor/xlsx.full.min.js`
+  - 현재 `csv-to-insert.html`은 CDN 없이 오프라인 동작합니다.
