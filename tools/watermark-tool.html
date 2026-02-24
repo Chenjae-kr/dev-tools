@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Watermark Tool | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
+<script src="../image-tools-utils.js"></script>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
+#wmCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
+.setting-group{margin:10px 14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
+.setting-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:10px;text-transform:uppercase}
+.setting-group .options-bar{border-top:none !important;padding:6px 0 !important;gap:8px;flex-wrap:wrap;align-items:center}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+<div class="container">
+  <div class="tool-header"><h1>Image <span>Watermark Tool</span></h1><p>// PNG 또는 텍스트 워터마크 삽입</p></div>
+  <div class="main-grid">
+    <div>
+      <div class="panel"><div class="panel-header"><div class="panel-title"><div class="dot"></div>SETTINGS</div></div>
+
+        <div class="setting-group">
+          <div class="setting-title">Base Image</div>
+          <div class="options-bar"><input id="baseImageInput" type="file" accept="image/*"></div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Watermark Type</div>
+          <div class="options-bar">
+            <div class="toggle-group">
+              <button class="toggle-btn wmtype-btn active" data-type="text">Text</button>
+              <button class="toggle-btn wmtype-btn" data-type="image">PNG</button>
+            </div>
+          </div>
+
+          <div id="wmTextWrap">
+            <div class="options-bar"><span class="options-label">Text</span><input id="wmText" class="table-name-input" value="@instagram"></div>
+            <div class="options-bar">
+              <span class="options-label">Color</span><input id="wmColor" type="color" value="#ffffff" class="table-name-input" style="max-width:90px;padding:4px 6px;">
+              <span class="options-label">Size%</span><input id="wmTextSize" type="number" value="5" min="1" max="20" class="table-name-input" style="max-width:70px;">
+            </div>
+          </div>
+
+          <div id="wmImageWrap" class="hidden">
+            <div class="options-bar"><input id="wmImageInput" type="file" accept="image/png,image/*"></div>
+            <div class="options-bar"><span class="options-label">Scale%</span><input id="wmImgScale" type="number" value="18" min="5" max="80" class="table-name-input" style="max-width:70px;"></div>
+          </div>
+
+          <div class="options-bar">
+            <span class="options-label">Position</span>
+            <div class="toggle-group">
+              <button class="toggle-btn pos-btn" data-pos="tl">좌상</button>
+              <button class="toggle-btn pos-btn" data-pos="tr">우상</button>
+              <button class="toggle-btn pos-btn" data-pos="bl">좌하</button>
+              <button class="toggle-btn pos-btn active" data-pos="br">우하</button>
+              <button class="toggle-btn pos-btn" data-pos="center">중앙</button>
+            </div>
+          </div>
+          <div class="options-bar">
+            <span class="options-label">Margin(px)</span><input id="wmMargin" type="number" value="24" min="0" max="200" class="table-name-input" style="max-width:80px;">
+            <span class="options-label">Opacity%</span><input id="wmOpacity" type="number" value="60" min="1" max="100" class="table-name-input" style="max-width:80px;">
+            <span class="options-label">Rotate°</span><input id="wmRotate" type="number" value="0" min="-180" max="180" class="table-name-input" style="max-width:80px;">
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Export</div>
+          <div class="options-bar">
+            <span class="options-label">Format</span>
+            <div class="toggle-group">
+              <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
+              <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
+              <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+            </div>
+            <span class="options-label">Quality</span><input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input" style="max-width:80px;">
+            <button class="generate-btn" onclick="downloadOut()">⬇ 다운로드</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="output-panel"><div class="panel"><div class="canvas-wrap"><canvas id="wmCanvas" width="1200" height="675"></canvas></div></div></div>
+  </div>
+  <footer>// Image Watermark Tool</footer>
+</div>
+
+<script>
+let baseImage=null, watermarkImage=null, wmType='text', wmPos='br', exportFormat='png';
+const canvas=document.getElementById('wmCanvas'); const ctx=canvas.getContext('2d');
+
+function bindInput(ids){ ids.forEach(id=>document.getElementById(id).addEventListener('input', render)); }
+bindInput(['wmText','wmColor','wmTextSize','wmImgScale','wmMargin','wmOpacity','wmRotate','imgQuality']);
+
+document.querySelectorAll('.wmtype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.wmtype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmType=b.dataset.type;document.getElementById('wmTextWrap').classList.toggle('hidden',wmType!=='text');document.getElementById('wmImageWrap').classList.toggle('hidden',wmType!=='image');render();});
+document.querySelectorAll('.pos-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pos-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmPos=b.dataset.pos;render();});
+document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
+
+function readImageFile(input, cb){ const f=input.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{ const i=new Image(); i.onload=()=>cb(i); i.src=e.target.result; }; r.readAsDataURL(f); }
+document.getElementById('baseImageInput').addEventListener('change',e=>readImageFile(e.target, img=>{baseImage=img; render();}));
+document.getElementById('wmImageInput').addEventListener('change',e=>readImageFile(e.target, img=>{watermarkImage=img; render();}));
+
+function computePos(w,h,mw,mh,margin,pos){
+  if(pos==='tl') return [margin+mw/2, margin+mh/2];
+  if(pos==='tr') return [w-margin-mw/2, margin+mh/2];
+  if(pos==='bl') return [margin+mw/2, h-margin-mh/2];
+  if(pos==='center') return [w/2,h/2];
+  return [w-margin-mw/2, h-margin-mh/2];
+}
+
+function drawBase(){
+  if(baseImage){
+    canvas.width=baseImage.width; canvas.height=baseImage.height;
+    ImageToolUtils.drawImageCover(ctx, baseImage, 0,0,canvas.width,canvas.height);
+  } else {
+    canvas.width=1200; canvas.height=675; ctx.fillStyle='#1f2937'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#fff'; ctx.font='700 34px sans-serif'; ctx.textAlign='center'; ctx.fillText('기본 이미지를 업로드하세요', canvas.width/2, canvas.height/2);
+  }
+}
+
+function render(){
+  drawBase();
+  if(!baseImage) return;
+  const w=canvas.width, h=canvas.height;
+  const margin=ImageToolUtils.clamp(parseInt(document.getElementById('wmMargin').value||'24',10),0,200);
+  const op=ImageToolUtils.clamp(parseInt(document.getElementById('wmOpacity').value||'60',10),1,100)/100;
+  const rot=ImageToolUtils.clamp(parseInt(document.getElementById('wmRotate').value||'0',10),-180,180)*Math.PI/180;
+
+  ctx.save();
+  ctx.globalAlpha=op;
+
+  if(wmType==='text'){
+    const txt=document.getElementById('wmText').value||'@instagram';
+    const fs=Math.floor((ImageToolUtils.clamp(parseInt(document.getElementById('wmTextSize').value||'5',10),1,20)/100)*Math.min(w,h));
+    ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+    const tw=ctx.measureText(txt).width, th=fs;
+    const [x,y]=computePos(w,h,tw,th,margin,wmPos);
+    ctx.translate(x,y); ctx.rotate(rot);
+    ctx.fillStyle=document.getElementById('wmColor').value;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(txt,0,0);
+  } else if(watermarkImage){
+    const scale=ImageToolUtils.clamp(parseInt(document.getElementById('wmImgScale').value||'18',10),5,80)/100;
+    const long=Math.min(w,h)*scale;
+    const ir=watermarkImage.width/watermarkImage.height;
+    const mw=ir>=1?long:long*ir, mh=ir>=1?long/ir:long;
+    const [x,y]=computePos(w,h,mw,mh,margin,wmPos);
+    ctx.translate(x,y); ctx.rotate(rot);
+    ctx.drawImage(watermarkImage,-mw/2,-mh/2,mw,mh);
+  }
+
+  ctx.restore();
+}
+
+function downloadOut(){
+  render();
+  const q=ImageToolUtils.clamp(parseInt(document.getElementById('imgQuality').value||'92',10),1,100)/100;
+  ImageToolUtils.downloadCanvas(canvas,{format:exportFormat,quality:q,filename:`watermark_${Date.now()}`});
+}
+
+render();
+</script>
+</body>
+</html>

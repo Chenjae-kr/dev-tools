@@ -110,6 +110,13 @@ const TOOLS = [
     tags: ['Instagram', 'Card News', 'Canvas', 'Multi Page'],
     footer: 'Card News Template → PNG',
   },
+  {
+    category: 'Image', href: 'watermark-tool.html', label: 'Watermark', icon: 'WM',
+    title: 'Image Watermark Tool',
+    desc: '이미지에 텍스트 또는 PNG 워터마크를 넣습니다. 위치, 투명도, 회전, 크기 조절과 PNG/JPG/WEBP 저장을 지원합니다.',
+    tags: ['Watermark', 'Text', 'PNG', 'Image Edit'],
+    footer: 'Image + Watermark → Export',
+  },
 
   {
     category: 'Text/Compare', href: 'diff-viewer.html', label: 'Diff Viewer', icon: 'DIFF',
