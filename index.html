@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dev Tools</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="tools.js"></script>
 <script src="nav.js"></script>
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -37,61 +38,32 @@
   <!-- ─── Tools Grid ──────────────────────────────────── -->
   <p class="section-label">Tools</p>
 
-  <div class="tools-grid">
+  <div class="tools-grid" id="toolsGrid"></div>
 
-    <!-- DDL → CRUD -->
-    <a class="tool-card" href="ddl-crud.html">
-      <div class="card-top">
-        <div class="card-icon">SQL</div>
-        <span class="card-arrow">→</span>
-      </div>
-      <div>
-        <div class="card-title">DDL → CRUD Generator</div>
-      </div>
-      <p class="card-desc">
-        CREATE TABLE DDL을 입력하면 INSERT, SELECT,
-        UPDATE, DELETE 쿼리를 자동 생성합니다.
-        PK 자동 감지, MyBatis XML 지원.
-      </p>
-      <div class="card-tags">
-        <span class="card-tag">MySQL</span>
-        <span class="card-tag">Oracle</span>
-        <span class="card-tag">PostgreSQL</span>
-        <span class="card-tag">MyBatis</span>
-      </div>
-      <div class="card-footer">
-        <span>DDL → INSERT · SELECT · UPDATE · DELETE</span>
-        <span class="card-cta">열기 <span>→</span></span>
-      </div>
-    </a>
+  <script>
+    function renderToolCard({ href, icon, title, desc, tags, footer }) {
+      return `
+        <a class="tool-card" href="${href}">
+          <div class="card-top">
+            <div class="card-icon">${icon}</div>
+            <span class="card-arrow">→</span>
+          </div>
+          <div class="card-title">${title}</div>
+          <p class="card-desc">${desc}</p>
+          <div class="card-tags">
+            ${tags.map(t => `<span class="card-tag">${t}</span>`).join('')}
+          </div>
+          <div class="card-footer">
+            <span>${footer}</span>
+            <span class="card-cta">열기 <span>→</span></span>
+          </div>
+        </a>`;
+    }
 
-    <!-- MD → INSERT -->
-    <a class="tool-card" href="md-to-insert.html">
-      <div class="card-top">
-        <div class="card-icon">MD</div>
-        <span class="card-arrow">→</span>
-      </div>
-      <div>
-        <div class="card-title">Markdown → INSERT SQL</div>
-      </div>
-      <p class="card-desc">
-        마크다운 테이블 형식을 INSERT SQL 쿼리로 변환합니다.
-        숫자·불리언·NULL 타입 자동 감지,
-        Individual / Bulk 모드 선택 지원.
-      </p>
-      <div class="card-tags">
-        <span class="card-tag">MySQL</span>
-        <span class="card-tag">Oracle</span>
-        <span class="card-tag">PostgreSQL</span>
-        <span class="card-tag">Bulk INSERT</span>
-      </div>
-      <div class="card-footer">
-        <span>Markdown Table → INSERT</span>
-        <span class="card-cta">열기 <span>→</span></span>
-      </div>
-    </a>
-
-  </div>
+    const grid = document.getElementById('toolsGrid');
+    grid.innerHTML = TOOLS.map(renderToolCard).join('');
+    document.getElementById('toolCount').textContent = TOOLS.length;
+  </script>
 
   <footer>// Dev Tools — a collection of developer utilities</footer>
 </div>

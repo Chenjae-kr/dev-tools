@@ -8,18 +8,11 @@
   if (t) document.documentElement.setAttribute('data-theme', t);
 })();
 
-// ─── Nav items ────────────────────────────────────────────
-const NAV_ITEMS = [
-  { href: 'ddl-crud.html',    label: 'DDL → CRUD' },
-  { href: 'md-to-insert.html', label: 'MD → INSERT' },
-  { href: 'img-to-hex.html',   label: 'IMG → HEX' },
-];
-
 // ─── Render nav at current script position ───────────────
 function renderNav() {
   const page = window.location.pathname.split('/').pop() || 'index.html';
 
-  const items = NAV_ITEMS.map(item => {
+  const items = TOOLS.map(item => {
     const active = page === item.href ? ' active' : '';
     return `<a class="nav-item${active}" href="${item.href}"><span class="nav-item-dot"></span>${item.label}</a>`;
   }).join('');
