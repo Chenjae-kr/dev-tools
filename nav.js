@@ -116,6 +116,9 @@ function closeAllNavMenus() {
 }
 
 function toggleNavGroup(idx) {
+  // Desktop: hover-only dropdown (no sticky open on click)
+  if (window.innerWidth > 768) return;
+
   const menu = document.querySelector(`.nav-menu[data-menu="${idx}"]`);
   if (!menu) return;
 
