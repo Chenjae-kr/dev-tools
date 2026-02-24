@@ -24,12 +24,12 @@
         <span class="stat-label">Tools</span>
       </div>
       <div class="hero-stat">
-        <span class="stat-num">4</span>
-        <span class="stat-label">Dialects</span>
+        <span class="stat-num" id="categoryCount">4</span>
+        <span class="stat-label">Categories</span>
       </div>
       <div class="hero-stat">
-        <span class="stat-num">SQL</span>
-        <span class="stat-label">Output</span>
+        <span class="stat-num">Multi</span>
+        <span class="stat-label">Outputs</span>
       </div>
     </div>
   </section>
@@ -76,6 +76,7 @@
     }).join('');
 
     document.getElementById('toolCount').textContent = TOOLS.length;
+    document.getElementById('categoryCount').textContent = categories.filter(cat => TOOLS.some(t => (t.category || 'Other') === cat)).length;
   </script>
 
   <footer>// Dev Tools — a collection of developer utilities</footer>
