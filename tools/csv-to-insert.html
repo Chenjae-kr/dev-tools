@@ -184,11 +184,21 @@
             <button class="toggle-btn mode-btn active" data-mode="individual">Individual</button>
             <button class="toggle-btn mode-btn" data-mode="bulk">Bulk</button>
           </div>
+          <span class="options-label">Upsert</span>
+          <div class="toggle-group">
+            <button class="toggle-btn upsert-btn active" data-upsert="off">OFF</button>
+            <button class="toggle-btn upsert-btn" data-upsert="on">ON</button>
+          </div>
           <span class="options-label">Empty값</span>
           <div class="toggle-group">
             <button class="toggle-btn null-btn active" data-null="null">NULL</button>
             <button class="toggle-btn null-btn" data-null="empty">''</button>
           </div>
+        </div>
+
+        <div class="options-bar" id="upsertKeysBar" style="border-top:none;padding-top:0;display:none;">
+          <span class="options-label">Conflict Keys</span>
+          <input type="text" id="conflictKeys" class="table-name-input" placeholder="id 또는 id,email" style="flex:1;max-width:none;">
         </div>
 
         <button class="generate-btn" id="generateBtn" onclick="generate()">
@@ -217,13 +227,29 @@ let selectedDialect = 'mysql';
 let insertMode = 'individual';
 let nullMode = 'null';
 let selectedDelim = ',';
+let upsertMode = 'off';
 
 // ─── Toggle handlers ─────────────────────────────────────
+function refreshUpsertUI() {
+  const bar = document.getElementById('upsertKeysBar');
+  const unsupported = selectedDialect === 'oracle';
+  const show = upsertMode === 'on' && !unsupported;
+  bar.style.display = show ? 'flex' : 'none';
+}
+
 document.querySelectorAll('.dialect-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.dialect-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedDialect = btn.dataset.dialect;
+
+    if (selectedDialect === 'oracle' && upsertMode === 'on') {
+      upsertMode = 'off';
+      document.querySelectorAll('.upsert-btn').forEach(b => b.classList.remove('active'));
+      const offBtn = document.querySelector('.upsert-btn[data-upsert="off"]');
+      if (offBtn) offBtn.classList.add('active');
+    }
+    refreshUpsertUI();
   });
 });
 
@@ -243,6 +269,17 @@ document.querySelectorAll('.null-btn').forEach(btn => {
   });
 });
 
+document.querySelectorAll('.upsert-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (selectedDialect === 'oracle' && btn.dataset.upsert === 'on') return;
+
+    document.querySelectorAll('.upsert-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    upsertMode = btn.dataset.upsert;
+    refreshUpsertUI();
+  });
+});
+
 document.querySelectorAll('.delim-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.delim-btn').forEach(b => b.classList.remove('active'));
@@ -250,6 +287,8 @@ document.querySelectorAll('.delim-btn').forEach(btn => {
     selectedDelim = btn.dataset.delim === 'tab' ? '\t' : btn.dataset.delim;
   });
 });
+
+refreshUpsertUI();
 
 // ─── File Upload ─────────────────────────────────────────
 const dropZone = document.getElementById('dropZone');
@@ -427,6 +466,41 @@ function formatValue(val, dialect, useNull) {
   return `<span class="ph">'${escHtml(sql)}'</span>`;
 }
 
+function buildUpsertClause(headers, dialect, keyInput) {
+  const keys = (keyInput || '')
+    .split(',')
+    .map(k => k.trim())
+    .filter(Boolean);
+
+  if (upsertMode !== 'on') return '';
+  if (dialect === 'oracle') throw new Error('Oracle UPSERT는 현재 지원하지 않습니다.');
+  if (!keys.length) throw new Error('UPSERT 사용 시 Conflict Keys를 입력해주세요. (예: id 또는 id,email)');
+
+  const validMap = new Map(headers.map(h => [h.toLowerCase(), h]));
+  const keyHeaders = keys.map(k => {
+    const hit = validMap.get(k.toLowerCase());
+    if (!hit) throw new Error(`Conflict Key '${k}'가 헤더에 없습니다.`);
+    return hit;
+  });
+
+  const nonKeyHeaders = headers.filter(h => !keyHeaders.includes(h));
+  const updateHeaders = nonKeyHeaders.length ? nonKeyHeaders : headers;
+
+  if (dialect === 'mysql') {
+    const assigns = updateHeaders
+      .map(h => `${quoteIdent(h, dialect)} = <span class="kw">VALUES</span>(${quoteIdent(h, dialect)})`)
+      .join(', ');
+    return `\n<span class="kw">ON DUPLICATE KEY UPDATE</span> ${assigns}`;
+  }
+
+  // postgresql
+  const conflictCols = keyHeaders.map(h => quoteIdent(h, dialect)).join(', ');
+  const assigns = updateHeaders
+    .map(h => `${quoteIdent(h, dialect)} = <span class="kw">EXCLUDED</span>.${quoteIdent(h, dialect)}`)
+    .join(', ');
+  return `\n<span class="kw">ON CONFLICT</span> (${conflictCols}) <span class="kw">DO UPDATE SET</span> ${assigns}`;
+}
+
 // ─── Main Generate ────────────────────────────────────────
 function generate() {
   const csvText = document.getElementById('csvInput').value.trim();
@@ -449,6 +523,7 @@ function generate() {
       const tbl = quoteIdent(tableName, selectedDialect);
       const colsHtml = headers.map(h => `<span class="col">${quoteIdent(h, selectedDialect)}</span>`);
       const dialectLabel = { mysql: 'MySQL', oracle: 'Oracle', postgresql: 'PostgreSQL' };
+      const upsertClause = buildUpsertClause(headers, selectedDialect, document.getElementById('conflictKeys').value);
 
       let sqlHtml = '';
 
@@ -459,10 +534,12 @@ function generate() {
         rows.forEach((row, i) => {
           const vals = row.map(v => formatValue(v, selectedDialect, useNull));
           const isLast = i === rows.length - 1;
-          sqlHtml += `    (${vals.join(', ')})${isLast ? ';' : ','}`;
+          sqlHtml += `    (${vals.join(', ')})${isLast ? '' : ','}`;
           if (!isLast) sqlHtml += `  <span class="cmt">-- row ${i + 1}</span>`;
           sqlHtml += '\n';
         });
+        if (upsertClause) sqlHtml += upsertClause;
+        sqlHtml += ';';
       } else {
         rows.forEach((row, i) => {
           if (i > 0) sqlHtml += '\n\n';
@@ -472,7 +549,7 @@ function generate() {
           const vals = row.map((v, j) =>
             `    ${formatValue(v, selectedDialect, useNull)} <span class="cmt">-- ${escHtml(headers[j])}</span>`
           );
-          sqlHtml += vals.join(',\n') + '\n);';
+          sqlHtml += vals.join(',\n') + `\n)${upsertClause};`;
         });
       }
 
@@ -480,8 +557,8 @@ function generate() {
       output.innerHTML = `
         <div class="panel sql-block">
           <div class="sql-block-header">
-            <span class="sql-type-badge badge-insert">INSERT</span>
-            <span class="sql-dialect-tag">${dialectLabel[selectedDialect]} · ${insertMode} · ${rows.length} rows</span>
+            <span class="sql-type-badge badge-insert">${upsertMode === 'on' ? 'UPSERT' : 'INSERT'}</span>
+            <span class="sql-dialect-tag">${dialectLabel[selectedDialect]} · ${insertMode} · ${rows.length} rows${upsertMode === 'on' ? ' · upsert' : ''}</span>
             <button class="copy-btn" id="copy_${blockId}" onclick="copySQL('${blockId}')">COPY ALL</button>
           </div>
           <div class="table-info">
