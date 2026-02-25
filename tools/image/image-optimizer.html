@@ -75,16 +75,59 @@
           <div class="options-row options-row-2">
             <div class="options-item">
               <div class="options-bar row-tight">
+                <span class="options-label">Mode</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn qmode-btn active" data-qmode="manual">Manual</button>
+                  <button class="toggle-btn qmode-btn" data-qmode="target">Target Size</button>
+                </div>
+              </div>
+            </div>
+            <div class="options-item hidden" id="targetSizeWrap">
+              <div class="options-bar row-tight">
+                <span class="options-label">Target KB</span>
+                <input id="targetKB" class="table-name-input input-xs" type="number" min="30" max="2000" value="300">
+              </div>
+            </div>
+          </div>
+
+          <div class="options-row options-row-2">
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Preset</span>
+                <select id="preset" class="table-name-input input-md">
+                  <option value="custom">Custom</option>
+                  <option value="blog-og">Blog OG (1200)</option>
+                  <option value="instagram-feed">Instagram Feed (1080)</option>
+                  <option value="instagram-story">Instagram Story (1920)</option>
+                  <option value="youtube-thumb">YouTube Thumb (1280)</option>
+                  <option value="kakao-share">Kakao Share (800)</option>
+                </select>
+              </div>
+            </div>
+            <div class="options-item">
+              <div class="options-bar row-tight">
                 <span class="options-label">Max Edge</span>
                 <input id="maxEdge" class="table-name-input input-sm" type="number" min="320" max="8000" value="1920">
               </div>
             </div>
+          </div>
+
+          <div class="options-row options-row-2">
             <div class="options-item">
               <div class="options-bar row-tight">
                 <span class="options-label">Filename</span>
                 <div class="toggle-group">
                   <button class="toggle-btn name-btn active" data-name="suffix">_opt suffix</button>
                   <button class="toggle-btn name-btn" data-name="replace">replace</button>
+                </div>
+              </div>
+            </div>
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">No Gain</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn nogain-btn active" data-nogain="keep">Keep Original</button>
+                  <button class="toggle-btn nogain-btn" data-nogain="force">Force Output</button>
                 </div>
               </div>
             </div>
@@ -112,6 +155,8 @@
 let files = [];
 let outFmt = 'jpeg';
 let namingMode = 'suffix';
+let qualityMode = 'manual';
+let noGainMode = 'keep';
 const outState = [];
 
 const fmtMime = { jpeg: 'image/jpeg', webp: 'image/webp', png: 'image/png' };
@@ -143,6 +188,36 @@ document.querySelectorAll('.name-btn').forEach(b => b.addEventListener('click', 
   document.querySelectorAll('.name-btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); namingMode = b.dataset.name;
 }));
+
+document.querySelectorAll('.qmode-btn').forEach(b => b.addEventListener('click', ()=>{
+  document.querySelectorAll('.qmode-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  qualityMode = b.dataset.qmode;
+  document.getElementById('targetSizeWrap').classList.toggle('hidden', qualityMode !== 'target');
+}));
+
+document.querySelectorAll('.nogain-btn').forEach(b => b.addEventListener('click', ()=>{
+  document.querySelectorAll('.nogain-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  noGainMode = b.dataset.nogain;
+}));
+
+document.getElementById('preset').addEventListener('change', e => {
+  const p = e.target.value;
+  const map = {
+    'blog-og': { edge:1200, fmt:'jpeg', q:84 },
+    'instagram-feed': { edge:1080, fmt:'jpeg', q:86 },
+    'instagram-story': { edge:1920, fmt:'jpeg', q:82 },
+    'youtube-thumb': { edge:1280, fmt:'jpeg', q:82 },
+    'kakao-share': { edge:800, fmt:'jpeg', q:84 },
+  };
+  if (!map[p]) return;
+  document.getElementById('maxEdge').value = map[p].edge;
+  document.getElementById('quality').value = map[p].q;
+  outFmt = map[p].fmt;
+  document.querySelectorAll('.fmt-btn').forEach(x=>x.classList.toggle('active', x.dataset.fmt===outFmt));
+  document.getElementById('quality').disabled = outFmt === 'png';
+});
 
 function buildOutputName(name){
   const base = name.replace(/\.[^.]+$/, '');
@@ -194,7 +269,7 @@ function renderOutput(){
             <div class="opt-item-top">
               <div>
                 <div class="opt-name">${UIUtils.escHtml(r.name)}</div>
-                <div class="opt-meta">${r.done ? `${bytes(r.inSize)} → ${bytes(r.outSize)} (${((1-r.outSize/r.inSize)*100).toFixed(1)}%)` : '처리중...'}</div>
+                <div class="opt-meta">${r.done ? `${bytes(r.inSize)} → ${bytes(r.outSize)} (${((1-r.outSize/r.inSize)*100).toFixed(1)}%)${r.note ? ` · ${r.note}` : ''}` : '처리중...'}</div>
               </div>
               <div class="download-actions opt-actions">
                 <button class="download-btn single" data-dl="${i}" ${r.done ? '' : 'disabled'}>⬇ 다운로드</button>
@@ -218,6 +293,28 @@ function renderOutput(){
   output.querySelector('#zipBtn')?.addEventListener('click', downloadZip);
 }
 
+async function encodeWithQuality(canvas, mime, q){
+  return canvasToBlob(canvas, mime, q);
+}
+
+async function findQualityForTarget(canvas, mime, targetBytes){
+  let lo = 0.1, hi = 0.95;
+  let best = await encodeWithQuality(canvas, mime, hi);
+  if (best.size <= targetBytes) return best;
+
+  for(let i=0;i<8;i++){
+    const mid = (lo + hi) / 2;
+    const blob = await encodeWithQuality(canvas, mime, mid);
+    if (blob.size <= targetBytes) {
+      best = blob;
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  return best;
+}
+
 async function optimizeAll(){
   if(!files.length){
     UIUtils.showError('outputPanel', '이미지 파일을 먼저 선택해주세요.');
@@ -225,10 +322,11 @@ async function optimizeAll(){
   }
   const maxEdge = Math.max(320, Math.min(8000, parseInt(document.getElementById('maxEdge').value || '1920',10)));
   const quality = Math.max(0.1, Math.min(1, parseInt(document.getElementById('quality').value || '82',10)/100));
+  const targetKB = Math.max(30, Math.min(2000, parseInt(document.getElementById('targetKB').value || '300',10)));
   const mime = fmtMime[outFmt];
 
   outState.length = 0;
-  files.forEach(f=>outState.push({ name:f.name, inSize:f.size, outSize:0, outName:buildOutputName(f.name), blob:null, done:false, progress:10 }));
+  files.forEach(f=>outState.push({ name:f.name, inSize:f.size, outSize:0, outName:buildOutputName(f.name), blob:null, done:false, progress:10, note:'' }));
   renderOutput();
 
   for(let i=0;i<files.length;i++){
@@ -244,9 +342,26 @@ async function optimizeAll(){
       ctx.drawImage(img, 0, 0, w, h);
       outState[i].progress = 70;
       renderOutput();
-      const blob = await canvasToBlob(canvas, mime, outFmt === 'png' ? undefined : quality);
-      outState[i].blob = blob;
-      outState[i].outSize = blob.size;
+      let blob;
+      if (outFmt === 'png') {
+        blob = await canvasToBlob(canvas, mime);
+      } else if (qualityMode === 'target') {
+        blob = await findQualityForTarget(canvas, mime, targetKB * 1024);
+      } else {
+        blob = await canvasToBlob(canvas, mime, quality);
+      }
+
+      if (noGainMode === 'keep' && blob.size >= f.size) {
+        outState[i].blob = f;
+        outState[i].outName = f.name;
+        outState[i].outSize = f.size;
+        outState[i].note = '원본 유지';
+      } else {
+        outState[i].blob = blob;
+        outState[i].outSize = blob.size;
+        outState[i].note = '';
+      }
+
       outState[i].done = true;
       outState[i].progress = 100;
       renderOutput();
