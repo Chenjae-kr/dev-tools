@@ -28,6 +28,8 @@
 .category-head .count{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
 .fav-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px}
 .fav-btn.active{color:#fbbf24;border-color:#fbbf24;background:rgba(251,191,36,.12)}
+.recent-remove-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;margin-left:6px}
+.recent-remove-btn:hover{color:#f87171;border-color:#f87171;background:rgba(248,113,113,.12)}
 </style>
 </head>
 <body>
@@ -93,12 +95,13 @@
       return `background: rgba(${rgb}, .14); border-color: rgba(${rgb}, .38); color: #334155;`;
     }
 
-    function renderToolCard({ href, icon, title, desc, tags, footer, category }) {
+    function renderToolCard({ href, icon, title, desc, tags, footer, category }, opts = {}) {
       const catClass = `cat-${slugCategory(category)}`;
       const shownTags = (tags || []).slice(0, 3);
       const hiddenTagCount = Math.max(0, (tags || []).length - shownTags.length);
       const ioText = String(footer || '').replace(/\s+/g, ' ').trim();
       const isFav = favorites.has(href);
+      const removableRecent = opts.removableRecent === true;
 
       return `
         <a class="tool-card ${catClass}" href="tools/${href}" data-tool-href="${href}">
@@ -106,6 +109,7 @@
             <div class="card-icon">${icon}</div>
             <div>
               <button class="fav-btn ${isFav ? 'active' : ''}" data-fav="${href}" title="즐겨찾기">★</button>
+              ${removableRecent ? `<button class="recent-remove-btn" data-remove-recent="${href}" title="Recent에서 제거">✕</button>` : ''}
               <span class="card-arrow">→</span>
             </div>
           </div>
@@ -178,6 +182,17 @@
         });
       });
 
+      document.querySelectorAll('[data-remove-recent]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const href = btn.dataset.removeRecent;
+          recents = recents.filter(x => x !== href);
+          saveRecents();
+          renderGroups();
+        });
+      });
+
       document.querySelectorAll('.tool-card[data-tool-href]').forEach(card => {
         card.addEventListener('click', () => {
           const href = card.dataset.toolHref;
@@ -198,7 +213,7 @@
           <p class="section-label">Recent</p>
           <span class="count">${recentTools.length} tools</span>
         </div>
-        <div class="tools-grid recent-grid">${recentTools.map(renderToolCard).join('')}</div>
+        <div class="tools-grid recent-grid">${recentTools.map(t => renderToolCard(t, { removableRecent: true })).join('')}</div>
       `;
     }
 
