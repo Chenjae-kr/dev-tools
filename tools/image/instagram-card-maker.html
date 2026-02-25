@@ -124,6 +124,19 @@
           <input id="labelText" class="table-name-input" placeholder="2026년 IPO 예상 주요 기업" value="2026년 IPO 예상 주요 기업">
         </div>
 
+        <div class="options-bar row-tight">
+          <span class="options-label">Content JSON</span>
+          <button class="toggle-btn" onclick="fillHeadlineJsonFromInputs()">현재값 채우기</button>
+          <button class="toggle-btn" onclick="applyHeadlineJsonToInputs()">JSON 적용</button>
+        </div>
+        <textarea id="headlineJsonInput" class="input-area" placeholder='{
+  "headline1": "카드뉴스 제목 1줄",
+  "headline2": "카드뉴스 제목 2줄",
+  "subtitle": "소제목/요약",
+  "label": "라벨 배너"
+}'></textarea>
+        <div id="headlineJsonHint" class="text-muted mt-8">헤드라인/서브타이틀/라벨을 묶어서 JSON으로 한번에 입력할 수 있어요.</div>
+
         <div class="control-grid-4">
           <input id="h1Scale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="H1 Size%">
           <input id="h2Scale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="H2 Size%">
@@ -477,6 +490,7 @@ function fillInputsFromPage(){
   document.getElementById('labelText').value=p.label||'';
   document.getElementById('bodyText').value=p.bodyText||'';
   document.getElementById('tableText').value=p.tableText||'';
+  fillHeadlineJsonFromInputs(false);
   document.getElementById('h1Scale').value=p.h1Scale ?? 100;
   document.getElementById('h2Scale').value=p.h2Scale ?? 100;
   document.getElementById('subScale').value=p.subScale ?? 100;
@@ -511,6 +525,58 @@ function fillInputsFromPage(){
   bodyType=p.bodyType||'text';
   document.querySelectorAll('.bodytype-btn').forEach(b=>b.classList.toggle('active', b.dataset.body===bodyType));
   setBodyUI();
+}
+
+function fillHeadlineJsonFromInputs(showMsg=true){
+  const payload = {
+    headline1: document.getElementById('titleText').value || '',
+    headline2: document.getElementById('titleText2').value || '',
+    subtitle: document.getElementById('subTitleText').value || '',
+    label: document.getElementById('labelText').value || '',
+    showHeadline: (document.querySelector('.headvis-btn.active')?.dataset.head || 'on') === 'on',
+    showSubtitle: (document.querySelector('.subvis-btn.active')?.dataset.sub || 'on') === 'on'
+  };
+  document.getElementById('headlineJsonInput').value = JSON.stringify(payload, null, 2);
+  if (showMsg) document.getElementById('headlineJsonHint').textContent = '현재 화면 값을 JSON으로 채웠습니다.';
+}
+
+function applyHeadlineJsonToInputs(){
+  const raw = (document.getElementById('headlineJsonInput').value || '').trim();
+  if (!raw) {
+    document.getElementById('headlineJsonHint').textContent = 'JSON 입력값이 비어 있습니다.';
+    return;
+  }
+
+  try {
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object') throw new Error('object expected');
+
+    const h1 = obj.headline1 ?? obj.title1 ?? obj.title ?? null;
+    const h2 = obj.headline2 ?? obj.title2 ?? null;
+    const sub = obj.subtitle ?? obj.subTitle ?? null;
+    const label = obj.label ?? obj.banner ?? null;
+
+    if (h1 != null) document.getElementById('titleText').value = String(h1);
+    if (h2 != null) document.getElementById('titleText2').value = String(h2);
+    if (sub != null) document.getElementById('subTitleText').value = String(sub);
+    if (label != null) document.getElementById('labelText').value = String(label);
+
+    if (typeof obj.showHeadline === 'boolean') {
+      const val = obj.showHeadline ? 'on' : 'off';
+      document.querySelectorAll('.headvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.head===val));
+    }
+    if (typeof obj.showSubtitle === 'boolean') {
+      const val = obj.showSubtitle ? 'on' : 'off';
+      document.querySelectorAll('.subvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===val));
+    }
+
+    savePage();
+    renderCard();
+    fillHeadlineJsonFromInputs(false);
+    document.getElementById('headlineJsonHint').textContent = 'JSON 적용 완료';
+  } catch (_) {
+    document.getElementById('headlineJsonHint').textContent = 'JSON 형식이 올바르지 않습니다. 예시 형식을 확인해 주세요.';
+  }
 }
 
 function snapVal(v, targets=[50], threshold=3){
