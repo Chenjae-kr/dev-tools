@@ -33,7 +33,7 @@
 <div class="container">
   <div class="tool-header">
     <h1>Mock <span>Data Generator</span></h1>
-    <p>// 컬럼 스키마(DSL/SQL DDL)로 테스트 데이터(CSV / JSON / SQL INSERT) 생성</p>
+    <p>// 컬럼 스키마(DSL / SQL DDL / JSON 템플릿)로 테스트 데이터(CSV / JSON / SQL INSERT) 생성</p>
   </div>
 
   <div class="main-grid">
@@ -51,6 +51,7 @@
             <div class="toggle-group">
               <button class="toggle-btn schema-btn active" data-schema="dsl">DSL</button>
               <button class="toggle-btn schema-btn" data-schema="ddl">SQL DDL</button>
+              <button class="toggle-btn schema-btn" data-schema="json">JSON</button>
             </div>
           </div>
 
@@ -127,6 +128,8 @@ document.querySelectorAll('.schema-btn').forEach(btn => {
     const ta = document.getElementById('schemaInput');
     if (schemaMode === 'ddl') {
       ta.placeholder = `CREATE TABLE users (\n  id INT PRIMARY KEY,\n  name VARCHAR(100),\n  email VARCHAR(200),\n  age INT,\n  created_at DATE,\n  is_active BOOLEAN\n);`;
+    } else if (schemaMode === 'json') {
+      ta.placeholder = `{\n  "id": "int(1,9999)",\n  "name": "name",\n  "email": "email",\n  "phone": "phone",\n  "active": "bool",\n  "score": "float",\n  "created_at": "datetime"\n}`;
     } else {
       ta.placeholder = `id:int\nname:name\nemail:email\nage:int(20,60)\ncreated_at:date\nis_active:bool`;
     }
@@ -181,10 +184,36 @@ function parseDDL(text) {
   return { cols, table };
 }
 
-function parseSchema(text) {
-  if (schemaMode === 'ddl') {
-    return parseDDL(text);
+function parseJsonSchema(text) {
+  let obj;
+  try { obj = JSON.parse(text); } catch (e) { throw new Error(`JSON 파싱 오류: ${e.message}`); }
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+    throw new Error('JSON 스키마는 객체 형태여야 합니다.');
   }
+
+  const cols = [];
+  for (const [name, val] of Object.entries(obj)) {
+    if (!name) continue;
+    if (typeof val === 'string') {
+      cols.push({ name, rawType: val.trim() || 'string' });
+    } else if (typeof val === 'number') {
+      cols.push({ name, rawType: Number.isInteger(val) ? 'int' : 'float' });
+    } else if (typeof val === 'boolean') {
+      cols.push({ name, rawType: 'bool' });
+    } else if (val === null) {
+      cols.push({ name, rawType: 'string' });
+    } else {
+      throw new Error(`JSON 스키마는 1-depth key/value만 지원합니다. 문제 컬럼: ${name}`);
+    }
+  }
+
+  if (!cols.length) throw new Error('JSON 스키마에서 컬럼을 찾지 못했습니다.');
+  return { cols, table: null };
+}
+
+function parseSchema(text) {
+  if (schemaMode === 'ddl') return parseDDL(text);
+  if (schemaMode === 'json') return parseJsonSchema(text);
 
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   if (!lines.length) throw new Error('스키마를 입력해주세요.');
@@ -238,6 +267,11 @@ function generateValue(col, i, rnd) {
   }
   if (t === 'email') {
     return `user${i+1}@example.com`;
+  }
+  if (t === 'phone') {
+    const p2 = String(Math.floor(rnd() * 9000) + 1000);
+    const p3 = String(Math.floor(rnd() * 9000) + 1000);
+    return `010-${p2}-${p3}`;
   }
   if (t.startsWith('enum(')) {
     const inner = t.slice(5, -1);
@@ -329,10 +363,30 @@ document.addEventListener('keydown', e => {
 });
 
 function loadSample() {
-  const ddlInput = document.getElementById('ddlInput');
   const schemaInput = document.getElementById('schemaInput');
-  if (ddlInput) ddlInput.value = 'CREATE TABLE users (\n  id INT NOT NULL,\n  name VARCHAR(50),\n  email VARCHAR(100),\n  age INT,\n  is_active BOOLEAN\n);';
-  if (schemaInput) schemaInput.value = 'users: id:int pk, name:string, email:email, age:int(18,65), is_active:bool';
+  if (!schemaInput) return;
+
+  if (schemaMode === 'ddl') {
+    schemaInput.value = `CREATE TABLE users (\n  id INT NOT NULL,\n  name VARCHAR(50),\n  email VARCHAR(100),\n  phone VARCHAR(20),\n  age INT,\n  is_active BOOLEAN\n);`;
+  } else if (schemaMode === 'json') {
+    schemaInput.value = `{
+  "id": "int(1,9999)",
+  "name": "name",
+  "email": "email",
+  "phone": "phone",
+  "age": "int(20,60)",
+  "is_active": "bool",
+  "created_at": "datetime"
+}`;
+  } else {
+    schemaInput.value = `id:int
+name:name
+email:email
+phone:phone
+age:int(20,60)
+created_at:date
+is_active:bool`;
+  }
 }
 </script>
 </body>
