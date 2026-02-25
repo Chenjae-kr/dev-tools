@@ -96,14 +96,21 @@
           <div class="options-bar"><span class="options-label">Sub</span></div>
           <textarea id="subText" class="input-area" placeholder="서브 텍스트">3분만에 블로그 썸네일 만들기</textarea>
 
-          <div class="options-bar row-tight">
-            <span class="options-label">JSON Data</span>
-            <button class="toggle-btn" onclick="fillThumbJsonFromInputs()">현재값 채우기</button>
-            <button class="toggle-btn" onclick="openThumbJsonPopup()">JSON 입력</button>
-            <button class="toggle-btn" onclick="applyThumbJsonToInputs()">JSON 적용</button>
-            <button class="toggle-btn" onclick="resetThumbTextInputs()">입력값 초기화</button>
-            <button class="toggle-btn" onclick="document.getElementById('thumbJsonFile').click()">JSON 파일</button>
-            <input id="thumbJsonFile" type="file" accept=".json,application/json" class="hidden">
+          <div class="options-row options-row-2">
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">JSON Data</span>
+                <button class="toggle-btn" onclick="openThumbJsonPopup()">JSON 입력</button>
+                <button class="toggle-btn" onclick="document.getElementById('thumbJsonFile').click()">JSON 파일</button>
+                <input id="thumbJsonFile" type="file" accept=".json,application/json" class="hidden">
+              </div>
+            </div>
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Actions</span>
+                <button class="toggle-btn" onclick="resetThumbTextInputs()">입력값 초기화</button>
+              </div>
+            </div>
           </div>
           <textarea id="thumbJsonInput" class="input-area hidden" placeholder='{
   "mainText": "블로그 썸네일\n3분 제작",
