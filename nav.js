@@ -5,7 +5,7 @@
 // ─── Theme init (runs immediately to prevent flash) ──────
 (function () {
   const t = localStorage.getItem('devtools-theme');
-  if (t) document.documentElement.setAttribute('data-theme', t);
+  document.documentElement.setAttribute('data-theme', t || 'light');
 })();
 
 // ─── Render nav at current script position ───────────────
