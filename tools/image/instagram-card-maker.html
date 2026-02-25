@@ -200,6 +200,18 @@
             <span class="options-label">X%</span><input id="imgPosX" type="number" value="50" min="0" max="100" class="table-name-input small">
             <span class="options-label">Y%</span><input id="imgPosY" type="number" value="50" min="0" max="100" class="table-name-input small">
           </div>
+          <div class="options-bar row-tight">
+            <span class="options-label">Guide</span>
+            <div class="toggle-group">
+              <button class="toggle-btn guide-btn" data-guide="off">OFF</button>
+              <button class="toggle-btn guide-btn active" data-guide="on">ON</button>
+            </div>
+            <span class="options-label">Snap</span>
+            <div class="toggle-group">
+              <button class="toggle-btn snap-btn" data-snap="off">OFF</button>
+              <button class="toggle-btn snap-btn active" data-snap="on">ON</button>
+            </div>
+          </div>
         </div>
 
         <div class="options-bar row-tight">
@@ -304,7 +316,7 @@ let tableSepMode='auto';
 let tableInputMode='text';
 const PRESET_KEY='insta-card-presets-v1';
 
-function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',bodyBgMode:'solid',bodyBgColor:'#ffffff',bodyBgOpacity:100,bodyBgImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',bodyBgMode:'solid',bodyBgColor:'#ffffff',bodyBgOpacity:100,bodyBgImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50,showGuide:true,snapGuide:true}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -415,11 +427,15 @@ function fillInputsFromPage(){
   const brandVis = p.showBrand === false ? 'off' : 'on';
   const headVis = p.showHeadline === false ? 'off' : 'on';
   const subVis = p.showSubtitle === false ? 'off' : 'on';
+  const guideVis = p.showGuide === false ? 'off' : 'on';
+  const snapVis = p.snapGuide === false ? 'off' : 'on';
   document.querySelectorAll('.pagewm-btn').forEach(b=>b.classList.toggle('active', b.dataset.pagewm===pagewm));
   document.querySelectorAll('.sourcevis-btn').forEach(b=>b.classList.toggle('active', b.dataset.source===sourceVis));
   document.querySelectorAll('.brandvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brandVis));
   document.querySelectorAll('.headvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.head===headVis));
   document.querySelectorAll('.subvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===subVis));
+  document.querySelectorAll('.guide-btn').forEach(b=>b.classList.toggle('active', b.dataset.guide===guideVis));
+  document.querySelectorAll('.snap-btn').forEach(b=>b.classList.toggle('active', b.dataset.snap===snapVis));
   document.getElementById('imgZoom').value=p.imgZoom ?? 100;
   document.getElementById('imgPosX').value=p.imgPosX ?? 50;
   document.getElementById('imgPosY').value=p.imgPosY ?? 50;
@@ -435,7 +451,18 @@ function fillInputsFromPage(){
   setBodyUI();
 }
 
+function snapVal(v, targets=[50], threshold=3){
+  const n = Number(v);
+  for (const t of targets) if (Math.abs(n - t) <= threshold) return t;
+  return n;
+}
+
 function savePage(){
+  const snapOn = (document.querySelector('.snap-btn.active')?.dataset.snap || 'on') === 'on';
+  const posXRaw = parseInt(document.getElementById('imgPosX').value || '50',10);
+  const posYRaw = parseInt(document.getElementById('imgPosY').value || '50',10);
+  const posX = snapOn ? snapVal(posXRaw, [0,50,100], 3) : posXRaw;
+  const posY = snapOn ? snapVal(posYRaw, [0,50,100], 3) : posYRaw;
   pages[page-1]={
     ...(pages[page-1]||newPage()),
     title:document.getElementById('titleText').value,
@@ -450,6 +477,8 @@ function savePage(){
     showSource:(document.querySelector('.sourcevis-btn.active')?.dataset.source || 'on') === 'on',
     showBrand:(document.querySelector('.brandvis-btn.active')?.dataset.brand || 'on') === 'on',
     showPage:(document.querySelector('.pagewm-btn.active')?.dataset.pagewm || 'on') === 'on',
+    showGuide:(document.querySelector('.guide-btn.active')?.dataset.guide || 'on') === 'on',
+    snapGuide:snapOn,
     h1Scale:parseInt(document.getElementById('h1Scale').value || '100',10),
     h2Scale:parseInt(document.getElementById('h2Scale').value || '100',10),
     subScale:parseInt(document.getElementById('subScale').value || '100',10),
@@ -461,8 +490,8 @@ function savePage(){
     bodyBgOpacity:parseInt(document.getElementById('bodyBgOpacity').value || '100',10),
     bodyBgImageData:(pages[page-1]?.bodyBgImageData || ''),
     imgZoom:parseInt(document.getElementById('imgZoom').value || '100',10),
-    imgPosX:parseInt(document.getElementById('imgPosX').value || '50',10),
-    imgPosY:parseInt(document.getElementById('imgPosY').value || '50',10),
+    imgPosX:posX,
+    imgPosY:posY,
     bodyText:document.getElementById('bodyText').value,
     tableText:document.getElementById('tableText').value,
   };
@@ -754,6 +783,18 @@ function drawBodyImage(ctx, img, x, y, w, h, fit='cover', zoom=100, posX=50, pos
 }
 
 const imageCache = new Map();
+function drawGuides(ctx, x, y, w, h){
+  ctx.save();
+  ctx.strokeStyle='rgba(45,212,191,.55)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  ctx.moveTo(x + w/2, y); ctx.lineTo(x + w/2, y + h);
+  ctx.moveTo(x, y + h/2); ctx.lineTo(x + w, y + h/2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function getCachedImage(dataUrl){
   if(!dataUrl) return null;
   let img = imageCache.get(dataUrl);
@@ -929,6 +970,7 @@ function renderCard(){
         );
         ctx.strokeStyle='rgba(0,0,0,0.3)';
         ctx.strokeRect(contentX,contentY,contentW,contentH);
+        if (p.showGuide !== false) drawGuides(ctx, contentX, contentY, contentW, contentH);
       };
       img.src=p.bodyImageData;
     } else {
@@ -936,6 +978,10 @@ function renderCard(){
       ctx.fillStyle='#666'; ctx.font=`600 ${Math.floor(h*0.024)}px sans-serif`; ctx.textAlign='center';
       ctx.fillText('본문 이미지를 업로드하세요',contentX+contentW/2,contentY+contentH/2);
     }
+  }
+
+  if (p.showGuide !== false && p.bodyType !== 'image') {
+    drawGuides(ctx, contentX, contentY, contentW, contentH);
   }
 
   // footer
@@ -1001,6 +1047,8 @@ document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.quer
 document.querySelectorAll('.bodybgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodybgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');setBodyBgUI();savePage();renderCard();});
 document.querySelectorAll('.headvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.headvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.subvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.subvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.guide-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.guide-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.snap-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.snap-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.sourcevis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sourcevis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.brandvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.brandvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
@@ -1041,7 +1089,9 @@ pages[0]={
   bodyBgMode:'solid',
   bodyBgColor:'#ffffff',
   bodyBgOpacity:100,
-  bodyBgImageData:''
+  bodyBgImageData:'',
+  showGuide:true,
+  snapGuide:true
 };
 fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncGridFromText(false); renderCard();
 </script>

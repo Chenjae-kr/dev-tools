@@ -192,9 +192,11 @@ function generateCRUD() {
 
   try {
     const parsed = JSON.parse(document.getElementById('jsonInput').value.trim() || '{}');
-    if (Array.isArray(parsed)) throw new Error('현재는 단일 객체 JSON만 지원합니다.');
+    const rows = Array.isArray(parsed) ? parsed : [parsed];
+    if (!rows.length) throw new Error('JSON 데이터가 비어 있습니다.');
+    if (rows.some(r => !r || typeof r !== 'object' || Array.isArray(r))) throw new Error('JSON 객체(또는 객체 배열)만 지원합니다.');
 
-    const keys = Object.keys(parsed);
+    const keys = [...new Set(rows.flatMap(r => Object.keys(r)))];
     if (!keys.length) throw new Error('JSON 객체에 컬럼이 없습니다.');
 
     const pkCols = pkRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -206,19 +208,25 @@ function generateCRUD() {
 
     const tbl = quoteIdent(tableNameRaw);
     const cols = keys.map(quoteIdent);
-    const vals = keys.map(k => toSqlValue(parsed[k]));
+    const first = rows[0];
+    const vals = keys.map(k => toSqlValue(first[k]));
 
-    const whereClause = pkCols.map(k => `${quoteIdent(k)} = ${toSqlValue(parsed[k])}`).join(' AND ');
+    const whereClause = pkCols.map(k => `${quoteIdent(k)} = ${toSqlValue(first[k])}`).join(' AND ');
 
     const setCols = keys.filter(k => !pkCols.includes(k));
     const updateSet = (setCols.length ? setCols : keys)
-      .map(k => `${quoteIdent(k)} = ${toSqlValue(parsed[k])}`).join(', ');
+      .map(k => `${quoteIdent(k)} = ${toSqlValue(first[k])}`).join(', ');
 
     if (!selectedCrud.size) throw new Error('생성할 쿼리를 1개 이상 선택해주세요.');
 
-    const createSql = buildCreateSql(tableNameRaw, keys, parsed, pkCols);
+    const createSql = buildCreateSql(tableNameRaw, keys, first, pkCols);
     const selectSql = `SELECT ${cols.join(', ')}\nFROM ${tbl}\nWHERE ${whereClause};`;
-    const insertSql = `INSERT INTO ${tbl} (${cols.join(', ')})\nVALUES (${vals.join(', ')});`;
+    const insertSql = rows.length === 1
+      ? `INSERT INTO ${tbl} (${cols.join(', ')})\nVALUES (${vals.join(', ')});`
+      : (selectedDialect === 'oracle'
+          ? rows.map(r => `INSERT INTO ${tbl} (${cols.join(', ')}) VALUES (${keys.map(k=>toSqlValue(r[k])).join(', ')});`).join('\n')
+          : `INSERT INTO ${tbl} (${cols.join(', ')})\nVALUES\n${rows.map(r => `  (${keys.map(k=>toSqlValue(r[k])).join(', ')})`).join(',\n')};`
+        );
     const updateSql = `UPDATE ${tbl}\nSET ${updateSet}\nWHERE ${whereClause};`;
     const deleteSql = `DELETE FROM ${tbl}\nWHERE ${whereClause};`;
 
@@ -233,7 +241,7 @@ function generateCRUD() {
     const blockId = 'crud_' + Date.now();
     out.innerHTML = renderSqlBlock({
       badge: 'CRUD',
-      tag: `${selectedDialect.toUpperCase()} · ${keys.length} columns`,
+      tag: `${selectedDialect.toUpperCase()} · ${keys.length} columns · ${rows.length} rows`,
       copyBtnId: `copy_${blockId}`,
       copyLabel: 'COPY',
       copyHandler: `copyCRUD('${blockId}')`,
@@ -256,14 +264,24 @@ document.addEventListener('keydown', e => {
 
 function loadSample() {
   document.getElementById('tableName').value = 'orders';
-  document.getElementById('jsonInput').value = JSON.stringify({
-    order_id: 1001,
-    user_id: 42,
-    product: 'Keyboard',
-    amount: 89000,
-    status: 'paid',
-    created_at: '2026-02-25'
-  }, null, 2);
+  document.getElementById('jsonInput').value = JSON.stringify([
+    {
+      order_id: 1001,
+      user_id: 42,
+      product: 'Keyboard',
+      amount: 89000,
+      status: 'paid',
+      created_at: '2026-02-25'
+    },
+    {
+      order_id: 1002,
+      user_id: 43,
+      product: 'Mouse',
+      amount: 39000,
+      status: 'paid',
+      created_at: '2026-02-25'
+    }
+  ], null, 2);
 }
 </script>
 </body>

@@ -62,6 +62,23 @@
             <span class="options-label">Series</span>
             <input id="seriesColor" type="color" class="table-name-input input-md color-input" value="#4fffb0">
           </div>
+          <div class="options-bar">
+            <span class="options-label">Legend</span>
+            <div class="toggle-group">
+              <button class="toggle-btn legend-btn active" data-legend="on">ON</button>
+              <button class="toggle-btn legend-btn" data-legend="off">OFF</button>
+            </div>
+            <span class="options-label">Value Label</span>
+            <div class="toggle-group">
+              <button class="toggle-btn value-btn active" data-value="on">ON</button>
+              <button class="toggle-btn value-btn" data-value="off">OFF</button>
+            </div>
+            <span class="options-label">Legend Pos</span>
+            <select id="legendPos" class="table-name-input input-sm">
+              <option value="right">Right</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </div>
           <div class="control-grid-4 mt-8">
             <input id="outW" type="number" class="table-name-input" value="1200" min="600" max="2400" placeholder="Width">
             <input id="outH" type="number" class="table-name-input" value="1200" min="600" max="2400" placeholder="Height">
@@ -102,6 +119,8 @@
 let sourceType='table';
 let chartType='bar';
 let exportFormat='png';
+let showLegend=true;
+let showValueLabel=true;
 const canvas=document.getElementById('chartCanvas');
 const ctx=canvas.getContext('2d');
 
@@ -159,7 +178,21 @@ function drawTitle(title, fs, w){
   ctx.fillText(title||'Chart', w*0.08, w*0.1);
 }
 
-function renderBar(data,w,h,base,color,fs){
+function drawLegend(data,w,h,fs,legendPos='right',withValues=true,fixedColor=''){ 
+  const isBottom = legendPos === 'bottom';
+  ctx.font=`600 ${Math.floor(fs*0.52)}px JetBrains Mono, monospace`;
+  ctx.textAlign='left';
+  data.forEach((d,i)=>{
+    const y=isBottom ? (h*0.88 + i*(fs*0.72)) : (h*0.24 + i*(fs*0.85));
+    const x0=isBottom ? (w*0.12 + (i%2)*w*0.36) : w*0.78;
+    const color = fixedColor || `hsl(${(i*61)%360} 78% 58%)`;
+    ctx.fillStyle=color; ctx.fillRect(x0,y-11,14,14);
+    ctx.fillStyle='#e8ecf5';
+    ctx.fillText(withValues ? `${d.label} (${d.value})` : d.label, x0+20, y);
+  });
+}
+
+function renderBar(data,w,h,base,color,fs,showValues=true){
   const left=w*0.1, right=w*0.92, top=h*0.18, bottom=h*0.86;
   ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=2;
   ctx.beginPath(); ctx.moveTo(left,top); ctx.lineTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
@@ -172,12 +205,12 @@ function renderBar(data,w,h,base,color,fs){
     const y=bottom-bh;
     ctx.fillStyle=color; ctx.fillRect(x,y,bw,bh);
     ctx.fillStyle='#e8ecf5'; ctx.font=`600 ${Math.floor(fs*0.68)}px JetBrains Mono, monospace`; ctx.textAlign='center';
-    ctx.fillText(String(d.value), x+bw/2, y-8);
+    if (showValues) ctx.fillText(String(d.value), x+bw/2, y-8);
     ctx.fillStyle='#a8b2ca';
     ctx.fillText(d.label, x+bw/2, bottom+28);
   });
 }
-function renderLine(data,w,h,color,fs){
+function renderLine(data,w,h,color,fs,showValues=true){
   const left=w*0.1, right=w*0.92, top=h*0.18, bottom=h*0.86;
   ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=2;
   ctx.beginPath(); ctx.moveTo(left,top); ctx.lineTo(left,bottom); ctx.lineTo(right,bottom); ctx.stroke();
@@ -190,11 +223,11 @@ function renderLine(data,w,h,color,fs){
     const x=left+i*step; const y=bottom-(d.value/max)*(bottom-top);
     ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#e8ecf5'; ctx.font=`600 ${Math.floor(fs*0.62)}px JetBrains Mono, monospace`; ctx.textAlign='center';
-    ctx.fillText(String(d.value), x, y-12);
+    if (showValues) ctx.fillText(String(d.value), x, y-12);
     ctx.fillStyle='#a8b2ca'; ctx.fillText(d.label, x, bottom+28);
   });
 }
-function renderPie(data,w,h,fs){
+function renderPie(data,w,h,fs,showLegendOn=true,showValues=true,legendPos='right'){
   const total=Math.max(1,data.reduce((s,d)=>s+Math.max(0,d.value),0));
   const cx=w*0.38, cy=h*0.55, r=Math.min(w,h)*0.26;
   let a=-Math.PI/2;
@@ -204,14 +237,19 @@ function renderPie(data,w,h,fs){
     ctx.fillStyle=color; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a,a+da); ctx.closePath(); ctx.fill();
     a+=da;
   });
-  ctx.font=`600 ${Math.floor(fs*0.6)}px JetBrains Mono, monospace`;
-  ctx.textAlign='left';
-  data.forEach((d,i)=>{
-    const y=h*0.32 + i*(fs*0.92);
-    const color=`hsl(${(i*61)%360} 78% 58%)`;
-    ctx.fillStyle=color; ctx.fillRect(w*0.64,y-14,18,18);
-    ctx.fillStyle='#e8ecf5'; ctx.fillText(`${d.label} (${d.value})`, w*0.67, y);
-  });
+  if (showLegendOn) {
+    const isBottom = legendPos === 'bottom';
+    ctx.font=`600 ${Math.floor(fs*0.6)}px JetBrains Mono, monospace`;
+    ctx.textAlign='left';
+    data.forEach((d,i)=>{
+      const y=isBottom ? (h*0.86 + i*(fs*0.8)) : (h*0.32 + i*(fs*0.92));
+      const x0=isBottom ? (w*0.16 + (i%2)*w*0.34) : w*0.64;
+      const color=`hsl(${(i*61)%360} 78% 58%)`;
+      ctx.fillStyle=color; ctx.fillRect(x0,y-14,18,18);
+      const label = showValues ? `${d.label} (${d.value})` : d.label;
+      ctx.fillStyle='#e8ecf5'; ctx.fillText(label, x0+24, y);
+    });
+  }
 }
 
 function renderChart(){
@@ -228,12 +266,19 @@ function renderChart(){
     const fs=Math.floor((w/24)*(Math.max(70,Math.min(150,parseInt(document.getElementById('fontScale').value||'100',10)))/100));
     const title=document.getElementById('chartTitle').value.trim();
     const color=document.getElementById('seriesColor').value;
+    const legendPos=document.getElementById('legendPos').value || 'right';
     drawTitle(title,fs,w);
 
     const max=Math.max(...data.map(d=>d.value),1);
-    if(chartType==='bar') renderBar(data,w,h,{max},color,fs);
-    else if(chartType==='line') renderLine(data,w,h,color,fs);
-    else renderPie(data,w,h,fs);
+    if(chartType==='bar') {
+      renderBar(data,w,h,{max},color,fs,showValueLabel);
+      if (showLegend) drawLegend(data,w,h,fs,legendPos,showValueLabel,color);
+    }
+    else if(chartType==='line') {
+      renderLine(data,w,h,color,fs,showValueLabel);
+      if (showLegend) drawLegend(data,w,h,fs,legendPos,showValueLabel,color);
+    }
+    else renderPie(data,w,h,fs,showLegend,showValueLabel,legendPos);
   }catch(e){ alert(e.message || String(e)); }
 }
 
@@ -261,7 +306,12 @@ function resetForm(){
     fontScale: 100,
     bgColor: '#0d0f14',
     quality: 92,
+    legendPos: 'right',
   }, () => {
+    showLegend = true;
+    showValueLabel = true;
+    document.querySelectorAll('.legend-btn').forEach(b=>b.classList.toggle('active', b.dataset.legend==='on'));
+    document.querySelectorAll('.value-btn').forEach(b=>b.classList.toggle('active', b.dataset.value==='on'));
     loadSample();
     renderChart();
   });
@@ -283,7 +333,9 @@ UIUtils.bindToggleGroup('.src-btn', {
 
 UIUtils.bindToggleGroup('.type-btn', { onChange: (btn) => { chartType = btn.dataset.type; renderChart(); } });
 UIUtils.bindToggleGroup('.fmt-btn', { onChange: (btn) => { exportFormat = btn.dataset.fmt; } });
-['sourceText','chartTitle','seriesColor','outW','outH','fontScale','bgColor'].forEach(id=>document.getElementById(id).addEventListener('input', ()=>renderChart()));
+UIUtils.bindToggleGroup('.legend-btn', { onChange: (btn) => { showLegend = btn.dataset.legend === 'on'; renderChart(); } });
+UIUtils.bindToggleGroup('.value-btn', { onChange: (btn) => { showValueLabel = btn.dataset.value === 'on'; renderChart(); } });
+['sourceText','chartTitle','seriesColor','outW','outH','fontScale','bgColor','legendPos'].forEach(id=>document.getElementById(id).addEventListener('input', ()=>renderChart()));
 
 loadSample();
 renderChart();
