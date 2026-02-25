@@ -255,8 +255,8 @@
       });
     }
 
-    function renderRecents(query=''){
-      if ((query || '').trim()) {
+    function renderRecents(query='', category='ALL'){
+      if ((query || '').trim() || category !== 'ALL') {
         recentGroupsEl.innerHTML = '';
         return;
       }
@@ -280,7 +280,11 @@
       `;
     }
 
-    function renderFavorites(){
+    function renderFavorites(query='', category='ALL'){
+      if ((query || '').trim() || category !== 'ALL') {
+        favoriteGroupsEl.innerHTML = '';
+        return;
+      }
 
       const favTools = TOOLS.filter(t => favorites.has(t.href));
       if (!favTools.length) {
@@ -317,8 +321,8 @@
         groupsEl.innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">🔎</div><p>검색 결과가 없어</p></div></div>`;
       }
 
-      renderRecents(q);
-      renderFavorites();
+      renderRecents(q, activeCategory);
+      renderFavorites(q, activeCategory);
       bindCardButtons();
     }
 
