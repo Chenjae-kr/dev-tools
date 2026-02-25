@@ -478,10 +478,15 @@ body::before {
   .setting-group { margin: 8px 10px; padding: 10px; }
   .options-bar { padding: 10px 12px; gap: 8px; }
   .toggle-group, .dialect-group, .crud-group { flex-wrap: wrap; max-width: 100%; }
-  .table-name-input, .mock-textarea, .ddl-textarea, .md-textarea, textarea, select, input[type="text"], input[type="number"], input[type="file"] {
+  .mock-textarea, .ddl-textarea, .md-textarea, textarea, select, input[type="text"], input[type="number"], input[type="file"] {
     max-width: 100% !important;
     min-width: 0;
   }
+  .table-name-input { max-width: 100%; min-width: 0; }
+  .options-bar.row-tight .table-name-input { flex: 0 1 180px; max-width: 180px !important; }
+  .options-bar.row-tight .table-name-input.input-xs { flex-basis: 90px; max-width: 90px !important; }
+  .options-bar.row-tight .table-name-input.input-sm { flex-basis: 120px; max-width: 120px !important; }
+  .options-bar.row-tight .table-name-input.input-md { flex-basis: 160px; max-width: 160px !important; }
 }
 
   .topnav.nav-open .nav-tools {
@@ -837,9 +842,16 @@ body::before {
     gap: 6px;
     align-items: stretch;
   }
-  .setting-group .options-bar > .options-label {
+  .setting-group .options-bar:not(.row-tight) > .options-label {
     flex: 0 0 100% !important;
     min-width: 0 !important;
+  }
+  .setting-group .options-bar.row-tight {
+    align-items: center;
+  }
+  .setting-group .options-bar.row-tight > .options-label {
+    flex: 0 0 auto !important;
+    min-width: auto !important;
   }
 }
 
