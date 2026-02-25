@@ -44,6 +44,10 @@
 .section-toggle-btn:hover{color:var(--text);border-color:var(--text-muted)}
 .category-head .head-actions{display:flex;align-items:center;gap:8px}
 .quick-access-wrap{padding:6px 0 8px}
+.quick-access-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.quick-access-title{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.quick-access-toggle{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace}
+.quick-access-toggle:hover{color:var(--text);border-color:var(--text-muted)}
 .quick-access-tabs{display:flex;gap:6px;margin-bottom:8px}
 .quick-tab{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace}
 .quick-tab.active{color:var(--accent);border-color:rgba(79,255,176,.4);background:rgba(79,255,176,.08)}
@@ -55,13 +59,18 @@
   .hero-stats{display:none}
   .finder{margin:6px 0 2px}
   .finder input{padding:9px 10px}
-  .cat-chips{flex-wrap:wrap;overflow:visible;padding-bottom:0}
+  .cat-chips{flex-wrap:wrap;overflow:visible;padding-bottom:0;gap:6px}
   .cat-chip{padding:6px 9px;font-size:10px;white-space:nowrap;flex:0 1 auto}
   .quick-access-wrap{padding:4px 0 8px}
   .quick-access-tabs{margin-bottom:6px}
-  .recent-chip-row{flex-wrap:wrap;overflow:visible;padding-bottom:0}
+  .recent-chip-row{flex-wrap:wrap;overflow:visible;padding-bottom:0;gap:6px}
   .recent-chip{white-space:nowrap;flex:0 1 auto}
   .tools-label{margin:6px 0 8px}
+  .tools-grid{gap:12px}
+  .tool-card .card-desc{-webkit-line-clamp:1;min-height:auto}
+  .tool-card .card-io{display:none}
+  .tool-card .card-tags{display:none}
+  .tool-card .card-footer{margin-top:8px;padding-top:6px}
 }
 
 </style>
@@ -94,10 +103,11 @@
     <div id="recentGroups"></div>
   </section>
 
+  <div id="quickAccess"></div>
+
   <!-- ─── Tools Grid ──────────────────────────────────── -->
   <p class="section-label tools-label">Tools</p>
 
-  <div id="quickAccess"></div>
   <div id="favoriteGroups"></div>
   <div id="toolsGroups"></div>
 
@@ -174,12 +184,18 @@
     let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
     let collapsedSections = JSON.parse(localStorage.getItem('devtools-collapsed-sections') || '{}');
     let quickTab = localStorage.getItem('devtools-quick-tab') || 'recent';
+    let mobileFilterExpanded = localStorage.getItem('devtools-mobile-filter-expanded') === '1';
+    let quickAccessCollapsed = localStorage.getItem('devtools-quick-collapsed');
+    quickAccessCollapsed = quickAccessCollapsed == null ? true : quickAccessCollapsed === '1';
     function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
     function saveRecents(){ localStorage.setItem('devtools-recents', JSON.stringify(recents.slice(0,4))); }
     function saveCollapsed(){ localStorage.setItem('devtools-collapsed-sections', JSON.stringify(collapsedSections)); }
     function isCollapsed(key){ return !!collapsedSections[key]; }
     function setCollapsed(key, v){ collapsedSections[key] = !!v; saveCollapsed(); }
     function saveQuickTab(){ localStorage.setItem('devtools-quick-tab', quickTab); }
+    function saveMobileFilterExpanded(){ localStorage.setItem('devtools-mobile-filter-expanded', mobileFilterExpanded ? '1' : '0'); }
+    function saveQuickCollapsed(){ localStorage.setItem('devtools-quick-collapsed', quickAccessCollapsed ? '1' : '0'); }
+    function isMobileView(){ return window.matchMedia('(max-width: 768px)').matches; }
     function sectionHead(title, count, key){
       const collapsed = isCollapsed(key);
       return `
@@ -201,15 +217,34 @@
 
     function renderChips(){
       const all = ['ALL', ...categories];
-      chipsEl.innerHTML = all.map(cat => {
+      const mobile = isMobileView();
+      let visible = all;
+
+      if (mobile && !mobileFilterExpanded) {
+        const base = ['ALL', ...categories.slice(0, 2)];
+        if (activeCategory !== 'ALL' && !base.includes(activeCategory)) base.push(activeCategory);
+        visible = [...new Set(base)];
+      }
+
+      chipsEl.innerHTML = visible.map(cat => {
         const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
         return `<button class="cat-chip ${cls}${cat===activeCategory?' active':''}" data-cat="${cat}">${cat}</button>`;
-      }).join('');
-      chipsEl.querySelectorAll('.cat-chip').forEach(btn=>btn.addEventListener('click', ()=>{
+      }).join('') + (mobile ? `<button class="cat-chip" id="mobileFilterMore">${mobileFilterExpanded ? '접기' : '더보기'}</button>` : '');
+
+      chipsEl.querySelectorAll('.cat-chip[data-cat]').forEach(btn=>btn.addEventListener('click', ()=>{
         activeCategory = btn.dataset.cat;
         renderChips();
         renderGroups();
       }));
+
+      const moreBtn = document.getElementById('mobileFilterMore');
+      if (moreBtn) {
+        moreBtn.addEventListener('click', () => {
+          mobileFilterExpanded = !mobileFilterExpanded;
+          saveMobileFilterExpanded();
+          renderChips();
+        });
+      }
     }
 
     function bindCardButtons(){
@@ -283,6 +318,16 @@
         });
       });
 
+      const qaToggle = document.getElementById('quickAccessToggle');
+      if (qaToggle) {
+        qaToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          quickAccessCollapsed = !quickAccessCollapsed;
+          saveQuickCollapsed();
+          renderGroups();
+        });
+      }
+
       document.querySelectorAll('.tool-card[data-tool-href]').forEach(card => {
         card.addEventListener('click', () => {
           const href = card.dataset.toolHref;
@@ -308,20 +353,28 @@
         return;
       }
 
+      const mobile = isMobileView();
+      const collapsed = mobile ? quickAccessCollapsed : false;
       quickAccessEl.innerHTML = `
         <div class="quick-access-wrap">
-          <div class="quick-access-tabs">
-            <button class="quick-tab ${quickTab==='recent'?'active':''}" data-quick-tab="recent">Recent ${recentTools.length}</button>
-            <button class="quick-tab ${quickTab==='favorites'?'active':''}" data-quick-tab="favorites">Favorites ${favTools.length}</button>
+          <div class="quick-access-head">
+            <span class="quick-access-title">Quick Access</span>
+            <button class="quick-access-toggle" id="quickAccessToggle">${collapsed ? '빠른 접근 보기' : '빠른 접근 숨기기'}</button>
           </div>
-          <div class="recent-chip-row">
-            ${list.map(t => `
-              <a class="recent-chip" href="tools/${t.href}" data-recent-open="${t.href}">
-                <span>${t.icon}</span>
-                <span>${t.title || t.label}</span>
-                ${quickTab==='recent' ? `<button class="recent-chip-remove" data-remove-recent-chip="${t.href}" title="Recent에서 제거">✕</button>` : ''}
-              </a>
-            `).join('')}
+          <div class="${collapsed ? 'hidden' : ''}">
+            <div class="quick-access-tabs">
+              <button class="quick-tab ${quickTab==='recent'?'active':''}" data-quick-tab="recent">Recent ${recentTools.length}</button>
+              <button class="quick-tab ${quickTab==='favorites'?'active':''}" data-quick-tab="favorites">Favorites ${favTools.length}</button>
+            </div>
+            <div class="recent-chip-row">
+              ${list.map(t => `
+                <a class="recent-chip" href="tools/${t.href}" data-recent-open="${t.href}">
+                  <span>${t.icon}</span>
+                  <span>${t.title || t.label}</span>
+                  ${quickTab==='recent' ? `<button class="recent-chip-remove" data-remove-recent-chip="${t.href}" title="Recent에서 제거">✕</button>` : ''}
+                </a>
+              `).join('')}
+            </div>
           </div>
         </div>
       `;
@@ -385,6 +438,7 @@
     renderChips();
     renderGroups();
     searchEl.addEventListener('input', renderGroups);
+    window.addEventListener('resize', () => { renderChips(); renderGroups(); });
 
     document.getElementById('toolCount').textContent = TOOLS.length;
     document.getElementById('categoryCount').textContent = categories.filter(cat => TOOLS.some(t => (t.category || 'Other') === cat)).length;
