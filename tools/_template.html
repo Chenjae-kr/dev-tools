@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tool Template | Dev Tools</title>
+<script src="../tools.js"></script>
+<script src="../nav.js"></script>
+<script src="../ui-utils.js"></script>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<script>renderNav();</script>
+
+<div class="container">
+  <div class="tool-header">
+    <h1>Tool Name</h1>
+    <p>// 설명은 tools.js에서 동기화됩니다.</p>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><div class="dot"></div>INPUT</div>
+          <button class="sample-btn">예시 불러오기</button>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-title">Settings</div>
+          <div class="options-bar row-tight">
+            <span class="options-label">Option</span>
+            <input class="table-name-input" placeholder="입력">
+            <button class="toggle-btn">RESET</button>
+          </div>
+        </div>
+
+        <button class="generate-btn">⚡ 생성</button>
+      </div>
+    </div>
+
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">🧩</div>
+          <p>입력 후 실행 버튼을 눌러 결과를 확인하세요.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// Dev Tools Template</footer>
+</div>
+</body>
+</html>
