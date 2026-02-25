@@ -132,7 +132,9 @@
       <div class="panel-title"><div class="dot"></div>SQL INPUT</div>
     </div>
 
-    <textarea id="sqlInput" placeholder="CREATE TABLE users (
+    <div class="setting-group" data-level="basic">
+      <div class="setting-title">Source</div>
+      <textarea id="sqlInput" placeholder="CREATE TABLE users (
   user_id   INT          NOT NULL AUTO_INCREMENT,
   username  VARCHAR(50)  NOT NULL,
   email     VARCHAR(100) NOT NULL,
@@ -148,14 +150,18 @@ CREATE TABLE orders (
 );
 
 -- .sql 파일을 드래그하거나 📂 버튼으로 업로드해도 됩니다"></textarea>
+    </div>
 
-    <div class="options-bar">
-      <span class="options-label">파일</span>
-      <button class="toggle-btn" id="openFileBtn">📂 .sql 파일 열기</button>
-      <input type="file" id="fileInput" class="hidden" accept=".sql,.txt,.ddl">
-      <span class="options-label">예제</span>
-      <button class="toggle-btn" onclick="loadSample()">샘플 DDL 로드</button>
-      <button class="toggle-btn" onclick="clearInput()">지우기</button>
+    <div class="setting-group" data-level="basic">
+      <div class="setting-title">Options</div>
+      <div class="options-bar">
+        <span class="options-label">파일</span>
+        <button class="toggle-btn" id="openFileBtn">📂 .sql 파일 열기</button>
+        <input type="file" id="fileInput" class="hidden" accept=".sql,.txt,.ddl">
+        <span class="options-label">예제</span>
+        <button class="toggle-btn" onclick="loadSample()">샘플 DDL 로드</button>
+        <button class="toggle-btn" onclick="clearInput()">지우기</button>
+      </div>
     </div>
 
     <div id="erdError" class="hidden"></div>

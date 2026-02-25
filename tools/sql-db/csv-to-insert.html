@@ -157,13 +157,15 @@
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Input</span>
-          <div class="toggle-group">
-            <button class="toggle-btn inputmode-btn active" data-input="csv">CSV</button>
-            <button class="toggle-btn inputmode-btn" data-input="md">Markdown</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <div class="options-bar row-tight">
+            <span class="options-label">Input</span>
+            <div class="toggle-group">
+              <button class="toggle-btn inputmode-btn active" data-input="csv">CSV</button>
+              <button class="toggle-btn inputmode-btn" data-input="md">Markdown</button>
+            </div>
           </div>
-        </div>
 
         <!-- Drop Zone -->
         <div class="csv-drop-zone" id="dropZone">
@@ -199,6 +201,10 @@
         <div class="mapping-wrap" id="mappingWrap">
           <div class="drop-text" >아직 매핑이 없습니다. INSERT 생성을 누르면 컬럼 매핑 UI가 나타납니다.</div>
         </div>
+        </div>
+
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">SQL Options</div>
 
         <!-- Table Name -->
         <div class="options-bar">
@@ -259,6 +265,7 @@
         <div class="options-bar row-tight">
           <span class="options-label">Required Cols</span>
           <input type="text" id="requiredCols" class="table-name-input" placeholder="예: id,name,email">
+        </div>
         </div>
 
         <button class="generate-btn" id="generateBtn" onclick="generate()">

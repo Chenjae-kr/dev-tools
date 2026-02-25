@@ -52,17 +52,23 @@
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
-        <textarea id="sqlInput" class="sql-input" placeholder="SELECT * FROM users WHERE id=1;"></textarea>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <textarea id="sqlInput" class="sql-input" placeholder="SELECT * FROM users WHERE id=1;"></textarea>
+        </div>
 
-        <div class="options-bar">
-          <span class="options-label">Keyword Case</span>
-          <div class="toggle-group">
-            <button class="toggle-btn case-btn active" data-case="upper">UPPER</button>
-            <button class="toggle-btn case-btn" data-case="lower">lower</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Options</div>
+          <div class="options-bar">
+            <span class="options-label">Keyword Case</span>
+            <div class="toggle-group">
+              <button class="toggle-btn case-btn active" data-case="upper">UPPER</button>
+              <button class="toggle-btn case-btn" data-case="lower">lower</button>
+            </div>
+
+            <span class="options-label">Indent</span>
+            <input id="indentSize" class="table-name-input input-xs" type="number" value="2" min="1" max="8">
           </div>
-
-          <span class="options-label">Indent</span>
-          <input id="indentSize" class="table-name-input input-xs" type="number" value="2" min="1" max="8">
         </div>
 
         <button class="generate-btn" onclick="runFormatLint()">⚡ 실행</button>
