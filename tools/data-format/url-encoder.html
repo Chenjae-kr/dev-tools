@@ -30,24 +30,28 @@
           </div>
         </div>
 
-        <textarea class="ddl-textarea" id="urlInput" placeholder="https://example.com/search?q=hello world&lang=한국어"></textarea>
-
-        <!-- Mode -->
-        <div class="options-bar">
-          <span class="options-label">Mode</span>
-          <div class="toggle-group">
-            <button class="toggle-btn active" data-mode="encode">Encode</button>
-            <button class="toggle-btn" data-mode="decode">Decode</button>
-            <button class="toggle-btn" data-mode="parse">Parse</button>
-          </div>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <textarea class="ddl-textarea" id="urlInput" placeholder="https://example.com/search?q=hello world&lang=한국어"></textarea>
         </div>
 
-        <!-- Scope (only for encode/decode) -->
-        <div class="options-bar" id="scopeBar">
-          <span class="options-label">Scope</span>
-          <div class="toggle-group">
-            <button class="toggle-btn active" data-scope="component">Component</button>
-            <button class="toggle-btn" data-scope="full">Full URI</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Options</div>
+          <div class="options-bar">
+            <span class="options-label">Mode</span>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-mode="encode">Encode</button>
+              <button class="toggle-btn" data-mode="decode">Decode</button>
+              <button class="toggle-btn" data-mode="parse">Parse</button>
+            </div>
+          </div>
+
+          <div class="options-bar" id="scopeBar">
+            <span class="options-label">Scope</span>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-scope="component">Component</button>
+              <button class="toggle-btn" data-scope="full">Full URI</button>
+            </div>
           </div>
         </div>
 

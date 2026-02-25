@@ -44,15 +44,17 @@
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Schema</span>
-          <div class="toggle-group">
-            <button class="toggle-btn schema-btn active" data-schema="dsl">DSL</button>
-            <button class="toggle-btn schema-btn" data-schema="ddl">SQL DDL</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <div class="options-bar row-tight">
+            <span class="options-label">Schema</span>
+            <div class="toggle-group">
+              <button class="toggle-btn schema-btn active" data-schema="dsl">DSL</button>
+              <button class="toggle-btn schema-btn" data-schema="ddl">SQL DDL</button>
+            </div>
           </div>
-        </div>
 
-        <textarea id="schemaInput" class="mock-textarea" placeholder="id:int
+          <textarea id="schemaInput" class="mock-textarea" placeholder="id:int
 name:name
 email:email
 age:int(20,60)
@@ -63,24 +65,28 @@ email:email
 age:int(20,60)
 created_at:date
 is_active:bool</textarea>
-
-        <div class="options-bar">
-          <span class="options-label">Rows</span>
-          <input id="rowCount" class="table-name-input small-input" type="number" min="1" max="5000" value="20">
-
-          <span class="options-label">Format</span>
-          <div class="toggle-group">
-            <button class="toggle-btn fmt-btn active" data-fmt="csv">CSV</button>
-            <button class="toggle-btn fmt-btn" data-fmt="json">JSON</button>
-            <button class="toggle-btn fmt-btn" data-fmt="sql">SQL</button>
-          </div>
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Table</span>
-          <input id="tableName" class="table-name-input" value="mock_table" placeholder="mock_table">
-          <span class="options-label">Seed</span>
-          <input id="seed" class="table-name-input small-input" type="number" value="42">
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Options</div>
+          <div class="options-bar">
+            <span class="options-label">Rows</span>
+            <input id="rowCount" class="table-name-input small-input" type="number" min="1" max="5000" value="20">
+
+            <span class="options-label">Format</span>
+            <div class="toggle-group">
+              <button class="toggle-btn fmt-btn active" data-fmt="csv">CSV</button>
+              <button class="toggle-btn fmt-btn" data-fmt="json">JSON</button>
+              <button class="toggle-btn fmt-btn" data-fmt="sql">SQL</button>
+            </div>
+          </div>
+
+          <div class="options-bar row-tight">
+            <span class="options-label">Table</span>
+            <input id="tableName" class="table-name-input" value="mock_table" placeholder="mock_table">
+            <span class="options-label">Seed</span>
+            <input id="seed" class="table-name-input small-input" type="number" value="42">
+          </div>
         </div>
 
         <button class="generate-btn" onclick="generateMock()">⚡ 생성</button>

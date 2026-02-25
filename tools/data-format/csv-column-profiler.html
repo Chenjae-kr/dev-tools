@@ -3,26 +3,58 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CSV Column Profiler | Dev Tools</title>
-<script src="../../tools.js"></script><script src="../../nav.js"></script><script src="../../ui-utils.js"></script>
+<script src="../../tools.js"></script>
+<script src="../../nav.js"></script>
+<script src="../../ui-utils.js"></script>
 <link rel="stylesheet" href="../../styles.css">
-<style>.txt{width:100%;min-height:220px;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;padding:14px 20px;resize:vertical}.profile-wrap{overflow:auto}.profile-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px}.profile-table th,.profile-table td{padding:6px;border-bottom:1px solid var(--border);text-align:left}</style>
-</head><body><script>renderNav();</script>
-<div class="container"><div class="tool-header"><h1>CSV Column <span>Profiler</span></h1><p>// 컬럼별 null/중복/타입/길이 통계</p></div>
-<div class="main-grid"><div><div class="panel"><div class="panel-header"><div class="panel-title"><div class="dot"></div>INPUT</div><button class="sample-btn" onclick="loadSample()">예시 불러오기</button></div>
-<textarea id="input" class="txt" placeholder="id,name,age\n1,Alice,30\n2,Bob,\n2,Bob,31"></textarea>
-<div class="options-bar"><span class="options-label">Delimiter</span><div class="toggle-group"><button class="toggle-btn d active" data-d=",">콤마</button><button class="toggle-btn d" data-d=";">세미콜론</button><button class="toggle-btn d" data-d="\t">탭</button></div></div>
-<button class="generate-btn" onclick="profileCsv()">⚡ 분석</button><p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p></div></div>
-<div class="output-panel" id="out"><div class="panel"><div class="empty-state"><div class="icon">📊</div><p>CSV 입력 후 PROFILE</p></div></div></div></div>
-<footer>// CSV Column Profiler</footer></div>
+<style>
+.txt{width:100%;min-height:220px;background:transparent;border:none;outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;padding:14px 20px;resize:vertical}
+.profile-wrap{overflow:auto}
+.profile-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px}
+.profile-table th,.profile-table td{padding:6px;border-bottom:1px solid var(--border);text-align:left}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+<div class="container">
+  <div class="tool-header"><h1>CSV Column <span>Profiler</span></h1><p>// 컬럼별 null/중복/타입/길이 통계</p></div>
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="dot"></div>INPUT</div><button class="sample-btn" onclick="loadSample()">예시 불러오기</button></div>
+
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <textarea id="input" class="txt" placeholder="id,name,age
+1,Alice,30
+2,Bob,
+2,Bob,31"></textarea>
+        </div>
+
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Options</div>
+          <div class="options-bar"><span class="options-label">Delimiter</span><div class="toggle-group"><button class="toggle-btn d active" data-d=",">콤마</button><button class="toggle-btn d" data-d=";">세미콜론</button><button class="toggle-btn d" data-d="\t">탭</button></div></div>
+        </div>
+
+        <button class="generate-btn" onclick="profileCsv()">⚡ 분석</button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
+      </div>
+    </div>
+    <div class="output-panel" id="out"><div class="panel"><div class="empty-state"><div class="icon">📊</div><p>CSV 입력 후 분석</p></div></div></div>
+  </div>
+  <footer>// CSV Column Profiler</footer>
+</div>
 <script>
-const esc=UIUtils.escHtml;let delim=',';document.querySelectorAll('.d').forEach(b=>b.onclick=()=>{document.querySelectorAll('.d').forEach(x=>x.classList.remove('active'));b.classList.add('active');delim=b.dataset.d==='\\t'?'\t':b.dataset.d});
+const esc=UIUtils.escHtml;let delim=',';
+document.querySelectorAll('.d').forEach(b=>b.onclick=()=>{document.querySelectorAll('.d').forEach(x=>x.classList.remove('active'));b.classList.add('active');delim=b.dataset.d==='\\t'?'\t':b.dataset.d});
 function parse(t){const lines=t.trim().split(/\r?\n/).filter(Boolean);if(lines.length<2) throw new Error('헤더+데이터 필요');const h=lines[0].split(delim).map(s=>s.trim());const rows=lines.slice(1).map(l=>{const c=l.split(delim);while(c.length<h.length)c.push('');return c.slice(0,h.length).map(v=>v.trim())});return {h,rows}}
 function typeOfVals(vals){const f=vals.filter(v=>v!=='');if(!f.length)return 'empty';if(f.every(v=>/^-?\d+$/.test(v)))return 'int';if(f.every(v=>/^-?\d+(\.\d+)?$/.test(v)))return 'number';if(f.every(v=>/^(true|false)$/i.test(v)))return 'bool';if(f.every(v=>/^\d{4}-\d{2}-\d{2}/.test(v)))return 'date';return 'string'}
 function profileCsv(){try{const {h,rows}=parse(document.getElementById('input').value);const total=rows.length;const stats=h.map((col,i)=>{const vals=rows.map(r=>r[i]??'');const nulls=vals.filter(v=>v==='').length;const uniq=new Set(vals.filter(v=>v!==''));const dup=(vals.filter(v=>v!=='').length-uniq.size);const maxLen=Math.max(0,...vals.map(v=>v.length));const minLen=vals.filter(v=>v!=='').length?Math.min(...vals.filter(v=>v!=='').map(v=>v.length)):0;return {col,nulls,nullPct:((nulls/total)*100).toFixed(1),dup,type:typeOfVals(vals),maxLen,minLen}});
 const body=stats.map(s=>`<tr><td>${esc(s.col)}</td><td>${s.type}</td><td>${s.nulls} (${s.nullPct}%)</td><td>${s.dup}</td><td>${s.minLen}/${s.maxLen}</td></tr>`).join('');
 document.getElementById('out').innerHTML=UIUtils.renderSqlBlock({badge:'PROFILE',tag:`${h.length} cols · ${rows.length} rows`,bodyHtml:`<div class="profile-wrap"><table class="profile-table"><thead><tr><th>Column</th><th>Type</th><th>Null</th><th>Duplicate</th><th>Len min/max</th></tr></thead><tbody>${body}</tbody></table></div>`});
-scrollToOutput(document.getElementById('out'));
-}catch(e){UIUtils.showError('out',e.message)}}
+scrollToOutput(document.getElementById('out'));}catch(e){UIUtils.showError('out',e.message)}}
 function loadSample(){document.getElementById('input').value=`id,name,age,email,score\n1,Alice,30,alice@example.com,95\n2,Bob,,bob@example.com,87\n2,Bob,25,,87\n3,Charlie,22,charlie@example.com,`;}
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')profileCsv();});
-</script></body></html>
+</script>
+</body>
+</html>
