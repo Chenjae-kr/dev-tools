@@ -163,6 +163,7 @@
             <span class="options-label">Input</span>
             <div class="toggle-group">
               <button class="toggle-btn inputmode-btn active" data-input="csv">CSV</button>
+              <button class="toggle-btn inputmode-btn" data-input="txt">TXT</button>
               <button class="toggle-btn inputmode-btn" data-input="md">Markdown</button>
             </div>
           </div>
@@ -318,11 +319,21 @@ function refreshUpsertUI() {
 
 function refreshInputModeUI() {
   const isCSV = inputMode === 'csv';
+  const isTXT = inputMode === 'txt';
+  const isMD = inputMode === 'md';
+
   document.getElementById('dropZone').classList.toggle('hidden', !isCSV);
   document.getElementById('csvFileBadge').classList.toggle('hidden', !isCSV);
-  document.querySelector('.csv-divider').textContent = isCSV ? '또는 직접 입력' : 'Markdown 테이블 입력';
-  document.getElementById('csvInput').classList.toggle('hidden', !isCSV);
-  document.getElementById('mdInput').classList.toggle('hidden', isCSV);
+
+  const divider = document.querySelector('.csv-divider');
+  divider.textContent = isCSV
+    ? '파일 업로드 전용 (직접입력은 TXT 모드)'
+    : isTXT
+      ? '직접 입력'
+      : 'Markdown 테이블 입력';
+
+  document.getElementById('csvInput').classList.toggle('hidden', !isTXT);
+  document.getElementById('mdInput').classList.toggle('hidden', !isMD);
 }
 
 function renderMappingUI() {
@@ -732,15 +743,20 @@ function buildOracleMergeStatement(tbl, headers, row, keyHeaders, useNull) {
 
 // ─── Main Generate ────────────────────────────────────────
 function generate() {
-  const sourceText = (inputMode === 'csv'
-    ? document.getElementById('csvInput').value
-    : document.getElementById('mdInput').value).trim();
+  const sourceText = (inputMode === 'md'
+    ? document.getElementById('mdInput').value
+    : document.getElementById('csvInput').value).trim();
   const tableName = document.getElementById('tableName').value.trim() || 'my_table';
   const output = document.getElementById('outputPanel');
   const btn = document.getElementById('generateBtn');
 
   if (!sourceText) {
-    output.innerHTML = `<div class="error-msg">⚠ ${inputMode === 'csv' ? 'CSV 데이터를 입력하거나 파일을 업로드해주세요.' : '마크다운 테이블을 입력해주세요.'}</div>`;
+    const msg = inputMode === 'md'
+      ? '마크다운 테이블을 입력해주세요.'
+      : inputMode === 'csv'
+        ? 'CSV 파일을 업로드해주세요.'
+        : 'TXT 모드에서 데이터를 직접 입력해주세요.';
+    output.innerHTML = `<div class="error-msg">⚠ ${msg}</div>`;
     return;
   }
 
@@ -749,9 +765,9 @@ function generate() {
 
   setTimeout(() => {
     try {
-      const parsed = inputMode === 'csv'
-        ? parseCSV(sourceText, selectedDelim)
-        : parseMarkdownTable(sourceText);
+      const parsed = inputMode === 'md'
+        ? parseMarkdownTable(sourceText)
+        : parseCSV(sourceText, selectedDelim);
       const { headers, rows } = parsed;
       ensureMappings(headers);
 
@@ -909,7 +925,8 @@ function loadSample() {
   document.getElementById('tableName').value = 'users';
   document.getElementById('requiredCols').value = 'id,name,email';
   document.getElementById('csvInput').value = `id,name,age,email\n1,Alice,30,alice@example.com\n2,Bob,25,bob@example.com\n3,Charlie,,\n2,Bob,xx,bob2@example.com`;
-  inputMode = 'csv';
+  inputMode = 'txt';
+  document.querySelectorAll('.inputmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.input===inputMode));
   refreshInputModeUI();
 }
 
