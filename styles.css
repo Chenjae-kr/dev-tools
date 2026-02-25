@@ -2,7 +2,7 @@
    Dev Tools — Shared Stylesheet
    ═══════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700;800&display=swap');
 
 /* ─── Variables ─────────────────────────────────────────── */
 :root {
@@ -21,6 +21,9 @@
   --postgres: #336dc8;
   --mybatis: #e8734a;
   --nav-h: 56px;
+  --font-ui: 'Inter', 'Noto Sans KR', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-title: 'Noto Sans KR', 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 [data-theme="light"] {
@@ -46,7 +49,7 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-ui);
   min-height: 100vh;
   overflow-x: hidden;
   transition: background 0.25s, color 0.25s;
@@ -530,7 +533,7 @@ body::before {
   margin-bottom: 28px;
 }
 
-.tool-header h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+.tool-header h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; font-family: var(--font-title); }
 .tool-header h1 span { color: var(--accent); }
 .tool-header p {
   font-size: 12px;
@@ -794,11 +797,11 @@ body::before {
   color: var(--bg);
   border: none;
   border-radius: 10px;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-title);
   font-size: 14px;
   font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: none;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1186,9 +1189,10 @@ kbd {
 .hero h1 {
   font-size: clamp(40px, 5.5vw, 64px);
   font-weight: 800;
-  letter-spacing: -2.5px;
+  letter-spacing: -1.4px;
   line-height: 1.08;
   margin-bottom: 0;
+  font-family: var(--font-title);
 }
 
 .hero h1 em {
