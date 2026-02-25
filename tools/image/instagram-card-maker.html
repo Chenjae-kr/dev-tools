@@ -283,6 +283,14 @@
             <select id="presetSelect" class="table-name-input"></select>
             <button class="toggle-btn" onclick="loadPreset()">불러오기</button>
             <button class="toggle-btn" onclick="deletePreset()">삭제</button>
+            <button class="toggle-btn" onclick="exportPresets()">내보내기</button>
+            <button class="toggle-btn" onclick="document.getElementById('presetImport').click()">가져오기</button>
+            <input id="presetImport" type="file" accept="application/json" class="hidden">
+            <span class="options-label">적용</span>
+            <div class="toggle-group">
+              <button class="toggle-btn pscope-btn active" data-scope="current">현재</button>
+              <button class="toggle-btn pscope-btn" data-scope="all">전체</button>
+            </div>
           </div>
           <div class="export-actions">
             <button class="export-btn save" onclick="savePage()">💾 페이지 저장</button>
@@ -314,6 +322,7 @@ let page=1, pages=[{}], bodyType='text';
 let exportFormat='png';
 let tableSepMode='auto';
 let tableInputMode='text';
+let presetScope='current';
 const PRESET_KEY='insta-card-presets-v1';
 
 function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',bodyBgMode:'solid',bodyBgColor:'#ffffff',bodyBgOpacity:100,bodyBgImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50,showGuide:true,snapGuide:true}; }
@@ -333,13 +342,39 @@ function refreshPresetSelect(){
   sel.innerHTML = `<option value="">프리셋 선택</option>` + names.map(n=>`<option value="${n}">${n}</option>`).join('');
 }
 function collectPreset(){
+  const p = current();
   return {
     sizeKey, themeKey, bgMode, exportFormat,
     bgColor:document.getElementById('bgColor').value,
     titleColor1:document.getElementById('titleColor1').value,
     titleColor2:document.getElementById('titleColor2').value,
     imgQuality:parseInt(document.getElementById('imgQuality').value||'92',10),
+    pageStyle: {
+      showHeadline: p.showHeadline !== false,
+      showSubtitle: p.showSubtitle !== false,
+      showSource: p.showSource !== false,
+      showBrand: p.showBrand !== false,
+      showPage: p.showPage !== false,
+      showGuide: p.showGuide !== false,
+      snapGuide: p.snapGuide !== false,
+      h1Scale: p.h1Scale ?? 100,
+      h2Scale: p.h2Scale ?? 100,
+      subScale: p.subScale ?? 100,
+      titleY: p.titleY ?? 8,
+      bodyScale: p.bodyScale ?? 100,
+      bodyBgMode: p.bodyBgMode || 'solid',
+      bodyBgColor: p.bodyBgColor || '#ffffff',
+      bodyBgOpacity: p.bodyBgOpacity ?? 100,
+      imgFit: p.imgFit || 'cover',
+      imgZoom: p.imgZoom ?? 100,
+      imgPosX: p.imgPosX ?? 50,
+      imgPosY: p.imgPosY ?? 50,
+    }
   };
+}
+function applyPresetToPage(target, style){
+  if (!style) return target;
+  return { ...target, ...style };
 }
 function applyPreset(v){
   if(!v) return;
@@ -353,6 +388,11 @@ function applyPreset(v){
   document.querySelectorAll('.bgmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.bgmode===bgMode));
   document.querySelectorAll('.exfmt-btn').forEach(b=>b.classList.toggle('active', b.dataset.fmt===exportFormat));
   document.getElementById('bgImageInput').classList.toggle('hidden', bgMode!=='image');
+
+  if (presetScope === 'all') pages = pages.map(pg => applyPresetToPage(pg, v.pageStyle));
+  else pages[page-1] = applyPresetToPage(pages[page-1], v.pageStyle);
+
+  fillInputsFromPage();
   renderCard();
 }
 function savePreset(){
@@ -375,6 +415,15 @@ function deletePreset(){
   const presets=getPresets();
   delete presets[name];
   setPresets(presets); refreshPresetSelect();
+}
+function exportPresets(){
+  const presets = getPresets();
+  const blob = new Blob([JSON.stringify(presets, null, 2)], { type:'application/json;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `insta_presets_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function setBodyUI(){
@@ -1052,6 +1101,7 @@ document.querySelectorAll('.snap-btn').forEach(b=>b.onclick=()=>{document.queryS
 document.querySelectorAll('.sourcevis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sourcevis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.brandvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.brandvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.pscope-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pscope-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');presetScope=b.dataset.scope;});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
 ['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','bodyBgColor','bodyBgOpacity','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
@@ -1063,6 +1113,7 @@ document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.query
 document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
 document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
 document.getElementById('bodyBgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyBgImageData=ev.target.result;savePage();renderCard();};r.readAsDataURL(f);});
+document.getElementById('presetImport').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const data=JSON.parse(ev.target.result||'{}');if(!data||typeof data!=='object')return;const presets=getPresets();setPresets({...presets,...data});refreshPresetSelect();}catch(_){}};r.readAsText(f,'utf-8');});
 
 // init
 pages[0]={

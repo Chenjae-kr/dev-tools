@@ -167,6 +167,13 @@
         <button class="toggle-btn active" data-trim="on">공백 무시</button>
         <button class="toggle-btn" data-trim="off">공백 포함</button>
       </div>
+      <span class="options-label">옵션</span>
+      <div class="toggle-group">
+        <button class="toggle-btn opt-case" data-case="off">대소문자 구분</button>
+        <button class="toggle-btn opt-case active" data-case="on">대소문자 무시</button>
+        <button class="toggle-btn opt-blank" data-blank="off">빈 줄 포함</button>
+        <button class="toggle-btn opt-blank active" data-blank="on">빈 줄 무시</button>
+      </div>
       <span class="options-label">변경 이동</span>
       <div class="toggle-group">
         <button class="toggle-btn" onclick="jumpChange(-1)">이전</button>
@@ -203,9 +210,12 @@
 // ─── State ───────────────────────────────────────────────
 let contextLines = 3;
 let trimWhitespace = true;
+let ignoreCase = true;
+let ignoreBlank = true;
 let diffMode = 'text';
 let viewMode = 'unified';
 let lastPatchText = '';
+let lastOps = [];
 let changeCursor = -1;
 
 document.querySelectorAll('[data-ctx]').forEach(btn => {
@@ -239,6 +249,17 @@ document.querySelectorAll('[data-view]').forEach(btn => {
     viewMode = btn.dataset.view;
   });
 });
+
+document.querySelectorAll('.opt-case').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.opt-case').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ignoreCase = btn.dataset.case === 'on';
+}));
+document.querySelectorAll('.opt-blank').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.opt-blank').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ignoreBlank = btn.dataset.blank === 'on';
+}));
 
 function bindFileInput(id, targetId){
   document.getElementById(id).addEventListener('change', e => {
@@ -425,11 +446,20 @@ function runDiff() {
     try {
       const origNormalized = normalizeForDiff(origRaw);
       const modNormalized = normalizeForDiff(modRaw);
-      const normalise = s => trimWhitespace ? s.trimEnd() : s;
-      const origLines = origNormalized.split('\n').map(normalise);
-      const modLines  = modNormalized.split('\n').map(normalise);
+      const normalise = s => {
+        let v = trimWhitespace ? s.trimEnd() : s;
+        if (ignoreCase) v = v.toLowerCase();
+        return v;
+      };
+      let origLines = origNormalized.split('\n').map(normalise);
+      let modLines  = modNormalized.split('\n').map(normalise);
+      if (ignoreBlank) {
+        origLines = origLines.filter(l => l.trim() !== '');
+        modLines = modLines.filter(l => l.trim() !== '');
+      }
 
       const ops = computeLCS(origLines, modLines);
+      lastOps = ops;
       const hasChanges = ops.some(o => o.type !== 'eq');
       lastPatchText = buildUnifiedPatch(ops);
 
@@ -475,6 +505,7 @@ function runDiff() {
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ ${escHtml(e.message)}</div>`;
       lastPatchText = '';
+      lastOps = [];
     }
 
     btn.textContent = '⚡ 비교하기';
@@ -509,7 +540,21 @@ function buildChangeNav(max = 24){
   if (!lines.length) return '';
   const btns = lines.slice(0, max).map((_,i)=>`<button class="toggle-btn" onclick="jumpChangeTo(${i})">#${i+1}</button>`).join('');
   const more = lines.length > max ? `<span class="sql-dialect-tag">+${lines.length-max} more</span>` : '';
-  return `<div class="change-nav"><span class="sql-dialect-tag">Changes</span>${btns}${more}</div>`;
+  return `<div class="change-nav"><span class="sql-dialect-tag">Changes</span>${btns}${more}<button class="toggle-btn" onclick="copyByType('add')">추가만 COPY</button><button class="toggle-btn" onclick="copyByType('del')">삭제만 COPY</button><button class="toggle-btn" onclick="copyByType('chg')">변경만 COPY</button></div>`;
+}
+
+function copyByType(kind){
+  if (!lastOps.length) return;
+  let lines=[];
+  if (kind==='add') lines = lastOps.filter(o=>o.type==='add').map(o=>`+ ${o.val}`);
+  else if (kind==='del') lines = lastOps.filter(o=>o.type==='del').map(o=>`- ${o.val}`);
+  else {
+    for (let i=0;i<lastOps.length-1;i++) {
+      const a=lastOps[i], b=lastOps[i+1];
+      if (a.type==='del' && b.type==='add') lines.push(`- ${a.val}\n+ ${b.val}`);
+    }
+  }
+  navigator.clipboard.writeText(lines.join('\n'));
 }
 
 // Ctrl/Cmd + Enter

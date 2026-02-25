@@ -256,6 +256,10 @@
           <span class="options-label">Chunk</span>
           <input type="number" id="chunkSize" class="table-name-input input-sm" value="1000" min="1">
         </div>
+        <div class="options-bar row-tight">
+          <span class="options-label">Required Cols</span>
+          <input type="text" id="requiredCols" class="table-name-input" placeholder="예: id,name,email">
+        </div>
 
         <button class="generate-btn" id="generateBtn" onclick="generate()">
           ⚡ INSERT 생성
@@ -289,6 +293,7 @@ let inputMode = 'csv';
 let columnMappings = [];
 let lastHeaderSignature = '';
 let lastDuplicateRows = [];
+let lastErrorRows = [];
 
 // ─── Toggle handlers ─────────────────────────────────────
 function refreshUpsertUI() {
@@ -676,6 +681,24 @@ function detectDuplicateRows(headers, rows, keyHeaders) {
   return dups;
 }
 
+function detectErrorRows(headers, rows, requiredCols) {
+  const reqIdx = requiredCols.map(k => headers.indexOf(k)).filter(i => i >= 0);
+  const numericHint = headers.map((h, i) => ({ i, h, numeric: /(id|age|count|qty|amount|price|score|year)$/i.test(h) }));
+  const out = [];
+  rows.forEach((row, i) => {
+    const reasons = [];
+    reqIdx.forEach(idx => { if (String(row[idx] ?? '').trim() === '') reasons.push(`required:${headers[idx]}`); });
+    numericHint.forEach(({i:idx,h,numeric}) => {
+      if (!numeric) return;
+      const v = String(row[idx] ?? '').trim();
+      if (!v) return;
+      if (isNaN(Number(v.replace(/,/g,'')))) reasons.push(`numeric:${h}`);
+    });
+    if (reasons.length) out.push({ row: i + 1, reasons, values: row });
+  });
+  return out;
+}
+
 function buildOracleMergeStatement(tbl, headers, row, keyHeaders, useNull) {
   const quotedHeaders = headers.map(h => quoteIdent(h, 'oracle'));
   const sourceSelect = headers.map((h, idx) => `${formatValue(row[idx], 'oracle', useNull)} <span class="kw">AS</span> ${quoteIdent(h, 'oracle')}`).join(', ');
@@ -783,13 +806,16 @@ function generate() {
 
       const dupGroups = upsertMode === 'on' ? detectDuplicateRows(mappedHeaders, mappedRows, keyHeaders) : [];
       lastDuplicateRows = dupGroups;
+      const requiredCols = (document.getElementById('requiredCols').value || '').split(',').map(s=>s.trim()).filter(Boolean);
+      const errRows = detectErrorRows(mappedHeaders, mappedRows, requiredCols);
+      lastErrorRows = errRows;
       const emptyCellCount = mappedRows.reduce((sum, r) => sum + r.filter(v => String(v ?? '').trim() === '').length, 0);
       const keyBlankRows = upsertMode === 'on' && keyHeaders.length
         ? mappedRows.map((r,idx)=>({idx:idx+1, bad:keyHeaders.some(k=>String(r[mappedHeaders.indexOf(k)] ?? '').trim()==='')})).filter(x=>x.bad).map(x=>x.idx)
         : [];
-      const qualityHtml = `<div class="table-info"><span>QUALITY</span><span class="info-gap">Empty Cells</span> ${emptyCellCount}<span class="info-gap">Dup Keys</span> ${dupGroups.length}<span class="info-gap">Blank Key Rows</span> ${keyBlankRows.length}</div>`;
-      const dupWarnHtml = dupGroups.length || keyBlankRows.length
-        ? `<div class="dup-warn">⚠ 데이터 품질 경고: 중복키 ${dupGroups.length}건, 키 공백 행 ${keyBlankRows.length}건 <button class="copy-btn" onclick="downloadDuplicateRows()">중복행 다운로드</button></div>`
+      const qualityHtml = `<div class="table-info"><span>QUALITY</span><span class="info-gap">Empty Cells</span> ${emptyCellCount}<span class="info-gap">Dup Keys</span> ${dupGroups.length}<span class="info-gap">Blank Key Rows</span> ${keyBlankRows.length}<span class="info-gap">Error Rows</span> ${errRows.length}</div>`;
+      const dupWarnHtml = dupGroups.length || keyBlankRows.length || errRows.length
+        ? `<div class="dup-warn">⚠ 데이터 품질 경고: 중복키 ${dupGroups.length}건, 키 공백 행 ${keyBlankRows.length}건, 에러 행 ${errRows.length}건 <button class="copy-btn" onclick="downloadDuplicateRows()">중복행 다운로드</button> <button class="copy-btn" onclick="downloadErrorRows()">에러행 다운로드</button></div>`
         : '';
 
       output.innerHTML = `
@@ -867,9 +893,26 @@ function downloadDuplicateRows() {
 
 function loadSample() {
   document.getElementById('tableName').value = 'users';
-  document.getElementById('csvInput').value = `id,name,age,email\n1,Alice,30,alice@example.com\n2,Bob,25,bob@example.com\n3,Charlie,,charlie@example.com\n2,Bob,25,bob2@example.com`;
+  document.getElementById('requiredCols').value = 'id,name,email';
+  document.getElementById('csvInput').value = `id,name,age,email\n1,Alice,30,alice@example.com\n2,Bob,25,bob@example.com\n3,Charlie,,\n2,Bob,xx,bob2@example.com`;
   inputMode = 'csv';
   refreshInputModeUI();
+}
+
+function downloadErrorRows() {
+  if (!lastErrorRows.length) return;
+  const lines = ['row,reasons,values'];
+  lastErrorRows.forEach(r => {
+    const reasons = `"${r.reasons.join('|').replace(/"/g,'""')}"`;
+    const values = `"${r.values.join(',').replace(/"/g,'""')}"`;
+    lines.push(`${r.row},${reasons},${values}`);
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `error_rows_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 // Ctrl/Cmd + Enter to generate
