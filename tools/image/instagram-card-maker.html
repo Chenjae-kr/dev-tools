@@ -129,21 +129,12 @@
           <input id="labelText" class="table-name-input" placeholder="2026년 IPO 예상 주요 기업" value="2026년 IPO 예상 주요 기업">
         </div>
 
-        <div class="options-row options-row-2">
-          <div class="options-item">
-            <div class="options-bar row-tight">
-              <span class="options-label">Content JSON</span>
-              <button class="toggle-btn" onclick="openHeadlineJsonPopup()">JSON 입력</button>
-              <button class="toggle-btn" onclick="document.getElementById('headlineJsonFile').click()">JSON 파일</button>
-              <input id="headlineJsonFile" type="file" accept=".json,application/json" class="hidden">
-            </div>
-          </div>
-          <div class="options-item">
-            <div class="options-bar row-tight">
-              <span class="options-label">Reset</span>
-              <button class="toggle-btn reset-icon-btn" onclick="resetHeadlineInputs()" title="입력값 초기화" aria-label="입력값 초기화">↻</button>
-            </div>
-          </div>
+        <div class="options-bar row-tight json-action-bar">
+          <span class="options-label">Content JSON</span>
+          <button class="toggle-btn" onclick="openHeadlineJsonPopup()">JSON 입력</button>
+          <button class="toggle-btn" onclick="document.getElementById('headlineJsonFile').click()">JSON 파일</button>
+          <input id="headlineJsonFile" type="file" accept=".json,application/json" class="hidden">
+          <button class="toggle-btn reset-icon-btn" onclick="resetHeadlineInputs()" title="입력값 초기화" aria-label="입력값 초기화">↻</button>
         </div>
         <textarea id="headlineJsonInput" class="input-area hidden" placeholder='{
   "headline1": "카드뉴스 제목 1줄",

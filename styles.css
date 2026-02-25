@@ -1544,17 +1544,30 @@ kbd {
 }
 button.card-tag { appearance:none; -webkit-appearance:none; }
 
+.json-action-bar .reset-icon-btn {
+  margin-left: auto;
+}
 .reset-icon-btn {
-  width: 34px;
-  height: 34px;
-  min-height: 34px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
   padding: 0;
   border-radius: 999px;
-  font-size: 20px;
+  font-size: 17px;
+  font-weight: 800;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border-color: rgba(248,113,113,.45);
+  color: #fda4af;
+  background: rgba(248,113,113,.08);
+}
+.reset-icon-btn:hover {
+  border-color: rgba(248,113,113,.72);
+  color: #fecdd3;
+  background: rgba(248,113,113,.16);
+  transform: translateY(-1px) rotate(-20deg);
 }
 
 .card-tag-more {
