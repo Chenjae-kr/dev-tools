@@ -17,6 +17,11 @@
 .main-grid > .output-panel{position:sticky;top:84px;align-self:start}
 .main-grid > .output-panel .panel{max-height:calc(100vh - 110px);overflow:auto}
 @media (max-width: 980px){.main-grid > .output-panel{position:static}.main-grid > .output-panel .panel{max-height:none;overflow:visible}}
+.json-dialog{width:min(760px,92vw);border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);padding:12px}
+.json-dialog::backdrop{background:rgba(0,0,0,.45)}
+.json-dialog-head{font-family:var(--font-title);font-size:13px;margin-bottom:8px}
+.json-dialog-input{min-height:300px}
+.json-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -92,6 +97,7 @@
           <div class="options-bar row-tight">
             <span class="options-label">JSON Data</span>
             <button class="toggle-btn" onclick="fillThumbJsonFromInputs()">현재값 채우기</button>
+            <button class="toggle-btn" onclick="openThumbJsonPopup()">팝업 입력</button>
             <button class="toggle-btn" onclick="applyThumbJsonToInputs()">JSON 적용</button>
             <button class="toggle-btn" onclick="document.getElementById('thumbJsonFile').click()">JSON 파일</button>
             <input id="thumbJsonFile" type="file" accept=".json,application/json" class="hidden">
@@ -169,6 +175,15 @@
   </div>
   <footer>// Thumbnail Maker</footer>
 </div>
+
+<dialog id="thumbJsonDialog" class="json-dialog">
+  <div class="json-dialog-head">썸네일 JSON 입력</div>
+  <textarea id="thumbJsonDialogInput" class="input-area json-dialog-input"></textarea>
+  <div class="json-dialog-actions">
+    <button class="toggle-btn" onclick="closeThumbJsonPopup()">취소</button>
+    <button class="download-btn single" onclick="applyThumbJsonFromPopup()">적용</button>
+  </div>
+</dialog>
 
 <script>
 let ratio = '1:1';
@@ -373,6 +388,27 @@ function applyThumbJsonObject(rawObj){
   if (obj.quality != null || obj.imgQuality != null) {
     document.getElementById('imgQuality').value = parseInt(obj.quality ?? obj.imgQuality, 10);
   }
+}
+
+function openThumbJsonPopup(){
+  fillThumbJsonFromInputs(false);
+  const dlg = document.getElementById('thumbJsonDialog');
+  const input = document.getElementById('thumbJsonDialogInput');
+  if (!dlg || !input) return;
+  input.value = document.getElementById('thumbJsonInput').value || '';
+  dlg.showModal();
+}
+
+function closeThumbJsonPopup(){
+  document.getElementById('thumbJsonDialog')?.close();
+}
+
+function applyThumbJsonFromPopup(){
+  const input = document.getElementById('thumbJsonDialogInput');
+  if (!input) return;
+  document.getElementById('thumbJsonInput').value = input.value;
+  applyThumbJsonToInputs();
+  closeThumbJsonPopup();
 }
 
 function applyThumbJsonToInputs(){

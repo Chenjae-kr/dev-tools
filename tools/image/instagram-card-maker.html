@@ -48,6 +48,11 @@
 .export-btn:hover{transform:translateY(-1px);filter:brightness(1.03)}
 .export-btn:active{transform:translateY(0)}
 @media (max-width: 768px){.export-actions{grid-template-columns:1fr}}
+.json-dialog{width:min(760px,92vw);border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);padding:12px}
+.json-dialog::backdrop{background:rgba(0,0,0,.45)}
+.json-dialog-head{font-family:var(--font-title);font-size:13px;margin-bottom:8px}
+.json-dialog-input{min-height:300px}
+.json-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -127,6 +132,7 @@
         <div class="options-bar row-tight">
           <span class="options-label">Content JSON</span>
           <button class="toggle-btn" onclick="fillHeadlineJsonFromInputs()">현재값 채우기</button>
+          <button class="toggle-btn" onclick="openHeadlineJsonPopup()">팝업 입력</button>
           <button class="toggle-btn" onclick="applyHeadlineJsonToInputs()">JSON 적용</button>
         </div>
         <textarea id="headlineJsonInput" class="input-area" placeholder='{
@@ -327,6 +333,15 @@
   </div>
   <footer>// Instagram Card News Maker</footer>
 </div>
+
+<dialog id="headlineJsonDialog" class="json-dialog">
+  <div class="json-dialog-head">헤드라인 JSON 입력</div>
+  <textarea id="headlineJsonDialogInput" class="input-area json-dialog-input"></textarea>
+  <div class="json-dialog-actions">
+    <button class="toggle-btn" onclick="closeHeadlineJsonPopup()">취소</button>
+    <button class="download-btn single" onclick="applyHeadlineJsonFromPopup()">적용</button>
+  </div>
+</dialog>
 
 <script>
 const sizes = { '1:1':[1080,1080], '4:5':[1080,1350], '9:16':[1080,1920] };
@@ -538,6 +553,27 @@ function fillHeadlineJsonFromInputs(showMsg=true){
   };
   document.getElementById('headlineJsonInput').value = JSON.stringify(payload, null, 2);
   if (showMsg) document.getElementById('headlineJsonHint').textContent = '현재 화면 값을 JSON으로 채웠습니다.';
+}
+
+function openHeadlineJsonPopup(){
+  fillHeadlineJsonFromInputs(false);
+  const dlg = document.getElementById('headlineJsonDialog');
+  const input = document.getElementById('headlineJsonDialogInput');
+  if (!dlg || !input) return;
+  input.value = document.getElementById('headlineJsonInput').value || '';
+  dlg.showModal();
+}
+
+function closeHeadlineJsonPopup(){
+  document.getElementById('headlineJsonDialog')?.close();
+}
+
+function applyHeadlineJsonFromPopup(){
+  const input = document.getElementById('headlineJsonDialogInput');
+  if (!input) return;
+  document.getElementById('headlineJsonInput').value = input.value;
+  applyHeadlineJsonToInputs();
+  closeHeadlineJsonPopup();
 }
 
 function applyHeadlineJsonToInputs(){
