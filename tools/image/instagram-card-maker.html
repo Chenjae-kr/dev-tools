@@ -833,12 +833,16 @@ function applyCardJsonFromPopup(){
   const input = document.getElementById('cardJsonDialogInput');
   if (!input) return;
   document.getElementById('cardJsonInput').value = input.value;
-  applyCardJsonToInputs();
-  closeCardJsonPopup();
+  const ok = applyCardJsonToInputs();
+  if (ok) closeCardJsonPopup();
 }
 function applyCardJsonToInputs(){
   const raw = (document.getElementById('cardJsonInput').value || '').trim();
-  if (!raw) { document.getElementById('cardJsonHint').textContent = 'JSON 입력값이 비어 있습니다.'; return; }
+  if (!raw) {
+    document.getElementById('cardJsonHint').textContent = 'JSON 입력값이 비어 있습니다.';
+    alert('JSON 입력값이 비어 있습니다.');
+    return false;
+  }
   try {
     const obj = JSON.parse(raw);
     if (!obj || typeof obj !== 'object') throw new Error('object expected');
@@ -855,10 +859,16 @@ function applyCardJsonToInputs(){
     applyBodyJsonToInputs();
     applyFooterJsonToInputs();
 
+    savePage();
+    setPageLabel();
+    renderCard();
     fillCardJsonFromInputs(false);
     document.getElementById('cardJsonHint').textContent = '카드 JSON 적용 완료';
-  } catch (_) {
+    return true;
+  } catch (e) {
     document.getElementById('cardJsonHint').textContent = 'JSON 형식이 올바르지 않습니다.';
+    alert(`JSON 형식 오류: ${e?.message || e}`);
+    return false;
   }
 }
 
