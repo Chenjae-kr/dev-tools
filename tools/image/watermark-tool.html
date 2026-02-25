@@ -67,16 +67,7 @@
               <button class="toggle-btn pos-btn" data-pos="tile">바둑판</button>
             </div>
           </div>
-          <div class="options-bar hidden" id="tileOpts">
-            <span class="options-label">Rows</span><input id="tileRows" type="number" value="3" min="1" max="12" class="table-name-input input-xs">
-            <span class="options-label">Cols</span><input id="tileCols" type="number" value="3" min="1" max="12" class="table-name-input input-xs">
-            <span class="options-label">Gap(px)</span><input id="tileGap" type="number" value="40" min="0" max="500" class="table-name-input input-xs">
-            <span class="options-label">Offset</span>
-            <div class="toggle-group">
-              <button class="toggle-btn tileoff-btn active" data-offset="on">ON</button>
-              <button class="toggle-btn tileoff-btn" data-offset="off">OFF</button>
-            </div>
-          </div>
+          <!-- tile mode uses auto-fill across full canvas -->
           <div class="options-bar">
             <span class="options-label">Margin(px)</span><input id="wmMargin" type="number" value="24" min="0" max="200" class="table-name-input input-xs">
             <span class="options-label">Opacity%</span><input id="wmOpacity" type="number" value="60" min="1" max="100" class="table-name-input input-xs">
@@ -117,18 +108,15 @@
 </div>
 
 <script>
-let baseImage=null, watermarkImage=null, wmType='text', wmPos='br', exportFormat='png', showTimestamp=false, tileOffset=true;
+let baseImage=null, watermarkImage=null, wmType='text', wmPos='br', exportFormat='png', showTimestamp=false;
 const canvas=document.getElementById('wmCanvas'); const ctx=canvas.getContext('2d');
 
 function bindInput(ids){ ids.forEach(id=>document.getElementById(id).addEventListener('input', render)); }
-bindInput(['wmText','wmColor','wmTextSize','wmImgScale','wmMargin','wmOpacity','wmRotate','imgQuality','tileRows','tileCols','tileGap']);
+bindInput(['wmText','wmColor','wmTextSize','wmImgScale','wmMargin','wmOpacity','wmRotate','imgQuality']);
 
 function updateWatermarkTypeUI(){
   document.getElementById('wmTextWrap').classList.toggle('hidden', wmType!=='text');
   document.getElementById('wmImageWrap').classList.toggle('hidden', wmType!=='image');
-}
-function updatePositionUI(){
-  document.getElementById('tileOpts').classList.toggle('hidden', wmPos !== 'tile');
 }
 
 document.querySelectorAll('.wmtype-btn').forEach(b=>b.onclick=()=>{
@@ -138,8 +126,7 @@ document.querySelectorAll('.wmtype-btn').forEach(b=>b.onclick=()=>{
   updateWatermarkTypeUI();
   render();
 });
-document.querySelectorAll('.pos-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pos-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmPos=b.dataset.pos;updatePositionUI();render();});
-document.querySelectorAll('.tileoff-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tileoff-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tileOffset=b.dataset.offset==='on';render();});
+document.querySelectorAll('.pos-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pos-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmPos=b.dataset.pos;render();});
 document.querySelectorAll('.ts-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.ts-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');showTimestamp=b.dataset.ts==='on';render();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
@@ -155,28 +142,23 @@ function computePos(w,h,mw,mh,margin,pos){
   return [w-margin-mw/2, h-margin-mh/2];
 }
 
-function computeTilePoints(w,h,mw,mh,margin,rows,cols,gap,offsetOn){
+function computeTilePoints(w,h,mw,mh,margin){
   const pts=[];
-  const safeRows = Math.max(1, Math.min(12, rows));
-  const safeCols = Math.max(1, Math.min(12, cols));
-  const safeGap = Math.max(0, Math.min(500, gap));
+  const pad = Math.max(0, Math.min(200, margin));
+  const gap = Math.max(8, Math.round(Math.min(mw, mh) * 0.28));
+  const stepX = mw + gap;
+  const stepY = mh + gap;
+  const minX = pad + mw/2, maxX = w - pad - mw/2;
+  const minY = pad + mh/2, maxY = h - pad - mh/2;
 
-  const totalW = safeCols * mw + (safeCols - 1) * safeGap;
-  const totalH = safeRows * mh + (safeRows - 1) * safeGap;
-  const baseX = (w - totalW) / 2 + mw / 2;
-  const baseY = (h - totalH) / 2 + mh / 2;
-  const minX = margin + mw/2, maxX = w - margin - mw/2;
-  const minY = margin + mh/2, maxY = h - margin - mh/2;
-
-  for(let r=0; r<safeRows; r++){
-    const y = baseY + r * (mh + safeGap);
-    if (y < minY || y > maxY) continue;
-    for(let c=0; c<safeCols; c++){
-      let x = baseX + c * (mw + safeGap);
-      if (offsetOn && (r % 2 === 1)) x += (mw + safeGap) / 2;
+  let row = 0;
+  for(let y=minY; y<=maxY; y+=stepY){
+    const offsetX = row % 2 === 1 ? stepX / 2 : 0;
+    for(let x=minX - offsetX; x<=maxX + stepX; x+=stepX){
       if (x < minX || x > maxX) continue;
-      pts.push([x, y]);
+      pts.push([x,y]);
     }
+    row++;
   }
   return pts;
 }
@@ -228,10 +210,7 @@ function render(){
     };
 
     if (wmPos === 'tile') {
-      const rows = parseInt(document.getElementById('tileRows').value||'3',10);
-      const cols = parseInt(document.getElementById('tileCols').value||'3',10);
-      const gap = parseInt(document.getElementById('tileGap').value||'40',10);
-      const pts = computeTilePoints(w,h,tw,th,margin,rows,cols,gap,tileOffset);
+      const pts = computeTilePoints(w,h,tw,th,margin);
       pts.forEach(([x,y])=>drawAt(x,y,drawTxt));
     } else {
       const [x,y]=computePos(w,h,tw,th,margin,wmPos);
@@ -246,10 +225,7 @@ function render(){
     const drawImg = ()=>ctx.drawImage(watermarkImage,-mw/2,-mh/2,mw,mh);
 
     if (wmPos === 'tile') {
-      const rows = parseInt(document.getElementById('tileRows').value||'3',10);
-      const cols = parseInt(document.getElementById('tileCols').value||'3',10);
-      const gap = parseInt(document.getElementById('tileGap').value||'40',10);
-      const pts = computeTilePoints(w,h,mw,mh,margin,rows,cols,gap,tileOffset);
+      const pts = computeTilePoints(w,h,mw,mh,margin);
       pts.forEach(([x,y])=>drawAt(x,y,drawImg));
     } else {
       const [x,y]=computePos(w,h,mw,mh,margin,wmPos);
@@ -265,7 +241,6 @@ function downloadOut(){
 }
 
 updateWatermarkTypeUI();
-updatePositionUI();
 render();
 </script>
 </body>
