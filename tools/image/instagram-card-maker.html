@@ -130,19 +130,24 @@
         </div>
 
         <div class="options-bar row-tight json-action-bar">
-          <span class="options-label">Content JSON</span>
-          <button class="toggle-btn" onclick="openHeadlineJsonPopup()">JSON 입력</button>
-          <button class="toggle-btn" onclick="document.getElementById('headlineJsonFile').click()">JSON 파일</button>
-          <input id="headlineJsonFile" type="file" accept=".json,application/json" class="hidden">
-          <button class="toggle-btn reset-icon-btn" onclick="resetHeadlineInputs()" title="입력값 초기화" aria-label="입력값 초기화">↻</button>
+          <span class="options-label">Card JSON</span>
+          <button class="toggle-btn" onclick="openCardJsonPopup()">JSON 입력</button>
+          <button class="toggle-btn" onclick="document.getElementById('cardJsonFile').click()">JSON 파일</button>
+          <input id="cardJsonFile" type="file" accept=".json,application/json" class="hidden">
+          <button class="toggle-btn reset-icon-btn" onclick="resetCardInputs()" title="전체 입력값 초기화" aria-label="전체 입력값 초기화">↻</button>
         </div>
-        <textarea id="headlineJsonInput" class="input-area hidden" placeholder='{
-  "headline1": "카드뉴스 제목 1줄",
-  "headline2": "카드뉴스 제목 2줄",
-  "subtitle": "소제목/요약",
-  "label": "라벨 배너"
+        <textarea id="cardJsonInput" class="input-area hidden" placeholder='{
+  "headline": { "headline1": "카드뉴스 제목 1줄", "headline2": "카드뉴스 제목 2줄", "subtitle": "소제목", "label": "라벨" },
+  "body": { "bodyType": "text", "bodyText": "본문 텍스트", "bodyScale": 100 },
+  "footer": { "sourceText": "출처: 관련 자료", "brandText": "@instagram", "showSource": true, "showBrand": true, "showPage": true, "pageCount": 1 }
 }'></textarea>
-        <div id="headlineJsonHint" class="text-muted mt-8 hidden">헤드라인/서브타이틀/라벨을 묶어서 JSON으로 한번에 입력할 수 있어요.</div>
+        <div id="cardJsonHint" class="text-muted mt-8 hidden">카드 전체(헤드라인/바디/푸터)를 JSON 한 번에 입력할 수 있어요.</div>
+        <textarea id="headlineJsonInput" class="hidden"></textarea>
+        <div id="headlineJsonHint" class="hidden"></div>
+        <textarea id="bodyJsonInput" class="hidden"></textarea>
+        <div id="bodyJsonHint" class="hidden"></div>
+        <textarea id="footerJsonInput" class="hidden"></textarea>
+        <div id="footerJsonHint" class="hidden"></div>
 
         <div class="control-grid-4">
           <input id="h1Scale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="H1 Size%">
@@ -170,19 +175,7 @@
           <textarea id="bodyText" class="input-area" placeholder="본문 텍스트 (줄바꿈 지원)"></textarea>
         </div>
 
-        <div class="options-bar row-tight json-action-bar">
-          <span class="options-label">Body JSON</span>
-          <button class="toggle-btn" onclick="openBodyJsonPopup()">JSON 입력</button>
-          <button class="toggle-btn" onclick="document.getElementById('bodyJsonFile').click()">JSON 파일</button>
-          <input id="bodyJsonFile" type="file" accept=".json,application/json" class="hidden">
-          <button class="toggle-btn reset-icon-btn" onclick="resetBodyInputs()" title="입력값 초기화" aria-label="입력값 초기화">↻</button>
-        </div>
-        <textarea id="bodyJsonInput" class="input-area hidden" placeholder='{
-  "bodyType": "text",
-  "bodyText": "본문 텍스트",
-  "bodyScale": 100
-}'></textarea>
-        <div id="bodyJsonHint" class="text-muted mt-8 hidden">바디 관련 설정을 JSON으로 한 번에 입력할 수 있어요.</div>
+        <!-- body JSON controls unified into Card JSON -->
 
         <div id="bodyTableWrap" class="hidden">
           <div class="options-bar row-tight">
@@ -302,22 +295,7 @@
           <button class="toggle-btn" onclick="nextPage()">▶</button>
         </div>
 
-        <div class="options-bar row-tight json-action-bar">
-          <span class="options-label">Footer JSON</span>
-          <button class="toggle-btn" onclick="openFooterJsonPopup()">JSON 입력</button>
-          <button class="toggle-btn" onclick="document.getElementById('footerJsonFile').click()">JSON 파일</button>
-          <input id="footerJsonFile" type="file" accept=".json,application/json" class="hidden">
-          <button class="toggle-btn reset-icon-btn" onclick="resetFooterInputs()" title="입력값 초기화" aria-label="입력값 초기화">↻</button>
-        </div>
-        <textarea id="footerJsonInput" class="input-area hidden" placeholder='{
-  "sourceText": "출처: 관련 자료",
-  "brandText": "@instagram",
-  "showSource": true,
-  "showBrand": true,
-  "showPage": true,
-  "pageCount": 1
-}'></textarea>
-        <div id="footerJsonHint" class="text-muted mt-8 hidden">푸터/페이지 설정을 JSON으로 한 번에 입력할 수 있어요.</div>
+        <!-- footer JSON controls unified into Card JSON -->
         </div>
 
         <div class="setting-group">
@@ -366,30 +344,12 @@
   <footer>// Instagram Card News Maker</footer>
 </div>
 
-<dialog id="headlineJsonDialog" class="json-dialog">
-  <div class="json-dialog-head">헤드라인 JSON 입력</div>
-  <textarea id="headlineJsonDialogInput" class="input-area json-dialog-input"></textarea>
+<dialog id="cardJsonDialog" class="json-dialog">
+  <div class="json-dialog-head">카드 전체 JSON 입력</div>
+  <textarea id="cardJsonDialogInput" class="input-area json-dialog-input"></textarea>
   <div class="json-dialog-actions">
-    <button class="toggle-btn" onclick="closeHeadlineJsonPopup()">취소</button>
-    <button class="download-btn single" onclick="applyHeadlineJsonFromPopup()">적용</button>
-  </div>
-</dialog>
-
-<dialog id="bodyJsonDialog" class="json-dialog">
-  <div class="json-dialog-head">바디 JSON 입력</div>
-  <textarea id="bodyJsonDialogInput" class="input-area json-dialog-input"></textarea>
-  <div class="json-dialog-actions">
-    <button class="toggle-btn" onclick="closeBodyJsonPopup()">취소</button>
-    <button class="download-btn single" onclick="applyBodyJsonFromPopup()">적용</button>
-  </div>
-</dialog>
-
-<dialog id="footerJsonDialog" class="json-dialog">
-  <div class="json-dialog-head">푸터 JSON 입력</div>
-  <textarea id="footerJsonDialogInput" class="input-area json-dialog-input"></textarea>
-  <div class="json-dialog-actions">
-    <button class="toggle-btn" onclick="closeFooterJsonPopup()">취소</button>
-    <button class="download-btn single" onclick="applyFooterJsonFromPopup()">적용</button>
+    <button class="toggle-btn" onclick="closeCardJsonPopup()">취소</button>
+    <button class="download-btn single" onclick="applyCardJsonFromPopup()">적용</button>
   </div>
 </dialog>
 
@@ -555,7 +515,7 @@ function fillInputsFromPage(){
   document.getElementById('labelText').value=p.label||'';
   document.getElementById('bodyText').value=p.bodyText||'';
   document.getElementById('tableText').value=p.tableText||'';
-  fillHeadlineJsonFromInputs(false);
+  fillCardJsonFromInputs(false);
   document.getElementById('h1Scale').value=p.h1Scale ?? 100;
   document.getElementById('h2Scale').value=p.h2Scale ?? 100;
   document.getElementById('subScale').value=p.subScale ?? 100;
@@ -843,6 +803,72 @@ function resetFooterInputs(){
   document.getElementById('footerJsonInput').value = '';
   const dialogInput = document.getElementById('footerJsonDialogInput');
   if (dialogInput) dialogInput.value = '';
+  savePage();
+  renderCard();
+}
+
+function fillCardJsonFromInputs(showMsg=true){
+  fillHeadlineJsonFromInputs(false);
+  fillBodyJsonFromInputs(false);
+  fillFooterJsonFromInputs(false);
+  let h={}, b={}, f={};
+  try { h = JSON.parse(document.getElementById('headlineJsonInput').value || '{}'); } catch(_) {}
+  try { b = JSON.parse(document.getElementById('bodyJsonInput').value || '{}'); } catch(_) {}
+  try { f = JSON.parse(document.getElementById('footerJsonInput').value || '{}'); } catch(_) {}
+  const payload = { headline: h, body: b, footer: f };
+  document.getElementById('cardJsonInput').value = JSON.stringify(payload, null, 2);
+  if (showMsg) document.getElementById('cardJsonHint').textContent = '현재 카드 설정을 JSON으로 채웠습니다.';
+}
+
+function openCardJsonPopup(){
+  fillCardJsonFromInputs(false);
+  const dlg = document.getElementById('cardJsonDialog');
+  const input = document.getElementById('cardJsonDialogInput');
+  if (!dlg || !input) return;
+  input.value = document.getElementById('cardJsonInput').value || '';
+  dlg.showModal();
+}
+function closeCardJsonPopup(){ document.getElementById('cardJsonDialog')?.close(); }
+function applyCardJsonFromPopup(){
+  const input = document.getElementById('cardJsonDialogInput');
+  if (!input) return;
+  document.getElementById('cardJsonInput').value = input.value;
+  applyCardJsonToInputs();
+  closeCardJsonPopup();
+}
+function applyCardJsonToInputs(){
+  const raw = (document.getElementById('cardJsonInput').value || '').trim();
+  if (!raw) { document.getElementById('cardJsonHint').textContent = 'JSON 입력값이 비어 있습니다.'; return; }
+  try {
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object') throw new Error('object expected');
+
+    const h = (obj.headline && typeof obj.headline === 'object') ? obj.headline : obj;
+    const b = (obj.body && typeof obj.body === 'object') ? obj.body : obj;
+    const f = (obj.footer && typeof obj.footer === 'object') ? obj.footer : obj;
+
+    document.getElementById('headlineJsonInput').value = JSON.stringify(h);
+    document.getElementById('bodyJsonInput').value = JSON.stringify(b);
+    document.getElementById('footerJsonInput').value = JSON.stringify(f);
+
+    applyHeadlineJsonToInputs();
+    applyBodyJsonToInputs();
+    applyFooterJsonToInputs();
+
+    fillCardJsonFromInputs(false);
+    document.getElementById('cardJsonHint').textContent = '카드 JSON 적용 완료';
+  } catch (_) {
+    document.getElementById('cardJsonHint').textContent = 'JSON 형식이 올바르지 않습니다.';
+  }
+}
+
+function resetCardInputs(){
+  resetHeadlineInputs();
+  resetBodyInputs();
+  resetFooterInputs();
+  document.getElementById('cardJsonInput').value = '';
+  const d = document.getElementById('cardJsonDialogInput');
+  if (d) d.value = '';
   savePage();
   renderCard();
 }
@@ -1539,9 +1565,7 @@ document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.
 document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
 document.getElementById('bodyBgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyBgImageData=ev.target.result;savePage();renderCard();};r.readAsDataURL(f);});
 document.getElementById('presetImport').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const data=JSON.parse(ev.target.result||'{}');if(!data||typeof data!=='object')return;const presets=getPresets();setPresets({...presets,...data});refreshPresetSelect();}catch(_){}};r.readAsText(f,'utf-8');});
-document.getElementById('headlineJsonFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const txt=String(ev.target?.result||'');document.getElementById('headlineJsonInput').value=txt;applyHeadlineJsonToInputs();}catch(_){document.getElementById('headlineJsonHint').textContent='JSON 파일을 읽는 중 오류가 발생했습니다.';}};r.readAsText(f,'utf-8');});
-document.getElementById('bodyJsonFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const txt=String(ev.target?.result||'');document.getElementById('bodyJsonInput').value=txt;applyBodyJsonToInputs();}catch(_){document.getElementById('bodyJsonHint').textContent='JSON 파일을 읽는 중 오류가 발생했습니다.';}};r.readAsText(f,'utf-8');});
-document.getElementById('footerJsonFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const txt=String(ev.target?.result||'');document.getElementById('footerJsonInput').value=txt;applyFooterJsonToInputs();}catch(_){document.getElementById('footerJsonHint').textContent='JSON 파일을 읽는 중 오류가 발생했습니다.';}};r.readAsText(f,'utf-8');});
+document.getElementById('cardJsonFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const txt=String(ev.target?.result||'');document.getElementById('cardJsonInput').value=txt;applyCardJsonToInputs();}catch(_){document.getElementById('cardJsonHint').textContent='JSON 파일을 읽는 중 오류가 발생했습니다.';}};r.readAsText(f,'utf-8');});
 
 // init
 pages[0]={
