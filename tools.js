@@ -152,6 +152,13 @@ const TOOLS = [
     tags: ['PDF', 'Image', 'PNG', 'JPG', 'WEBP'],
     footer: 'PDF Page → Image File',
   },
+  {
+    category: 'Image', href: 'image/image-optimizer.html', label: 'Image Optimizer', icon: 'OPT',
+    title: '🗜️ Image Optimizer Toolkit',
+    desc: '이미지를 일괄 최적화합니다. 포맷 변환(JPG/WEBP/PNG), 품질/최대해상도 조절, 절감률 비교와 ZIP 다운로드를 지원합니다.',
+    tags: ['Compress', 'Resize', 'JPG', 'WEBP', 'PNG', 'ZIP'],
+    footer: 'Batch Image Optimize → Download',
+  },
 
   {
     category: 'Text/Compare', href: 'text-compare/diff-viewer.html', label: 'Diff Viewer', icon: 'DIFF',

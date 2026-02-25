@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Optimizer Toolkit | Dev Tools</title>
+<script src="../../tools.js"></script>
+<script src="../../nav.js"></script>
+<script src="../../ui-utils.js"></script>
+<script src="../../vendor/jszip.min.js"></script>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+.drop-zone{border:1px dashed var(--border);border-radius:12px;padding:20px;text-align:center;background:var(--surface2);cursor:pointer}
+.drop-zone input{display:none}
+.opt-result-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.opt-item{border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--surface)}
+.opt-item-top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.opt-name{font-size:12px;font-family:var(--font-mono);word-break:break-all}
+.opt-meta{font-size:11px;color:var(--text-dim);margin-top:4px}
+.opt-progress-wrap{margin-top:8px}
+.opt-progress-bar{width:100%;height:8px}
+</style>
+</head>
+<body>
+<script>renderNav();</script>
+<div class="container">
+  <div class="tool-header">
+    <h1>Image <span>Optimizer Toolkit</span></h1>
+    <p>// 다중 이미지 용량 축소 · 해상도 리사이즈 · 포맷 변환 · ZIP 다운로드</p>
+  </div>
+
+  <div class="main-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><div class="dot"></div>INPUT</div>
+        </div>
+
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <label class="drop-zone" for="imgFiles">
+            <input id="imgFiles" type="file" accept="image/*" multiple>
+            이미지 파일을 클릭/드롭하여 추가 (여러 개 가능)
+          </label>
+          <div class="text-muted mt-8" id="fileSummary">선택된 파일 없음</div>
+        </div>
+
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Optimization</div>
+          <div class="options-row options-row-2">
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Format</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn fmt-btn active" data-fmt="jpeg">JPG</button>
+                  <button class="toggle-btn fmt-btn" data-fmt="webp">WEBP</button>
+                  <button class="toggle-btn fmt-btn" data-fmt="png">PNG</button>
+                </div>
+              </div>
+            </div>
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Quality</span>
+                <input id="quality" class="table-name-input input-xs" type="number" min="10" max="100" value="82">
+              </div>
+            </div>
+          </div>
+
+          <div class="options-row options-row-2">
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Max Edge</span>
+                <input id="maxEdge" class="table-name-input input-sm" type="number" min="320" max="8000" value="1920">
+              </div>
+            </div>
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Filename</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn name-btn active" data-name="suffix">_opt suffix</button>
+                  <button class="toggle-btn name-btn" data-name="replace">replace</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="generate-btn" data-shortcut="Ctrl + Enter" onclick="optimizeAll()">⚡ 최적화 실행</button>
+      </div>
+    </div>
+
+    <div class="output-panel" id="outputPanel">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">🗜️</div>
+          <p>이미지를 선택한 뒤 최적화를 실행하세요.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>// Image Compression & Resize Toolkit</footer>
+</div>
+
+<script>
+let files = [];
+let outFmt = 'jpeg';
+let namingMode = 'suffix';
+const outState = [];
+
+const fmtMime = { jpeg: 'image/jpeg', webp: 'image/webp', png: 'image/png' };
+const fmtExt  = { jpeg: 'jpg', webp: 'webp', png: 'png' };
+
+function bytes(n){
+  if(n < 1024) return `${n} B`;
+  if(n < 1024*1024) return `${(n/1024).toFixed(1)} KB`;
+  return `${(n/1024/1024).toFixed(2)} MB`;
+}
+
+function setFiles(list){
+  files = Array.from(list || []).filter(f => /^image\//.test(f.type));
+  const total = files.reduce((s,f)=>s+f.size,0);
+  document.getElementById('fileSummary').textContent = files.length
+    ? `${files.length}개 파일 · 원본 합계 ${bytes(total)}`
+    : '선택된 파일 없음';
+}
+
+document.getElementById('imgFiles').addEventListener('change', e => setFiles(e.target.files));
+
+document.querySelectorAll('.fmt-btn').forEach(b => b.addEventListener('click', ()=>{
+  document.querySelectorAll('.fmt-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); outFmt = b.dataset.fmt;
+  document.getElementById('quality').disabled = outFmt === 'png';
+}));
+
+document.querySelectorAll('.name-btn').forEach(b => b.addEventListener('click', ()=>{
+  document.querySelectorAll('.name-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); namingMode = b.dataset.name;
+}));
+
+function buildOutputName(name){
+  const base = name.replace(/\.[^.]+$/, '');
+  const ext = fmtExt[outFmt];
+  return namingMode === 'replace' ? `${base}.${ext}` : `${base}_opt.${ext}`;
+}
+
+function fileToImage(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function canvasToBlob(canvas, mime, quality){
+  return new Promise(resolve => canvas.toBlob(resolve, mime, quality));
+}
+
+function renderOutput(){
+  const output = document.getElementById('outputPanel');
+  if(!outState.length){
+    output.innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">🗜️</div><p>이미지를 선택한 뒤 최적화를 실행하세요.</p></div></div>`;
+    return;
+  }
+  const done = outState.filter(x=>x.done);
+  const inBytes = done.reduce((s,x)=>s+x.inSize,0);
+  const outBytes = done.reduce((s,x)=>s+x.outSize,0);
+  const ratio = inBytes ? ((1 - outBytes/inBytes)*100) : 0;
+
+  output.innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><div class="dot"></div>RESULT</div>
+        <div class="text-muted">${done.length}/${outState.length} · ${bytes(inBytes)} → ${bytes(outBytes)} (${ratio.toFixed(1)}%)</div>
+      </div>
+      <div class="download-actions mt-10">
+        <button class="download-btn all full" id="zipBtn" ${done.length ? '' : 'disabled'}>⬇ ZIP 다운로드</button>
+      </div>
+      <div class="opt-result-list">
+        ${outState.map((r,i)=>`
+          <div class="opt-item">
+            <div class="opt-item-top">
+              <div>
+                <div class="opt-name">${UIUtils.escHtml(r.name)}</div>
+                <div class="opt-meta">${r.done ? `${bytes(r.inSize)} → ${bytes(r.outSize)} (${((1-r.outSize/r.inSize)*100).toFixed(1)}%)` : '처리중...'}</div>
+              </div>
+              <button class="toggle-btn" data-dl="${i}" ${r.done ? '' : 'disabled'}>다운로드</button>
+            </div>
+            <div class="opt-progress-wrap"><progress class="opt-progress-bar" max="100" value="${r.done?100:r.progress||0}"></progress></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  output.querySelectorAll('[data-dl]').forEach(btn=>btn.addEventListener('click', ()=>{
+    const r = outState[Number(btn.dataset.dl)];
+    if(!r?.blob) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(r.blob);
+    a.download = r.outName;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 500);
+  }));
+
+  output.querySelector('#zipBtn')?.addEventListener('click', downloadZip);
+}
+
+async function optimizeAll(){
+  if(!files.length){
+    UIUtils.showError('outputPanel', '이미지 파일을 먼저 선택해주세요.');
+    return;
+  }
+  const maxEdge = Math.max(320, Math.min(8000, parseInt(document.getElementById('maxEdge').value || '1920',10)));
+  const quality = Math.max(0.1, Math.min(1, parseInt(document.getElementById('quality').value || '82',10)/100));
+  const mime = fmtMime[outFmt];
+
+  outState.length = 0;
+  files.forEach(f=>outState.push({ name:f.name, inSize:f.size, outSize:0, outName:buildOutputName(f.name), blob:null, done:false, progress:10 }));
+  renderOutput();
+
+  for(let i=0;i<files.length;i++){
+    const f = files[i];
+    try{
+      const img = await fileToImage(f);
+      const ratio = Math.min(1, maxEdge / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * ratio));
+      const h = Math.max(1, Math.round(img.height * ratio));
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      outState[i].progress = 70;
+      renderOutput();
+      const blob = await canvasToBlob(canvas, mime, outFmt === 'png' ? undefined : quality);
+      outState[i].blob = blob;
+      outState[i].outSize = blob.size;
+      outState[i].done = true;
+      outState[i].progress = 100;
+      renderOutput();
+    }catch(e){
+      outState[i].done = true;
+      outState[i].outSize = outState[i].inSize;
+      outState[i].progress = 100;
+      renderOutput();
+    }
+  }
+}
+
+async function downloadZip(){
+  const done = outState.filter(x=>x.done && x.blob);
+  if(!done.length) return;
+  const zip = new JSZip();
+  done.forEach(x=>zip.file(x.outName, x.blob));
+  const blob = await zip.generateAsync({ type:'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `optimized_images_${Date.now()}.zip`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 800);
+}
+
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && e.key === 'Enter') optimizeAll();
+});
+</script>
+</body>
+</html>
