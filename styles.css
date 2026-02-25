@@ -1544,6 +1544,19 @@ kbd {
 }
 button.card-tag { appearance:none; -webkit-appearance:none; }
 
+.reset-icon-btn {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .card-tag-more {
   background: color-mix(in srgb, var(--surface2) 90%, transparent) !important;
   border-color: var(--border) !important;
