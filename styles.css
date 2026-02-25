@@ -1474,22 +1474,7 @@ kbd {
 }
 
 .card-arrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  color: var(--text-muted);
-  transition: all 0.2s;
-  opacity: 0;
-  transform: translateX(-4px);
-}
-
-.tool-card:hover .card-arrow {
-  opacity: 1;
-  color: rgba(var(--cat-rgb), .95);
-  transform: translateX(0);
-}
-
-[data-theme="light"] .tool-card:hover .card-arrow {
-  color: color-mix(in srgb, rgb(var(--cat-rgb)) 70%, #111827 30%);
+  display: none;
 }
 
 .card-title {
