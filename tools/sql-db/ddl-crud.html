@@ -397,6 +397,18 @@ function loadSample() {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generate();
 });
+
+function loadSample() {
+  document.getElementById('ddlInput').value =
+`CREATE TABLE users (
+  user_id    NUMBER(10)    NOT NULL,
+  username   VARCHAR2(50)  NOT NULL,
+  email      VARCHAR2(100) NOT NULL,
+  created_at DATE          DEFAULT SYSDATE,
+  is_active  NUMBER(1)     DEFAULT 1,
+  CONSTRAINT pk_users PRIMARY KEY (user_id)
+);`;
+}
 </script>
 </body>
 </html>
