@@ -29,6 +29,16 @@
 [data-theme="light"] .cat-chip-image.active{color:#065f46;background:rgba(52,211,153,.20)}
 [data-theme="light"] .cat-chip-text-compare.active{color:#92400e;background:rgba(251,191,36,.22)}
 [data-theme="light"] .cat-chip-utility.active{color:#991b1b;background:rgba(248,113,113,.20)}
+.card-tag.cat-sql-db{background:rgba(96,165,250,.16);border-color:rgba(96,165,250,.42);color:#e5e7eb}
+.card-tag.cat-data-format{background:rgba(167,139,250,.16);border-color:rgba(167,139,250,.42);color:#e5e7eb}
+.card-tag.cat-image{background:rgba(52,211,153,.16);border-color:rgba(52,211,153,.42);color:#e5e7eb}
+.card-tag.cat-text-compare{background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.42);color:#e5e7eb}
+.card-tag.cat-utility{background:rgba(248,113,113,.16);border-color:rgba(248,113,113,.42);color:#e5e7eb}
+[data-theme="light"] .card-tag.cat-sql-db{background:rgba(96,165,250,.14);border-color:rgba(96,165,250,.38);color:#334155}
+[data-theme="light"] .card-tag.cat-data-format{background:rgba(167,139,250,.14);border-color:rgba(167,139,250,.38);color:#334155}
+[data-theme="light"] .card-tag.cat-image{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.38);color:#334155}
+[data-theme="light"] .card-tag.cat-text-compare{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.38);color:#334155}
+[data-theme="light"] .card-tag.cat-utility{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.38);color:#334155}
 .category-head{display:flex;justify-content:space-between;align-items:center;margin-top:22px}
 .category-head .count{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
 .fav-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px}
@@ -139,21 +149,6 @@
       return String(cat || 'other').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-');
     }
 
-    function tagStyle(tag, category) {
-      const cat = slugCategory(category);
-      const map = {
-        'sql-db': '96,165,250',
-        'data-format': '167,139,250',
-        'image': '52,211,153',
-        'text-compare': '251,191,36',
-        'utility': '248,113,113',
-      };
-      const rgb = map[cat] || '148,163,184';
-      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-      if (isDark) return `background: rgba(${rgb}, .16); border-color: rgba(${rgb}, .42); color: #e5e7eb;`;
-      return `background: rgba(${rgb}, .14); border-color: rgba(${rgb}, .38); color: #334155;`;
-    }
-
     function renderToolCard({ href, icon, title, desc, tags, footer, category }, opts = {}) {
       const catClass = `cat-${slugCategory(category)}`;
       const shownTags = (tags || []).slice(0, 3);
@@ -176,7 +171,7 @@
           <p class="card-desc">${oneLineSummary({ desc, tags })}</p>
           <div class="card-io" title="${ioText}">입출력: ${ioText}</div>
           <div class="card-tags">
-            ${shownTags.map(t => `<button class="card-tag" data-tag="${t}" style="${tagStyle(t, category)}">${t}</button>`).join('')}
+            ${shownTags.map(t => `<button class="card-tag cat-${slugCategory(category)}" data-tag="${t}">${t}</button>`).join('')}
             ${hiddenTagCount > 0 ? `<span class="card-tag card-tag-more">+${hiddenTagCount}</span>` : ''}
           </div>
           <div class="card-footer">

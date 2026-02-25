@@ -111,6 +111,7 @@
 .legend-dot-fk { background:#9c8cff; }
 .legend-relation-svg { overflow:visible; }
 .erd-table { cursor: grab; }
+.erd-table.is-dragging { cursor: grabbing; }
 
 /* Error area */
 #erdError { display: none; }
@@ -707,7 +708,7 @@ erdSvg.addEventListener('pointerdown', e => {
     const tname = tg.getAttribute('data-table');
     const table = tables.find(t => t.name === tname);
     dragState = { tableName: tname, startX: e.clientX, startY: e.clientY, origX: table.x, origY: table.y };
-    tg.style.cursor = 'grabbing';
+    tg.classList.add('is-dragging');
   } else {
     panState = { startX: e.clientX, startY: e.clientY, origX: pan.x, origY: pan.y };
     document.getElementById('erdCanvas').classList.add('panning');
@@ -733,7 +734,7 @@ erdSvg.addEventListener('pointermove', e => {
 erdSvg.addEventListener('pointerup', e => {
   if (dragState) {
     const tg = findTableGroup(dragState.tableName);
-    if (tg) { tg.style.cursor = 'grab'; try { tg.releasePointerCapture(e.pointerId); } catch (_) {} }
+    if (tg) { tg.classList.remove('is-dragging'); try { tg.releasePointerCapture(e.pointerId); } catch (_) {} }
     dragState = null;
   }
   if (panState) {
