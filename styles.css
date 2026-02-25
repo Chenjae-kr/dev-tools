@@ -868,6 +868,42 @@ body::before {
   text-transform: none;
   cursor: pointer;
   transition: all 0.2s;
+  position: relative;
+}
+.generate-btn[data-shortcut] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 132px;
+}
+.generate-btn[data-shortcut]::after {
+  content: attr(data-shortcut);
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  color: rgba(22, 31, 45, .78);
+  background: rgba(255, 255, 255, .52);
+  border: 1px solid rgba(22, 31, 45, .18);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+[data-theme="light"] .generate-btn[data-shortcut]::after {
+  color: rgba(255,255,255,.88);
+  background: rgba(0,0,0,.25);
+  border-color: rgba(0,0,0,.2);
+}
+@media (max-width: 640px) {
+  .generate-btn[data-shortcut] { padding-right: 14px; }
+  .generate-btn[data-shortcut]::after {
+    position: static;
+    transform: none;
+    margin-left: 10px;
+  }
 }
 
 .generate-btn:hover {
