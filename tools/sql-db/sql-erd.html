@@ -158,7 +158,7 @@ CREATE TABLE orders (
       <button class="toggle-btn" onclick="clearInput()">지우기</button>
     </div>
 
-    <div id="erdError"></div>
+    <div id="erdError" class="hidden"></div>
 
     <button class="generate-btn" id="erdBtn" onclick="generateERD()">
       ⚡ ERD 생성
@@ -280,8 +280,8 @@ function readFile(file) {
 
 function clearInput() {
   sqlInput.value = '';
-  document.getElementById('erdSection').style.display = 'none';
-  document.getElementById('erdError').style.display   = 'none';
+  document.getElementById('erdSection').classList.add('hidden');
+  document.getElementById('erdError').classList.add('hidden');
 }
 
 function loadSample() {
@@ -798,9 +798,9 @@ function generateERD() {
   const sql    = sqlInput.value.trim();
   const btn    = document.getElementById('erdBtn');
   const errDiv = document.getElementById('erdError');
-  errDiv.style.display = 'none';
+  errDiv.classList.add('hidden');
 
-  if (!sql) { errDiv.innerHTML = `<div class="error-msg">⚠ SQL DDL을 입력해주세요.</div>`; errDiv.style.display = ''; return; }
+  if (!sql) { errDiv.innerHTML = `<div class="error-msg">⚠ SQL DDL을 입력해주세요.</div>`; errDiv.classList.remove('hidden'); return; }
 
   btn.textContent = '⏳ 생성 중...';
   btn.classList.add('loading');
@@ -818,7 +818,7 @@ function generateERD() {
       tables      = result.tables;
       foreignKeys = result.foreignKeys;
 
-      document.getElementById('erdSection').style.display   = '';
+      document.getElementById('erdSection').classList.remove('hidden');
       document.getElementById('statTables').textContent     = tables.length;
       document.getElementById('statCols').textContent       = tables.reduce((s, t) => s + t.columns.length, 0);
       document.getElementById('statFKs').textContent        = foreignKeys.length;
@@ -827,8 +827,8 @@ function generateERD() {
 
     } catch (e) {
       errDiv.innerHTML     = `<div class="error-msg">❌ ${esc(e.message)}</div>`;
-      errDiv.style.display = '';
-      document.getElementById('erdSection').style.display = 'none';
+      errDiv.classList.remove('hidden');
+      document.getElementById('erdSection').classList.add('hidden');
     }
     btn.textContent = '⚡ ERD 생성';
     btn.classList.remove('loading');

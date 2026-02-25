@@ -179,8 +179,8 @@ document.querySelectorAll('.ratio-btn').forEach(b=>b.onclick=()=>{
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); bgMode=b.dataset.bgmode;
-  document.getElementById('bgColorBar').style.display = bgMode==='color' ? 'flex':'none';
-  document.getElementById('bgImageBar').style.display = bgMode==='image' ? 'flex':'none';
+  document.getElementById('bgColorBar').classList.toggle('hidden', bgMode!=='color');
+  document.getElementById('bgImageBar').classList.toggle('hidden', bgMode!=='image');
   renderThumb();
 });
 

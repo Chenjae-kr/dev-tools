@@ -190,7 +190,7 @@
 3,Charlie,,charlie@example.com"></textarea>
 
         <!-- Markdown Textarea -->
-        <textarea class="csv-textarea" id="mdInput" placeholder="| user_id | username | age | email |
+        <textarea class="csv-textarea hidden" id="mdInput" placeholder="| user_id | username | age | email |
 |---|---|---|---|
 | 1 | alice | 30 | alice@example.com |
 | 2 | bob | 25 | bob@example.com |"></textarea>
@@ -304,11 +304,11 @@ function refreshUpsertUI() {
 
 function refreshInputModeUI() {
   const isCSV = inputMode === 'csv';
-  document.getElementById('dropZone').style.display = isCSV ? 'block' : 'none';
-  document.getElementById('csvFileBadge').style.display = isCSV ? '' : 'none';
+  document.getElementById('dropZone').classList.toggle('hidden', !isCSV);
+  document.getElementById('csvFileBadge').classList.toggle('hidden', !isCSV);
   document.querySelector('.csv-divider').textContent = isCSV ? '또는 직접 입력' : 'Markdown 테이블 입력';
-  document.getElementById('csvInput').style.display = isCSV ? 'block' : 'none';
-  document.getElementById('mdInput').style.display = isCSV ? 'none' : 'block';
+  document.getElementById('csvInput').classList.toggle('hidden', !isCSV);
+  document.getElementById('mdInput').classList.toggle('hidden', isCSV);
 }
 
 function renderMappingUI() {

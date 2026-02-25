@@ -68,8 +68,8 @@ const esc = UIUtils.escHtml;
 let inputType='json', outputType='json';
 
 function setInputUI(){
-  document.getElementById('textInput').style.display = inputType==='excel' ? 'none':'block';
-  document.getElementById('fileBar').style.display = inputType==='excel' ? 'flex':'none';
+  document.getElementById('textInput').classList.toggle('hidden', inputType==='excel');
+  document.getElementById('fileBar').classList.toggle('hidden', inputType!=='excel');
 }
 
 document.querySelectorAll('.in-btn').forEach(b=>b.onclick=()=>{

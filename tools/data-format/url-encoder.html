@@ -82,7 +82,7 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
     document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     mode = btn.dataset.mode;
-    document.getElementById('scopeBar').style.display = mode === 'parse' ? 'none' : '';
+    document.getElementById('scopeBar').classList.toggle('hidden', mode === 'parse');
   });
 });
 

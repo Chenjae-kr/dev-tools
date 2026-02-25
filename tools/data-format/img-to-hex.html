@@ -297,10 +297,10 @@ document.querySelectorAll('[data-fmt]').forEach(btn => {
     const isCoded   = selectedFmt === 'c' || selectedFmt === 'python';
     const isBase64  = selectedFmt === 'base64';
 
-    document.getElementById('bplBar').style.display     = isBase64 ? 'none' : '';
-    document.getElementById('asciiLabel').style.display = isHexdump ? '' : 'none';
-    document.getElementById('asciiGroup').style.display = isHexdump ? '' : 'none';
-    document.getElementById('varNameBar').style.display = isCoded   ? '' : 'none';
+    document.getElementById('bplBar').classList.toggle('hidden', isBase64);
+    document.getElementById('asciiLabel').classList.toggle('hidden', !isHexdump);
+    document.getElementById('asciiGroup').classList.toggle('hidden', !isHexdump);
+    document.getElementById('varNameBar').classList.toggle('hidden', !isCoded);
   });
 });
 

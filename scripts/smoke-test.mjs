@@ -45,6 +45,9 @@ for (const file of toolFiles) {
   if (/style\s*=\s*"/i.test(htmlWithoutScripts) || /style\s*=\s*'/i.test(htmlWithoutScripts)) {
     fail(`${file}: inline style 속성 검출(정적 마크업)`);
   }
+  if (/\.style\.display\s*=|style\.display\s*=/.test(html)) {
+    fail(`${file}: style.display 직접 토글 사용 검출`);
+  }
 }
 ok(`tools/**/*.html ${toolFiles.length}개 점검 완료`);
 

@@ -127,7 +127,7 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
     document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     mode = btn.dataset.mode;
-    document.getElementById('indentBar').style.display = mode === 'minify' ? 'none' : '';
+    document.getElementById('indentBar').classList.toggle('hidden', mode === 'minify');
   });
 });
 
