@@ -51,6 +51,10 @@
 .quick-access-tabs{display:flex;gap:6px;margin-bottom:8px}
 .quick-tab{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace}
 .quick-tab.active{color:var(--accent);border-color:rgba(79,255,176,.4);background:rgba(79,255,176,.08)}
+.mobile-cat-bar{display:none}
+.cat-menu-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:7px 12px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}
+.cat-menu-btn:hover{color:var(--text);border-color:var(--text-muted)}
+.cat-mobile-menu{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 2px}
 
 @media (max-width: 768px){
   .hero{padding:12px 0 8px !important;margin-bottom:8px !important}
@@ -59,8 +63,10 @@
   .hero-stats{display:none}
   .finder{margin:6px 0 2px}
   .finder input{padding:9px 10px}
-  .cat-chips{flex-wrap:wrap;overflow:visible;padding-bottom:0;gap:6px}
-  .cat-chip{padding:6px 9px;font-size:10px;white-space:nowrap;flex:0 1 auto}
+  .cat-chips{display:block}
+  .mobile-cat-bar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .mobile-cat-bar .cat-chip{padding:6px 10px;font-size:10px;white-space:nowrap}
+  .cat-mobile-menu .cat-chip{padding:6px 9px;font-size:10px;white-space:nowrap;flex:0 1 auto}
   .quick-access-wrap{padding:4px 0 8px}
   .quick-access-tabs{margin-bottom:6px}
   .recent-chip-row{flex-wrap:wrap;overflow:visible;padding-bottom:0;gap:6px}
@@ -190,7 +196,7 @@
     let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
     let collapsedSections = JSON.parse(localStorage.getItem('devtools-collapsed-sections') || '{}');
     let quickTab = localStorage.getItem('devtools-quick-tab') || 'recent';
-    let mobileFilterExpanded = localStorage.getItem('devtools-mobile-filter-expanded') === '1';
+    let mobileCategoryMenuOpen = false;
     let quickAccessCollapsed = localStorage.getItem('devtools-quick-collapsed');
     quickAccessCollapsed = quickAccessCollapsed == null ? true : quickAccessCollapsed === '1';
     function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
@@ -199,7 +205,6 @@
     function isCollapsed(key){ return !!collapsedSections[key]; }
     function setCollapsed(key, v){ collapsedSections[key] = !!v; saveCollapsed(); }
     function saveQuickTab(){ localStorage.setItem('devtools-quick-tab', quickTab); }
-    function saveMobileFilterExpanded(){ localStorage.setItem('devtools-mobile-filter-expanded', mobileFilterExpanded ? '1' : '0'); }
     function saveQuickCollapsed(){ localStorage.setItem('devtools-quick-collapsed', quickAccessCollapsed ? '1' : '0'); }
     function isMobileView(){ return window.matchMedia('(max-width: 768px)').matches; }
     function sectionHead(title, count, key){
@@ -224,32 +229,49 @@
     function renderChips(){
       const all = ['ALL', ...categories];
       const mobile = isMobileView();
-      let visible = all;
 
-      if (mobile && !mobileFilterExpanded) {
-        const base = ['ALL', ...categories.slice(0, 2)];
-        if (activeCategory !== 'ALL' && !base.includes(activeCategory)) base.push(activeCategory);
-        visible = [...new Set(base)];
-      }
+      if (mobile) {
+        const activeCls = activeCategory === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(activeCategory)}`;
+        chipsEl.innerHTML = `
+          <div class="mobile-cat-bar">
+            <button class="cat-chip ${activeCls} active" data-cat="${activeCategory}">${activeCategory}</button>
+            <button class="cat-menu-btn" id="mobileCatMenuBtn" title="카테고리 메뉴">카테고리 ${mobileCategoryMenuOpen ? '▴' : '▾'}</button>
+          </div>
+          ${mobileCategoryMenuOpen ? `
+            <div class="cat-mobile-menu">
+              ${all.map(cat => {
+                const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
+                return `<button class="cat-chip ${cls}${cat===activeCategory?' active':''}" data-cat-menu="${cat}">${cat}</button>`;
+              }).join('')}
+            </div>
+          ` : ''}
+        `;
 
-      chipsEl.innerHTML = visible.map(cat => {
-        const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
-        return `<button class="cat-chip ${cls}${cat===activeCategory?' active':''}" data-cat="${cat}">${cat}</button>`;
-      }).join('') + (mobile ? `<button class="cat-chip" id="mobileFilterMore">${mobileFilterExpanded ? '접기' : '더보기'}</button>` : '');
+        const menuBtn = document.getElementById('mobileCatMenuBtn');
+        if (menuBtn) {
+          menuBtn.addEventListener('click', () => {
+            mobileCategoryMenuOpen = !mobileCategoryMenuOpen;
+            renderChips();
+          });
+        }
 
-      chipsEl.querySelectorAll('.cat-chip[data-cat]').forEach(btn=>btn.addEventListener('click', ()=>{
-        activeCategory = btn.dataset.cat;
-        renderChips();
-        renderGroups();
-      }));
-
-      const moreBtn = document.getElementById('mobileFilterMore');
-      if (moreBtn) {
-        moreBtn.addEventListener('click', () => {
-          mobileFilterExpanded = !mobileFilterExpanded;
-          saveMobileFilterExpanded();
+        chipsEl.querySelectorAll('[data-cat-menu]').forEach(btn => btn.addEventListener('click', () => {
+          activeCategory = btn.dataset.catMenu;
+          mobileCategoryMenuOpen = false;
           renderChips();
-        });
+          renderGroups();
+        }));
+      } else {
+        chipsEl.innerHTML = all.map(cat => {
+          const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
+          return `<button class="cat-chip ${cls}${cat===activeCategory?' active':''}" data-cat="${cat}">${cat}</button>`;
+        }).join('');
+
+        chipsEl.querySelectorAll('.cat-chip[data-cat]').forEach(btn=>btn.addEventListener('click', ()=>{
+          activeCategory = btn.dataset.cat;
+          renderChips();
+          renderGroups();
+        }));
       }
     }
 
