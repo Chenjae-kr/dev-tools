@@ -99,19 +99,20 @@
           <div class="options-bar row-tight">
             <span class="options-label">JSON Data</span>
             <button class="toggle-btn" onclick="fillThumbJsonFromInputs()">현재값 채우기</button>
-            <button class="toggle-btn" onclick="openThumbJsonPopup()">팝업 입력</button>
+            <button class="toggle-btn" onclick="openThumbJsonPopup()">JSON 입력</button>
             <button class="toggle-btn" onclick="applyThumbJsonToInputs()">JSON 적용</button>
+            <button class="toggle-btn" onclick="resetThumbTextInputs()">입력값 초기화</button>
             <button class="toggle-btn" onclick="document.getElementById('thumbJsonFile').click()">JSON 파일</button>
             <input id="thumbJsonFile" type="file" accept=".json,application/json" class="hidden">
           </div>
-          <textarea id="thumbJsonInput" class="input-area" placeholder='{
+          <textarea id="thumbJsonInput" class="input-area hidden" placeholder='{
   "mainText": "블로그 썸네일\n3분 제작",
   "subText": "3분만에 블로그 썸네일 만들기",
   "ratio": "1:1",
   "bgColor": "#5f6fdd",
   "decorColor": "#ffffff"
 }'></textarea>
-          <div id="thumbJsonHint" class="text-muted mt-8">JSON으로 텍스트/스타일/배경 옵션을 한번에 반영할 수 있어요.</div>
+          <div id="thumbJsonHint" class="text-muted mt-8 hidden">JSON으로 텍스트/스타일/배경 옵션을 한번에 반영할 수 있어요.</div>
         </div>
 
         <div class="setting-group">
@@ -415,6 +416,15 @@ function applyThumbJsonFromPopup(){
   document.getElementById('thumbJsonInput').value = input.value;
   applyThumbJsonToInputs();
   closeThumbJsonPopup();
+}
+
+function resetThumbTextInputs(){
+  document.getElementById('mainText').value = '';
+  document.getElementById('subText').value = '';
+  document.getElementById('thumbJsonInput').value = '';
+  const dialogInput = document.getElementById('thumbJsonDialogInput');
+  if (dialogInput) dialogInput.value = '';
+  renderThumb();
 }
 
 function applyThumbJsonToInputs(){
