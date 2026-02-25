@@ -75,15 +75,26 @@
 
         <div class="setting-group">
           <div class="setting-title">Export</div>
-          <div class="options-bar">
-            <span class="options-label">Format</span>
-            <div class="toggle-group">
-              <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+          <div class="options-row options-row-2">
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Format</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
+                  <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
+                  <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+                </div>
+              </div>
             </div>
-            <span class="options-label">Quality</span><input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input input-xs">
-            <button class="export-btn all download-btn all" onclick="downloadOut()">⬇ 다운로드</button>
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Quality</span>
+                <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input input-sm">
+              </div>
+            </div>
+          </div>
+          <div class="download-actions">
+            <button class="export-btn all download-btn all full" onclick="downloadOut()">⬇ 다운로드</button>
           </div>
         </div>
       </div>
