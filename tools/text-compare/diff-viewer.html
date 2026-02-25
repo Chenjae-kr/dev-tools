@@ -113,6 +113,8 @@
 .split-cell{padding:6px 10px;white-space:pre;overflow:auto}
 .split-old{border-right:1px solid var(--border)}
 .change-line.active-change{outline:1px solid var(--accent);box-shadow:inset 0 0 0 1px rgba(79,255,176,.25)}
+.change-nav{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px}
+.change-nav .toggle-btn{padding:4px 8px;min-height:28px;font-size:10px}
 </style>
 </head>
 <body>
@@ -465,8 +467,10 @@ function runDiff() {
           copyHandler: `copyDiff('${blockId}')`,
           bodyHtml,
         });
-        scrollToOutput(output);
         changeCursor = -1;
+        const summary = output.querySelector('.diff-summary');
+        if (summary) summary.insertAdjacentHTML('afterend', buildChangeNav());
+        scrollToOutput(output);
       }
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ ${escHtml(e.message)}</div>`;
@@ -483,14 +487,29 @@ function copyDiff(id) {
   UIUtils.copyTextWithFeedback(lastPatchText || '', btn, 'COPY PATCH');
 }
 
-function jumpChange(dir = 1){
+function jumpChangeTo(index){
   const lines = [...document.querySelectorAll('#outputPanel .change-line')];
   if (!lines.length) return;
-  changeCursor = (changeCursor + dir + lines.length) % lines.length;
+  changeCursor = Math.max(0, Math.min(index, lines.length - 1));
   lines.forEach(l => l.classList.remove('active-change'));
   const target = lines[changeCursor];
   target.classList.add('active-change');
   target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function jumpChange(dir = 1){
+  const lines = [...document.querySelectorAll('#outputPanel .change-line')];
+  if (!lines.length) return;
+  const next = (changeCursor + dir + lines.length) % lines.length;
+  jumpChangeTo(next);
+}
+
+function buildChangeNav(max = 24){
+  const lines = [...document.querySelectorAll('#outputPanel .change-line')];
+  if (!lines.length) return '';
+  const btns = lines.slice(0, max).map((_,i)=>`<button class="toggle-btn" onclick="jumpChangeTo(${i})">#${i+1}</button>`).join('');
+  const more = lines.length > max ? `<span class="sql-dialect-tag">+${lines.length-max} more</span>` : '';
+  return `<div class="change-nav"><span class="sql-dialect-tag">Changes</span>${btns}${more}</div>`;
 }
 
 // Ctrl/Cmd + Enter
