@@ -32,11 +32,14 @@
 .fav-btn.active{color:#fbbf24;border-color:#fbbf24;background:rgba(251,191,36,.12)}
 .recent-remove-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;margin-left:6px}
 .recent-remove-btn:hover{color:#f87171;border-color:#f87171;background:rgba(248,113,113,.12)}
-.recent-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
-.recent-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:6px 10px;font-size:12px;text-decoration:none}
+.recent-utility-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0 12px}
+.recent-chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.recent-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:5px 10px;font-size:11px;text-decoration:none}
 .recent-chip:hover{border-color:var(--accent)}
-.recent-chip-remove{border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:12px;padding:0 2px;line-height:1}
+.recent-chip-remove{border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:11px;padding:0 2px;line-height:1}
 .recent-chip-remove:hover{color:#f87171}
+.favorites-quick{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer}
+.favorites-quick:hover{color:var(--text);border-color:var(--text-muted)}
 .section-toggle-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:8px}
 .section-toggle-btn:hover{color:var(--text);border-color:var(--text-muted)}
 .category-head .head-actions{display:flex;align-items:center;gap:8px}
@@ -246,6 +249,15 @@
         });
       });
 
+      const fq = document.getElementById('favoritesQuickBtn');
+      if (fq) {
+        fq.addEventListener('click', (e) => {
+          e.preventDefault();
+          const section = document.getElementById('favoritesSection');
+          if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+
       document.querySelectorAll('.tool-card[data-tool-href]').forEach(card => {
         card.addEventListener('click', () => {
           const href = card.dataset.toolHref;
@@ -260,22 +272,24 @@
         recentGroupsEl.innerHTML = '';
         return;
       }
-      const recentTools = recents.map(h => TOOLS.find(t => t.href === h)).filter(Boolean);
-      if (!recentTools.length) {
+      const recentTools = recents.map(h => TOOLS.find(t => t.href === h)).filter(Boolean).slice(0,5);
+      const favCount = TOOLS.filter(t => favorites.has(t.href)).length;
+      if (!recentTools.length && !favCount) {
         recentGroupsEl.innerHTML = '';
         return;
       }
-      const key = 'recent';
       recentGroupsEl.innerHTML = `
-        ${sectionHead('Recent', recentTools.length, key)}
-        <div class="recent-chip-row ${isCollapsed(key) ? 'hidden' : ''}">
-          ${recentTools.map(t => `
-            <a class="recent-chip" href="tools/${t.href}" data-recent-open="${t.href}">
-              <span>${t.icon}</span>
-              <span>${t.title || t.label}</span>
-              <button class="recent-chip-remove" data-remove-recent-chip="${t.href}" title="Recent에서 제거">✕</button>
-            </a>
-          `).join('')}
+        <div class="recent-utility-bar">
+          <div class="recent-chip-row">
+            ${recentTools.map(t => `
+              <a class="recent-chip" href="tools/${t.href}" data-recent-open="${t.href}">
+                <span>${t.icon}</span>
+                <span>${t.title || t.label}</span>
+                <button class="recent-chip-remove" data-remove-recent-chip="${t.href}" title="Recent에서 제거">✕</button>
+              </a>
+            `).join('')}
+          </div>
+          ${favCount ? `<button class="favorites-quick" id="favoritesQuickBtn">★ Favorites ${favCount}</button>` : ''}
         </div>
       `;
     }
@@ -293,6 +307,7 @@
       }
       const key = 'favorites';
       favoriteGroupsEl.innerHTML = `
+        <div id="favoritesSection"></div>
         ${sectionHead('Favorites', favTools.length, key)}
         <div class="tools-grid favorite-grid ${isCollapsed(key) ? 'hidden' : ''}">${favTools.map(renderToolCard).join('')}</div>
       `;
