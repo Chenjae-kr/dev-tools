@@ -1148,23 +1148,39 @@ kbd {
 /* Download button accent (Instagram-style) */
 .download-btn {
   border-radius: 10px;
-  min-height: 34px;
-  padding: 8px 12px;
+  min-height: 44px;
+  padding: 12px 14px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: .25px;
+  letter-spacing: .2px;
   border: 1px solid rgba(66,135,255,.45);
   background: linear-gradient(135deg,#0f4db8,#2a77ff);
   color: #fff;
   box-shadow: 0 8px 20px rgba(42,119,255,.22);
   transition: all .16s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.download-btn.single {
+  border-color: rgba(66,135,255,.45);
+  background: linear-gradient(135deg,#0f4db8,#2a77ff);
+  box-shadow: 0 8px 20px rgba(42,119,255,.22);
 }
 .download-btn.all {
   border-color: rgba(122,92,255,.45);
   background: linear-gradient(135deg,#5b49d8,#7a5cff);
   box-shadow: 0 8px 20px rgba(122,92,255,.22);
 }
+.download-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+.download-actions .full { grid-column: 1 / -1; }
+@media (max-width: 768px){ .download-actions { grid-template-columns: 1fr; } }
 [data-theme="light"] .download-btn { box-shadow: 0 6px 16px rgba(30,78,180,.18); }
 [data-theme="light"] .download-btn.all { box-shadow: 0 6px 16px rgba(91,73,216,.18); }
 
