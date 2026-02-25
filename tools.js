@@ -104,6 +104,13 @@ const TOOLS = [
     footer: 'Schema → Mock Data',
   },
   {
+    category: 'Data/Format', href: 'data-format/json-dummy-generator.html', label: 'JSON Dummy', icon: 'JDUM',
+    title: '🧪 JSON Dummy Generator',
+    desc: 'JSON 템플릿(타입 힌트)을 입력하면 더미 데이터 배열을 생성합니다. rows/seed 설정, pretty/minify, NDJSON 출력과 다운로드를 지원합니다.',
+    tags: ['JSON', 'Dummy Data', 'Seed', 'NDJSON'],
+    footer: 'Template JSON → Dummy Dataset',
+  },
+  {
     category: 'Data/Format', href: 'data-format/img-to-hex.html', label: 'IMG → HEX', icon: 'HEX',
     title: '🧬 Image → Hex Converter',
     desc: '이미지 파일을 Hex Dump, C Array, Python bytes, Base64 형식으로 변환합니다. 드래그 앤 드롭 지원.',
