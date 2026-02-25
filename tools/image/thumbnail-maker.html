@@ -81,8 +81,10 @@
               <button class="toggle-btn decor-btn" data-decor="double-frame">Style 2</button>
               <button class="toggle-btn decor-btn" data-decor="corner-lines">Style 3</button>
               <button class="toggle-btn decor-btn" data-decor="clean-box">Style 4</button>
-              <button class="toggle-btn decor-btn" data-decor="minimal">Style 5</button>
+              <button class="toggle-btn decor-btn" data-decor="minimal">None</button>
             </div>
+            <span class="options-label">Color</span>
+            <input id="decorColor" type="color" value="#ffffff" class="table-name-input input-xs color-input">
           </div>
         </div>
 
@@ -106,7 +108,8 @@
   "mainText": "블로그 썸네일\n3분 제작",
   "subText": "3분만에 블로그 썸네일 만들기",
   "ratio": "1:1",
-  "bgColor": "#5f6fdd"
+  "bgColor": "#5f6fdd",
+  "decorColor": "#ffffff"
 }'></textarea>
           <div id="thumbJsonHint" class="text-muted mt-8">JSON으로 텍스트/스타일/배경 옵션을 한번에 반영할 수 있어요.</div>
         </div>
@@ -274,7 +277,7 @@ document.getElementById('thumbJsonFile').addEventListener('change', e=>{
   r.readAsText(f, 'utf-8');
 });
 
-['bgColor','textColor','strokeColor','strokeWidth','mainText','subText','pad','ovStrength','mainScale','subScale','mainY','subY'].forEach(id=>{
+['bgColor','textColor','strokeColor','strokeWidth','mainText','subText','pad','ovStrength','mainScale','subScale','mainY','subY','decorColor'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>renderThumb());
 });
 
@@ -292,6 +295,7 @@ function applyPreset(name){
   document.querySelectorAll('.decor-btn').forEach(x=>x.classList.toggle('active', x.dataset.decor===decorStyle));
 
   document.getElementById('bgColor').value = p.bgColor;
+  if (p.decorColor) document.getElementById('decorColor').value = p.decorColor;
   document.getElementById('textColor').value = p.textColor;
   document.getElementById('strokeColor').value = p.strokeColor || '#000000';
   if (p.strokeWidth != null) document.getElementById('strokeWidth').value = p.strokeWidth;
@@ -321,6 +325,7 @@ function fillThumbJsonFromInputs(showMsg=true){
     overlay: overlayMode,
     overlayStrength: parseInt(document.getElementById('ovStrength').value || '28', 10),
     decor: decorStyle,
+    decorColor: document.getElementById('decorColor').value || '#ffffff',
     textColor: document.getElementById('textColor').value || '#ffffff',
     strokeColor: document.getElementById('strokeColor').value || '#000000',
     strokeWidth: parseInt(document.getElementById('strokeWidth').value || '6', 10),
@@ -370,6 +375,7 @@ function applyThumbJsonObject(rawObj){
     decorStyle = String(obj.decor);
     setToggleByData('.decor-btn','decor',decorStyle);
   }
+  if (obj.decorColor) document.getElementById('decorColor').value = String(obj.decorColor);
 
   if (obj.textColor) document.getElementById('textColor').value = String(obj.textColor);
   if (obj.strokeColor) document.getElementById('strokeColor').value = String(obj.strokeColor);
@@ -489,11 +495,22 @@ function drawOutlinedText(ctx, text, x, y, fillColor, strokeColor, outlinePx) {
   ctx.fillText(text, x, y);
 }
 
+function toRgba(hex, alpha=1){
+  const h = String(hex || '#ffffff').replace('#','').trim();
+  const full = h.length===3 ? h.split('').map(c=>c+c).join('') : h.padEnd(6, 'f').slice(0,6);
+  const n = parseInt(full, 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 function drawDecor(ctx, w, h) {
+  const decorColor = document.getElementById('decorColor')?.value || '#ffffff';
   const m=Math.max(34,Math.floor(w*0.08));
   const lw=Math.max(6,Math.floor(w*0.007));
-  ctx.strokeStyle='rgba(255,255,255,0.92)';
-  ctx.fillStyle='rgba(255,255,255,0.95)';
+  ctx.strokeStyle=toRgba(decorColor, 0.92);
+  ctx.fillStyle=toRgba(decorColor, 0.95);
   ctx.lineWidth=lw;
 
   if (decorStyle === 'minimal') return;
@@ -534,7 +551,7 @@ function drawDecor(ctx, w, h) {
     ctx.globalAlpha=0.8;
     ctx.fillRect(m,m,w-m*2,h-m*2);
     ctx.globalAlpha=1;
-    ctx.strokeStyle='rgba(255,255,255,0.65)';
+    ctx.strokeStyle=toRgba(decorColor, 0.65);
     ctx.strokeRect(m,m,w-m*2,h-m*2);
     return;
   }
