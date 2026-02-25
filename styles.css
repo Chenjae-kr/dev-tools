@@ -934,6 +934,7 @@ body::before {
   color: var(--text-muted);
   pointer-events: none;
 }
+.generate-btn.no-bottom-gap { margin-bottom: 0; }
 
 /* ─── Output Panel ───────────────────────────────────────── */
 .output-panel { display: flex; flex-direction: column; gap: 16px; }
