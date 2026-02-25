@@ -88,6 +88,40 @@
         </div>
 
         <div class="setting-group">
+          <div class="setting-title">Footer Watermark</div>
+          <div class="options-bar">
+            <span class="options-label">Type</span>
+            <div class="toggle-group">
+              <button class="toggle-btn wmtype-btn active" data-wmtype="off">OFF</button>
+              <button class="toggle-btn wmtype-btn" data-wmtype="text">Text</button>
+              <button class="toggle-btn wmtype-btn" data-wmtype="image">Image</button>
+            </div>
+            <span class="options-label">Pos</span>
+            <div class="toggle-group">
+              <button class="toggle-btn wmpos-btn" data-wmpos="left">Left</button>
+              <button class="toggle-btn wmpos-btn active" data-wmpos="center">Center</button>
+              <button class="toggle-btn wmpos-btn" data-wmpos="right">Right</button>
+            </div>
+          </div>
+          <div class="options-bar" id="wmTextBar">
+            <span class="options-label">Text</span>
+            <input id="wmText" class="table-name-input" value="@chenjae-kr.github.io" placeholder="워터마크 텍스트">
+            <span class="options-label">Color</span>
+            <input id="wmColor" type="color" class="table-name-input input-sm color-input" value="#a8b2ca">
+          </div>
+          <div class="options-bar hidden" id="wmImageBar">
+            <span class="options-label">Image</span>
+            <input id="wmImage" class="file-input" type="file" accept="image/*">
+          </div>
+          <div class="options-bar">
+            <span class="options-label">Opacity%</span>
+            <input id="wmOpacity" type="number" class="table-name-input input-xs" value="55" min="5" max="100">
+            <span class="options-label">Scale%</span>
+            <input id="wmScale" type="number" class="table-name-input input-xs" value="100" min="40" max="220">
+          </div>
+        </div>
+
+        <div class="setting-group">
           <div class="setting-title">Export</div>
           <div class="options-row options-row-2">
             <div class="options-item">
@@ -131,6 +165,9 @@ let chartType='bar';
 let exportFormat='png';
 let showLegend=true;
 let showValueLabel=true;
+let wmType='off';
+let wmPos='center';
+let wmImageObj=null;
 const canvas=document.getElementById('chartCanvas');
 const ctx=canvas.getContext('2d');
 
@@ -262,6 +299,34 @@ function renderPie(data,w,h,fs,showLegendOn=true,showValues=true,legendPos='righ
   }
 }
 
+function drawFooterWatermark(w,h,fs){
+  if (wmType === 'off') return;
+  const opacity = Math.max(0.05, Math.min(1, (parseInt(document.getElementById('wmOpacity').value||'55',10))/100));
+  const scale = Math.max(0.4, Math.min(2.2, (parseInt(document.getElementById('wmScale').value||'100',10))/100));
+  const y = h - Math.max(24, Math.floor(fs*0.7));
+  const x = wmPos === 'left' ? w*0.08 : wmPos === 'right' ? w*0.92 : w*0.5;
+
+  ctx.save();
+  ctx.globalAlpha = opacity;
+
+  if (wmType === 'text') {
+    const text = (document.getElementById('wmText').value || '').trim();
+    if (!text) { ctx.restore(); return; }
+    ctx.font = `600 ${Math.floor(fs*0.56*scale)}px JetBrains Mono, monospace`;
+    ctx.fillStyle = document.getElementById('wmColor').value || '#a8b2ca';
+    ctx.textAlign = wmPos === 'left' ? 'left' : wmPos === 'right' ? 'right' : 'center';
+    ctx.fillText(text, x, y);
+  } else if (wmType === 'image' && wmImageObj) {
+    const targetW = Math.max(60, Math.min(w*0.28, w*0.16*scale));
+    const ratio = wmImageObj.width / Math.max(1, wmImageObj.height);
+    const targetH = targetW / ratio;
+    const drawX = wmPos === 'left' ? w*0.08 : wmPos === 'right' ? w*0.92 - targetW : (w-targetW)/2;
+    const drawY = h - targetH - Math.max(16, Math.floor(fs*0.2));
+    ctx.drawImage(wmImageObj, drawX, drawY, targetW, targetH);
+  }
+  ctx.restore();
+}
+
 function renderChart(){
   try{
     const w=Math.max(600,Math.min(2400,parseInt(document.getElementById('outW').value||'1200',10)));
@@ -289,6 +354,8 @@ function renderChart(){
       if (showLegend) drawLegend(data,w,h,fs,legendPos,showValueLabel,color);
     }
     else renderPie(data,w,h,fs,showLegend,showValueLabel,legendPos);
+
+    drawFooterWatermark(w,h,fs);
   }catch(e){ alert(e.message || String(e)); }
 }
 
@@ -307,6 +374,11 @@ function loadSample(){
   }
 }
 
+function updateWatermarkUI(){
+  document.getElementById('wmTextBar').classList.toggle('hidden', wmType !== 'text');
+  document.getElementById('wmImageBar').classList.toggle('hidden', wmType !== 'image');
+}
+
 function resetForm(){
   UIUtils.resetFields({
     chartTitle: '매출 추이',
@@ -317,11 +389,21 @@ function resetForm(){
     bgColor: '#0d0f14',
     quality: 92,
     legendPos: 'right',
+    wmText: '@chenjae-kr.github.io',
+    wmColor: '#a8b2ca',
+    wmOpacity: 55,
+    wmScale: 100,
   }, () => {
     showLegend = true;
     showValueLabel = true;
+    wmType = 'off';
+    wmPos = 'center';
+    wmImageObj = null;
     document.querySelectorAll('.legend-btn').forEach(b=>b.classList.toggle('active', b.dataset.legend==='on'));
     document.querySelectorAll('.value-btn').forEach(b=>b.classList.toggle('active', b.dataset.value==='on'));
+    document.querySelectorAll('.wmtype-btn').forEach(b=>b.classList.toggle('active', b.dataset.wmtype==='off'));
+    document.querySelectorAll('.wmpos-btn').forEach(b=>b.classList.toggle('active', b.dataset.wmpos==='center'));
+    updateWatermarkUI();
     loadSample();
     renderChart();
   });
@@ -330,6 +412,18 @@ function resetForm(){
 UIUtils.wireTextFileInput('fileInput', (text) => {
   document.getElementById('sourceText').value = text;
   renderChart();
+});
+
+document.getElementById('wmImage').addEventListener('change', (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => { wmImageObj = img; renderChart(); };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 });
 
 UIUtils.bindToggleGroup('.src-btn', {
@@ -345,8 +439,11 @@ UIUtils.bindToggleGroup('.type-btn', { onChange: (btn) => { chartType = btn.data
 UIUtils.bindToggleGroup('.fmt-btn', { onChange: (btn) => { exportFormat = btn.dataset.fmt; } });
 UIUtils.bindToggleGroup('.legend-btn', { onChange: (btn) => { showLegend = btn.dataset.legend === 'on'; renderChart(); } });
 UIUtils.bindToggleGroup('.value-btn', { onChange: (btn) => { showValueLabel = btn.dataset.value === 'on'; renderChart(); } });
-['sourceText','chartTitle','seriesColor','outW','outH','fontScale','bgColor','legendPos'].forEach(id=>document.getElementById(id).addEventListener('input', ()=>renderChart()));
+UIUtils.bindToggleGroup('.wmtype-btn', { onChange: (btn) => { wmType = btn.dataset.wmtype; updateWatermarkUI(); renderChart(); } });
+UIUtils.bindToggleGroup('.wmpos-btn', { onChange: (btn) => { wmPos = btn.dataset.wmpos; renderChart(); } });
+['sourceText','chartTitle','seriesColor','outW','outH','fontScale','bgColor','legendPos','wmText','wmColor','wmOpacity','wmScale'].forEach(id=>document.getElementById(id).addEventListener('input', ()=>renderChart()));
 
+updateWatermarkUI();
 loadSample();
 renderChart();
 </script>
