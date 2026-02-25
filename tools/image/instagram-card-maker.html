@@ -53,6 +53,14 @@
 .json-dialog-head{font-family:var(--font-title);font-size:13px;margin-bottom:8px}
 .json-dialog-input{min-height:300px}
 .json-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.page-controls{flex-wrap:nowrap;align-items:center;gap:8px}
+.page-controls #pageCount{flex:0 0 72px;max-width:72px !important;text-align:center}
+.page-controls #pageLabel{min-width:44px;text-align:center}
+.page-controls .page-nav-btn{width:32px;min-width:32px;padding:4px 0;text-align:center}
+@media (max-width:640px){
+  .page-controls{gap:6px}
+  .page-controls #pageCount{flex-basis:68px;max-width:68px !important}
+}
 </style>
 </head>
 <body>
@@ -287,12 +295,12 @@
             </div>
           </div>
 
-        <div class="options-bar row-tight">
+        <div class="options-bar row-tight page-controls">
           <span class="options-label">Pages</span>
-          <input id="pageCount" type="number" value="1" min="1" max="20" class="table-name-input small">
-          <button class="toggle-btn" onclick="prevPage()">◀</button>
+          <input id="pageCount" type="number" value="1" min="1" max="20" class="table-name-input input-xs">
+          <button class="toggle-btn page-nav-btn" onclick="prevPage()">◀</button>
           <span id="pageLabel" class="options-label">1 / 1</span>
-          <button class="toggle-btn" onclick="nextPage()">▶</button>
+          <button class="toggle-btn page-nav-btn" onclick="nextPage()">▶</button>
         </div>
 
         <!-- footer JSON controls unified into Card JSON -->
