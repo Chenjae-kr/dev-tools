@@ -232,18 +232,23 @@
           </div>
         </div>
 
-        <!-- Mode + NULL -->
         <div class="options-bar row-tight">
           <span class="options-label">Mode</span>
           <div class="toggle-group">
             <button class="toggle-btn mode-btn active" data-mode="individual">Individual</button>
             <button class="toggle-btn mode-btn" data-mode="bulk">Bulk</button>
           </div>
+        </div>
+
+        <div class="options-bar row-tight">
           <span class="options-label">Upsert</span>
           <div class="toggle-group">
             <button class="toggle-btn upsert-btn active" data-upsert="off">OFF</button>
             <button class="toggle-btn upsert-btn" data-upsert="on">ON</button>
           </div>
+        </div>
+
+        <div class="options-bar row-tight">
           <span class="options-label">Empty값</span>
           <div class="toggle-group">
             <button class="toggle-btn null-btn active" data-null="null">NULL</button>
@@ -259,6 +264,8 @@
         <div class="options-bar row-tight">
           <span class="options-label">Preview</span>
           <input type="number" id="previewRows" class="table-name-input input-xs" value="10" min="1" max="100">
+        </div>
+        <div class="options-bar row-tight">
           <span class="options-label">Chunk</span>
           <input type="number" id="chunkSize" class="table-name-input input-sm" value="1000" min="1">
         </div>
