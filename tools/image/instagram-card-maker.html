@@ -278,7 +278,7 @@
               <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
               <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
             </div>
-            <span class="options-label">Quality</span>
+            <span class="options-label" id="imgQualityLabel">Quality</span>
             <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input small">
           </div>
           <div class="options-bar row-tight">
@@ -393,6 +393,7 @@ function applyPreset(v){
   document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active', b.dataset.theme===themeKey));
   document.querySelectorAll('.bgmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.bgmode===bgMode));
   document.querySelectorAll('.exfmt-btn').forEach(b=>b.classList.toggle('active', b.dataset.fmt===exportFormat));
+  syncExportQualityUI();
   document.getElementById('bgImageInput').classList.toggle('hidden', bgMode!=='image');
 
   if (presetScope === 'all') pages = pages.map(pg => applyPresetToPage(pg, v.pageStyle));
@@ -442,6 +443,12 @@ function setBodyUI(){
 function setBodyBgUI(){
   const mode = document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid';
   document.getElementById('bodyBgImageInput').classList.toggle('hidden', mode !== 'image');
+}
+
+function syncExportQualityUI(){
+  const hide = exportFormat === 'png';
+  document.getElementById('imgQualityLabel')?.classList.toggle('hidden', hide);
+  document.getElementById('imgQuality')?.classList.toggle('hidden', hide);
 }
 
 function updateInputModeToggle(){
@@ -1186,7 +1193,7 @@ document.querySelectorAll('.sourcevis-btn').forEach(b=>b.onclick=()=>{document.q
 document.querySelectorAll('.brandvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.brandvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.pscope-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pscope-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');presetScope=b.dataset.scope;});
-document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
+document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;syncExportQualityUI();});
 
 ['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','bodyBgColor','bodyBgOpacity','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
   if(id==='pageCount') syncPages();
@@ -1228,7 +1235,7 @@ pages[0]={
   showGuide:true,
   snapGuide:true
 };
-fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncGridFromText(false); renderCard();
+fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncExportQualityUI(); syncGridFromText(false); renderCard();
 </script>
 </body>
 </html>
