@@ -43,6 +43,25 @@
 .section-toggle-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:8px}
 .section-toggle-btn:hover{color:var(--text);border-color:var(--text-muted)}
 .category-head .head-actions{display:flex;align-items:center;gap:8px}
+
+@media (max-width: 768px){
+  .hero{padding:22px 0 10px !important;margin-bottom:10px !important}
+  .hero-kicker{display:none}
+  .hero h1{font-size:clamp(34px,10vw,42px);line-height:1.02}
+  .hero-stats{width:100%}
+  .hero-stat{padding:8px 14px}
+  .stat-num{font-size:18px}
+  .stat-label{font-size:9px;letter-spacing:.8px}
+  .finder{margin:10px 0 4px}
+  .finder input{padding:9px 10px}
+  .cat-chip{padding:6px 9px;font-size:10px}
+  .recent-utility-bar{padding:6px 0 8px;display:block}
+  .recent-chip-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .recent-chip{white-space:nowrap;flex:0 0 auto}
+  .favorites-quick{margin:8px 0 0 auto}
+  .tools-label{margin:6px 0 8px}
+}
+
 </style>
 </head>
 <body>
