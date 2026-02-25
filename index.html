@@ -8,8 +8,10 @@
 <script src="nav.js"></script>
 <link rel="stylesheet" href="styles.css">
 <style>
-.finder{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0 16px}
+.hero{padding:56px 0 24px;margin-bottom:20px}
+.finder{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 8px}
 .finder input{flex:1;min-width:220px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'JetBrains Mono',monospace}
+.tools-label{margin:10px 0 12px}
 .cat-chips{display:flex;gap:8px;flex-wrap:wrap}
 .cat-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-muted);padding:7px 10px;border-radius:999px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}
 .cat-chip.active{transform:translateY(-1px)}
@@ -30,6 +32,11 @@
 .fav-btn.active{color:#fbbf24;border-color:#fbbf24;background:rgba(251,191,36,.12)}
 .recent-remove-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;margin-left:6px}
 .recent-remove-btn:hover{color:#f87171;border-color:#f87171;background:rgba(248,113,113,.12)}
+.recent-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+.recent-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:6px 10px;font-size:12px;text-decoration:none}
+.recent-chip:hover{border-color:var(--accent)}
+.recent-chip-remove{border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:12px;padding:0 2px;line-height:1}
+.recent-chip-remove:hover{color:#f87171}
 .section-toggle-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:8px}
 .section-toggle-btn:hover{color:var(--text);border-color:var(--text-muted)}
 .category-head .head-actions{display:flex;align-items:center;gap:8px}
@@ -63,7 +70,7 @@
   </section>
 
   <!-- ─── Tools Grid ──────────────────────────────────── -->
-  <p class="section-label">Tools</p>
+  <p class="section-label tools-label">Tools</p>
 
   <div id="favoriteGroups"></div>
   <div id="recentGroups"></div>
@@ -210,6 +217,25 @@
         });
       });
 
+      document.querySelectorAll('[data-remove-recent-chip]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const href = btn.dataset.removeRecentChip;
+          recents = recents.filter(x => x !== href);
+          saveRecents();
+          renderGroups();
+        });
+      });
+
+      document.querySelectorAll('[data-recent-open]').forEach(el => {
+        el.addEventListener('click', () => {
+          const href = el.dataset.recentOpen;
+          recents = [href, ...recents.filter(x => x !== href)].slice(0, 4);
+          saveRecents();
+        });
+      });
+
       document.querySelectorAll('[data-section-toggle]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
@@ -242,7 +268,15 @@
       const key = 'recent';
       recentGroupsEl.innerHTML = `
         ${sectionHead('Recent', recentTools.length, key)}
-        <div class="tools-grid recent-grid ${isCollapsed(key) ? 'hidden' : ''}">${recentTools.map(t => renderToolCard(t, { removableRecent: true })).join('')}</div>
+        <div class="recent-chip-row ${isCollapsed(key) ? 'hidden' : ''}">
+          ${recentTools.map(t => `
+            <a class="recent-chip" href="tools/${t.href}" data-recent-open="${t.href}">
+              <span>${t.icon}</span>
+              <span>${t.title || t.label}</span>
+              <button class="recent-chip-remove" data-remove-recent-chip="${t.href}" title="Recent에서 제거">✕</button>
+            </a>
+          `).join('')}
+        </div>
       `;
     }
 
