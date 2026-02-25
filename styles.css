@@ -441,20 +441,20 @@ body::before {
 
 /* ─── Mobile Nav Drawer ───────────────────────────────────── */
 @media (max-width: 768px) {
-  .nav-inner {
+  .is-mobile .nav-inner {
     justify-content: space-between;
   }
 
-  .mobile-menu-btn {
+  .is-mobile .mobile-menu-btn {
     display: flex;
   }
 
-  .nav-actions {
+  .is-mobile .nav-actions {
     margin-left: auto;
     padding-left: 10px;
   }
 
-  .nav-tools {
+  .is-mobile .nav-tools {
     display: none;
     position: absolute;
     top: var(--nav-h);
@@ -472,32 +472,32 @@ body::before {
   }
 
   /* global mobile overflow guard for tool pages */
-  .container { padding: 0 14px; }
-  .main-grid { gap: 14px; }
-  .main-grid > *, .panel, .output-panel { min-width: 0; }
-  .setting-group { margin: 8px 10px; padding: 10px; }
-  .options-bar { padding: 10px 12px; gap: 8px; }
-  .toggle-group, .dialect-group, .crud-group { flex-wrap: wrap; max-width: 100%; }
-  .mock-textarea, .ddl-textarea, .md-textarea, textarea, select, input[type="text"], input[type="number"], input[type="file"] {
+  .is-mobile .container { padding: 0 14px; }
+  .is-mobile .main-grid { gap: 14px; }
+  .is-mobile .main-grid > *, .is-mobile .panel, .is-mobile .output-panel { min-width: 0; }
+  .is-mobile .setting-group { margin: 8px 10px; padding: 10px; }
+  .is-mobile .options-bar { padding: 10px 12px; gap: 8px; }
+  .is-mobile .toggle-group, .is-mobile .dialect-group, .is-mobile .crud-group { flex-wrap: wrap; max-width: 100%; }
+  .is-mobile .mock-textarea, .is-mobile .ddl-textarea, .is-mobile .md-textarea, .is-mobile textarea, .is-mobile select, .is-mobile input[type="text"], .is-mobile input[type="number"], .is-mobile input[type="file"] {
     max-width: 100% !important;
     min-width: 0;
   }
-  .table-name-input { max-width: 100%; min-width: 0; }
-  .options-bar.row-tight .table-name-input { flex: 0 1 180px; max-width: 180px !important; }
-  .options-bar.row-tight .table-name-input.input-xs { flex-basis: 90px; max-width: 90px !important; }
-  .options-bar.row-tight .table-name-input.input-sm { flex-basis: 120px; max-width: 120px !important; }
-  .options-bar.row-tight .table-name-input.input-md { flex-basis: 160px; max-width: 160px !important; }
+  .is-mobile .table-name-input { max-width: 100%; min-width: 0; }
+  .is-mobile .options-bar.row-tight .table-name-input { flex: 0 1 180px; max-width: 180px !important; }
+  .is-mobile .options-bar.row-tight .table-name-input.input-xs { flex-basis: 90px; max-width: 90px !important; }
+  .is-mobile .options-bar.row-tight .table-name-input.input-sm { flex-basis: 120px; max-width: 120px !important; }
+  .is-mobile .options-bar.row-tight .table-name-input.input-md { flex-basis: 160px; max-width: 160px !important; }
 
-  .topnav.nav-open .nav-tools {
+  .is-mobile .topnav.nav-open .nav-tools {
     display: flex;
     animation: mobileNavSlideIn 0.2s ease forwards;
   }
 
-  .nav-menu {
+  .is-mobile .nav-menu {
     width: 100%;
   }
 
-  .nav-menu-btn {
+  .is-mobile .nav-menu-btn {
     width: 100%;
     justify-content: space-between;
     padding: 11px 14px;
@@ -507,7 +507,7 @@ body::before {
     border-radius: 10px;
   }
 
-  .nav-submenu {
+  .is-mobile .nav-submenu {
     position: static;
     display: none;
     min-width: 0;
@@ -520,15 +520,15 @@ body::before {
     padding: 0 0 0 8px;
   }
 
-  .nav-menu:hover .nav-submenu {
+  .is-mobile .nav-menu:hover .nav-submenu {
     display: none;
   }
 
-  .nav-menu.open .nav-submenu {
+  .is-mobile .nav-menu.open .nav-submenu {
     display: flex;
   }
 
-  .nav-tools .nav-item {
+  .is-mobile .nav-tools .nav-item {
     padding: 11px 14px;
     font-size: 13px;
     background: var(--surface);
@@ -538,7 +538,7 @@ body::before {
     justify-content: flex-start;
   }
 
-  .nav-tools .nav-item:hover {
+  .is-mobile .nav-tools .nav-item:hover {
     background: var(--surface2);
   }
 }

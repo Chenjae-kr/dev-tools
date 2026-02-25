@@ -4,8 +4,19 @@
 
 // ─── Theme init (runs immediately to prevent flash) ──────
 (function () {
+  const root = document.documentElement;
   const t = localStorage.getItem('devtools-theme');
-  document.documentElement.setAttribute('data-theme', t || 'light');
+  root.setAttribute('data-theme', t || 'light');
+
+  const mq = window.matchMedia('(max-width: 768px)');
+  const syncViewportClass = () => {
+    const isMobile = mq.matches;
+    root.classList.toggle('is-mobile', isMobile);
+    root.classList.toggle('is-desktop', !isMobile);
+  };
+  syncViewportClass();
+  if (mq.addEventListener) mq.addEventListener('change', syncViewportClass);
+  else window.addEventListener('resize', syncViewportClass);
 })();
 
 // ─── Render nav at current script position ───────────────
