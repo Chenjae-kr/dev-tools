@@ -59,7 +59,6 @@
             <input id="pageRange" class="table-name-input" placeholder="예: 1-3,5" value="all">
           </div>
           <div class="options-bar row-tight">
-            <button class="generate-btn" onclick="renderCurrent()">⚡ 실행</button>
             <button class="toggle-btn" onclick="downloadCurrent()">⬇ 현재 페이지 다운로드</button>
             <button class="toggle-btn" onclick="downloadAll()">⬇ 전체 ZIP 다운로드</button>
             <button class="toggle-btn" onclick="downloadRangeZip()">⬇ 범위 ZIP 다운로드</button>
@@ -105,6 +104,9 @@ document.getElementById('pdfFile').addEventListener('change', async (e)=>{
   document.getElementById('pageTotal').textContent = `/ ${pdfDoc.numPages}`;
   renderCurrent();
 });
+
+document.getElementById('pageNum').addEventListener('change', () => { if (pdfDoc) renderCurrent(); });
+document.getElementById('scale').addEventListener('change', () => { if (pdfDoc) renderCurrent(); });
 
 async function renderPage(pageNum){
   if (!pdfDoc) return;
