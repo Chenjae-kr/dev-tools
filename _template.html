@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  Dev Tools — 신규 도구 템플릿                                    ║
+  ║                                                                  ║
+  ║  사용법:                                                         ║
+  ║  1. 이 파일을 tools/<카테고리>/<tool-name>.html 로 복사          ║
+  ║  2. TOOL_* 로 표시된 항목을 전부 교체                            ║
+  ║  3. nav.js의 NAV_ITEMS 배열에 항목 추가                          ║
+  ║  4. 브라우저에서 바로 열어서 확인                                ║
+  ║                                                                  ║
+  ║  경로 깊이:                                                      ║
+  ║  tools/<sub>/  → ../../tools.js  ../../styles.css               ║
+  ║  tools/        →   ../tools.js     ../styles.css                ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- ✏ TOOL_TITLE: 브라우저 탭 제목 -->
+  <title>TOOL_TITLE | Dev Tools</title>
+  <script src="../../tools.js"></script>
+  <script src="../../nav.js"></script>
+  <script src="../../ui-utils.js"></script>
+  <link rel="stylesheet" href="../../styles.css">
+  <style>
+    /* 공통 textarea 스타일 — 대부분의 도구에서 그대로 사용 */
+    .txt {
+      width: 100%;
+      min-height: 240px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      padding: 14px 20px;
+      resize: vertical;
+    }
+    /* ✏ 도구별 추가 스타일을 여기에 (전역 styles.css에 속하지 않는 것만) */
+  </style>
+</head>
+<body>
+<script>renderNav();</script>
+
+<div class="container">
+  <!-- ✏ TOOL_H1_PLAIN / TOOL_H1_ACCENT: 예) Data <span>Masker</span> -->
+  <div class="tool-header">
+    <h1>TOOL_H1_PLAIN <span>TOOL_H1_ACCENT</span></h1>
+    <!-- ✏ TOOL_DESC: 한 줄 설명 -->
+    <p>// TOOL_DESC</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- ── 왼쪽: 입력 패널 ───────────────────────────────────── -->
+    <div>
+      <div class="panel">
+        <div class="panel-header">
+          <!-- ✏ INPUT_LABEL: 보통 "INPUT", SQL 도구면 "SCHEMA DSL" 등 -->
+          <div class="panel-title"><div class="dot"></div>INPUT</div>
+          <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
+        </div>
+
+        <!-- ✏ PLACEHOLDER: 입력 형식 힌트 -->
+        <textarea id="input" class="txt" placeholder="PLACEHOLDER"></textarea>
+
+        <!--
+          ✏ 옵션이 없으면 이 options-bar 블록 전체를 삭제
+          toggle-btn 패턴: data-* 속성으로 값 저장, JS에서 querySelectorAll로 바인딩
+          숫자 입력: <input class="table-name-input input-xs" type="number">
+        -->
+        <div class="options-bar">
+          <span class="options-label">Option</span>
+          <div class="toggle-group">
+            <button class="toggle-btn opt-btn active" data-opt="a">A</button>
+            <button class="toggle-btn opt-btn" data-opt="b">B</button>
+          </div>
+        </div>
+
+        <!-- ✏ BTN_LABEL: 동사형으로 ex) FORMAT / MASK / PROFILE / GENERATE -->
+        <button class="generate-btn" onclick="run()">⚡ BTN_LABEL</button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
+      </div>
+    </div>
+
+    <!-- ── 오른쪽: 출력 패널 ─────────────────────────────────── -->
+    <!-- ✏ EMPTY_ICON: 도구 성격에 맞는 이모지 ex) 🛡️ 📊 🌱 🔧 -->
+    <div class="output-panel" id="out">
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">EMPTY_ICON</div>
+          <!-- ✏ EMPTY_MSG: 대기 안내 문구 -->
+          <p>EMPTY_MSG</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✏ FOOTER_LABEL: 보통 도구명 그대로 -->
+  <footer>// FOOTER_LABEL</footer>
+</div>
+
+<script>
+// ── 상태 ──────────────────────────────────────────────────────────
+// ✏ 옵션 토글이 없으면 이 블록 삭제
+let selectedOpt = 'a';
+document.querySelectorAll('.opt-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedOpt = btn.dataset.opt;
+  });
+});
+
+// ── 핵심 로직 ─────────────────────────────────────────────────────
+function run() {
+  const input = document.getElementById('input').value;
+  if (!input.trim()) return UIUtils.showError('out', '입력이 비어 있습니다.');
+
+  // ✏ 여기에 변환 로직 작성
+  let result = input; // TODO
+
+  // 출력 렌더링
+  const id = 'result_' + Date.now();
+  document.getElementById('out').innerHTML = UIUtils.renderSqlBlock({
+    badge: 'RESULT',          // ✏ 뱃지 텍스트 (대문자)
+    tag: '...',               // ✏ 부가 정보 (처리 결과 요약 등)
+    copyBtnId: `copy_${id}`,
+    copyLabel: 'COPY',
+    copyHandler: `copyOut('${id}')`,
+    wrapBtnId: id,            // ✏ 테이블 출력 등 wrap 불필요 시 이 줄 삭제
+    bodyHtml: `<pre class="sql-code" id="${id}">${UIUtils.escHtml(result)}</pre>`,
+  });
+  scrollToOutput(document.getElementById('out'));
+}
+
+// ── 보조 함수 ─────────────────────────────────────────────────────
+function copyOut(id) {
+  UIUtils.copyElementText(id, `copy_${id}`, 'COPY');
+}
+
+function loadSample() {
+  // ✏ 실제 사용 예시 데이터로 교체
+  document.getElementById('input').value = `sample input here`;
+}
+
+// Ctrl + Enter 단축키
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') run();
+});
+</script>
+</body>
+</html>
