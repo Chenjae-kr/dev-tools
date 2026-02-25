@@ -192,10 +192,36 @@ function initAdvancedSettingsCollapse() {
   if (!inTools) return;
 
   const groups = [...document.querySelectorAll('.panel .setting-group')];
-  if (groups.length < 3) return;
+  if (groups.length < 2) return;
 
-  groups.forEach((g, i) => {
-    if (i === 0) return; // first group is basic
+  const basicTitleHints = ['source', 'input', '기본', 'basic', 'convert', 'render', 'export', 'file'];
+
+  const basicGroups = [];
+  const advancedGroups = [];
+
+  groups.forEach((g, idx) => {
+    const titleEl = g.querySelector('.setting-title');
+    const t = (titleEl?.textContent || '').trim().toLowerCase();
+
+    const explicitBasic = g.dataset.level === 'basic';
+    const explicitAdvanced = g.dataset.level === 'advanced';
+    const hintedBasic = basicTitleHints.some(h => t.includes(h));
+
+    if (explicitAdvanced) advancedGroups.push(g);
+    else if (explicitBasic || hintedBasic) basicGroups.push(g);
+    else advancedGroups.push(g);
+
+    // 최소 1개는 basic으로 보장
+    if (idx === 0 && !basicGroups.includes(g) && !explicitAdvanced) {
+      basicGroups.push(g);
+      const i = advancedGroups.indexOf(g);
+      if (i >= 0) advancedGroups.splice(i, 1);
+    }
+  });
+
+  if (!advancedGroups.length) return;
+
+  advancedGroups.forEach((g) => {
     g.classList.add('is-advanced');
     g.classList.add('collapsed');
 
@@ -212,7 +238,7 @@ function initAdvancedSettingsCollapse() {
     if (!firstPanel) return;
     const bar = document.createElement('div');
     bar.className = 'settings-mode-bar';
-    bar.innerHTML = `<button type="button" class="settings-mode-toggle" id="settingsModeToggle">고급 옵션 펼치기</button>`;
+    bar.innerHTML = `<button type="button" class="settings-mode-toggle" id="settingsModeToggle">고급 기능 펼치기</button>`;
     firstPanel.parentNode.insertBefore(bar, firstPanel);
 
     const btn = bar.querySelector('#settingsModeToggle');
@@ -220,7 +246,7 @@ function initAdvancedSettingsCollapse() {
       const expand = !btn.classList.contains('active');
       document.querySelectorAll('.setting-group.is-advanced').forEach(g => g.classList.toggle('collapsed', !expand));
       btn.classList.toggle('active', expand);
-      btn.textContent = expand ? '고급 옵션 접기' : '고급 옵션 펼치기';
+      btn.textContent = expand ? '고급 기능 접기' : '고급 기능 펼치기';
     });
   }
 }
