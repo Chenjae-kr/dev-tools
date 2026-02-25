@@ -13,7 +13,15 @@
 <style>
 .preview-wrap{position:sticky;top:84px}
 .pdf-canvas{width:100%;height:auto;border:1px solid var(--border);border-radius:10px;background:#fff}
+.page-row .page-nav-btn{width:34px;min-width:34px;padding:5px 0;text-align:center}
+.page-row #pageNum{flex:0 0 78px;max-width:78px !important}
+.page-row #pageTotal{min-width:46px;text-align:center}
 @media(max-width:980px){.preview-wrap{position:static;top:auto}}
+@media(max-width:768px){
+  .page-row{align-items:center}
+  .page-row > .options-label:first-child{flex:0 0 auto !important;min-width:auto !important}
+  .page-row #pageNum{flex:0 0 72px;max-width:72px !important}
+}
 </style>
 </head>
 <body>
@@ -35,12 +43,12 @@
 
         <div class="setting-group">
           <div class="setting-title">Render</div>
-          <div class="options-bar row-tight">
+          <div class="options-bar row-tight page-row">
             <span class="options-label">Page</span>
-            <button class="toggle-btn" onclick="prevPage()">◀</button>
+            <button class="toggle-btn page-nav-btn" onclick="prevPage()">◀</button>
             <input id="pageNum" class="table-name-input input-xs" type="number" min="1" value="1">
             <span id="pageTotal" class="options-label">/ 0</span>
-            <button class="toggle-btn" onclick="nextPage()">▶</button>
+            <button class="toggle-btn page-nav-btn" onclick="nextPage()">▶</button>
           </div>
           <div class="options-bar row-tight">
             <span class="options-label">Scale%</span>
