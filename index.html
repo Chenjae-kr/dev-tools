@@ -10,7 +10,9 @@
 <style>
 .hero{padding:56px 0 24px;margin-bottom:20px}
 .finder{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 8px}
-.finder input{flex:1;min-width:220px;background:transparent;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:16px}
+.search-wrap{position:relative;flex:1;min-width:220px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:14px;pointer-events:none}
+.finder input{width:100%;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px 10px 34px;color:#334155;font-family:'JetBrains Mono',monospace;font-size:16px}
 .tools-label{margin:10px 0 12px}
 .cat-chips{display:flex;gap:8px;flex-wrap:wrap}
 .cat-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-muted);padding:7px 10px;border-radius:999px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}
@@ -51,10 +53,6 @@
 .quick-access-tabs{display:flex;gap:6px;margin-bottom:8px}
 .quick-tab{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace}
 .quick-tab.active{color:var(--accent);border-color:rgba(79,255,176,.4);background:rgba(79,255,176,.08)}
-.mobile-cat-bar{display:none}
-.cat-menu-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:7px 12px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}
-.cat-menu-btn:hover{color:var(--text);border-color:var(--text-muted)}
-.cat-mobile-menu{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 2px}
 
 @media (max-width: 768px){
   .hero{padding:12px 0 8px !important;margin-bottom:8px !important}
@@ -62,11 +60,11 @@
   .hero h1{display:none}
   .hero-stats{display:none}
   .finder{margin:6px 0 2px}
-  .finder input{padding:9px 10px}
-  .cat-chips{display:block}
-  .mobile-cat-bar{display:flex;align-items:center;justify-content:space-between;gap:8px}
-  .mobile-cat-bar .cat-chip{padding:6px 10px;font-size:10px;white-space:nowrap}
-  .cat-mobile-menu .cat-chip{padding:6px 9px;font-size:10px;white-space:nowrap;flex:0 1 auto}
+  .search-wrap{width:100%}
+  .finder input{padding:9px 10px 9px 34px;background:#fff}
+  .cat-chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:8px;border:1px solid var(--border);background:#fff;border-radius:12px;-ms-overflow-style:none;scrollbar-width:none}
+  .cat-chips::-webkit-scrollbar{display:none}
+  .cat-chip{padding:6px 9px;font-size:10px;white-space:nowrap;flex:0 0 auto}
   .quick-access-wrap{padding:4px 0 8px}
   .quick-access-tabs{margin-bottom:6px}
   .recent-chip-row{flex-wrap:wrap;overflow:visible;padding-bottom:0;gap:6px}
@@ -109,7 +107,10 @@
       </div>
     </div>
     <div class="finder">
-      <input id="toolSearch" placeholder="툴 검색 (이름/설명/태그)">
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="toolSearch" aria-label="툴 검색">
+      </div>
       <div class="cat-chips" id="catChips"></div>
     </div>
     <div id="recentGroups"></div>
@@ -196,7 +197,6 @@
     let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
     let collapsedSections = JSON.parse(localStorage.getItem('devtools-collapsed-sections') || '{}');
     let quickTab = localStorage.getItem('devtools-quick-tab') || 'recent';
-    let mobileCategoryMenuOpen = false;
     let quickAccessCollapsed = localStorage.getItem('devtools-quick-collapsed');
     quickAccessCollapsed = quickAccessCollapsed == null ? true : quickAccessCollapsed === '1';
     function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
@@ -228,51 +228,16 @@
 
     function renderChips(){
       const all = ['ALL', ...categories];
-      const mobile = isMobileView();
+      chipsEl.innerHTML = all.map(cat => {
+        const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
+        return `<button class="cat-chip ${cls}${cat===activeCategory?' active':''}" data-cat="${cat}">${cat}</button>`;
+      }).join('');
 
-      if (mobile) {
-        const activeCls = activeCategory === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(activeCategory)}`;
-        chipsEl.innerHTML = `
-          <div class="mobile-cat-bar">
-            <button class="cat-chip ${activeCls} active" data-cat="${activeCategory}">${activeCategory}</button>
-            <button class="cat-menu-btn" id="mobileCatMenuBtn" title="카테고리 메뉴">카테고리 ${mobileCategoryMenuOpen ? '▴' : '▾'}</button>
-          </div>
-          ${mobileCategoryMenuOpen ? `
-            <div class="cat-mobile-menu">
-              ${all.map(cat => {
-                const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
-                return `<button class="cat-chip ${cls}${cat===activeCategory?' active':''}" data-cat-menu="${cat}">${cat}</button>`;
-              }).join('')}
-            </div>
-          ` : ''}
-        `;
-
-        const menuBtn = document.getElementById('mobileCatMenuBtn');
-        if (menuBtn) {
-          menuBtn.addEventListener('click', () => {
-            mobileCategoryMenuOpen = !mobileCategoryMenuOpen;
-            renderChips();
-          });
-        }
-
-        chipsEl.querySelectorAll('[data-cat-menu]').forEach(btn => btn.addEventListener('click', () => {
-          activeCategory = btn.dataset.catMenu;
-          mobileCategoryMenuOpen = false;
-          renderChips();
-          renderGroups();
-        }));
-      } else {
-        chipsEl.innerHTML = all.map(cat => {
-          const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
-          return `<button class="cat-chip ${cls}${cat===activeCategory?' active':''}" data-cat="${cat}">${cat}</button>`;
-        }).join('');
-
-        chipsEl.querySelectorAll('.cat-chip[data-cat]').forEach(btn=>btn.addEventListener('click', ()=>{
-          activeCategory = btn.dataset.cat;
-          renderChips();
-          renderGroups();
-        }));
-      }
+      chipsEl.querySelectorAll('.cat-chip[data-cat]').forEach(btn=>btn.addEventListener('click', ()=>{
+        activeCategory = btn.dataset.cat;
+        renderChips();
+        renderGroups();
+      }));
     }
 
     function bindCardButtons(){
