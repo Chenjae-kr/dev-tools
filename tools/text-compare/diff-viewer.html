@@ -209,7 +209,7 @@
         </div>
       </div>
 
-      <div class="options-row options-row-2">
+      <div class="options-row">
         <div class="options-item">
           <div class="options-bar row-tight">
             <span class="options-label">텍스트 옵션</span>
@@ -218,15 +218,6 @@
               <button class="toggle-btn opt-case active" data-case="on">대소문자 무시</button>
               <button class="toggle-btn opt-blank" data-blank="off">빈 줄 포함</button>
               <button class="toggle-btn opt-blank active" data-blank="on">빈 줄 무시</button>
-            </div>
-          </div>
-        </div>
-        <div class="options-item">
-          <div class="options-bar row-tight">
-            <span class="options-label">변경 이동</span>
-            <div class="toggle-group">
-              <button class="toggle-btn" onclick="jumpChange(-1)">이전</button>
-              <button class="toggle-btn" onclick="jumpChange(1)">다음</button>
             </div>
           </div>
         </div>
@@ -583,9 +574,10 @@ function jumpChange(dir = 1){
 function buildChangeNav(max = 24){
   const lines = [...document.querySelectorAll('#outputPanel .change-line')];
   if (!lines.length) return '';
+  const moveBtns = `<button class="toggle-btn" onclick="jumpChange(-1)">◀ 이전</button><button class="toggle-btn" onclick="jumpChange(1)">다음 ▶</button>`;
   const btns = lines.slice(0, max).map((_,i)=>`<button class="toggle-btn" onclick="jumpChangeTo(${i})">#${i+1}</button>`).join('');
   const more = lines.length > max ? `<span class="sql-dialect-tag">+${lines.length-max} more</span>` : '';
-  return `<div class="change-nav"><span class="sql-dialect-tag">Changes</span>${btns}${more}<button class="toggle-btn" onclick="copyByType('add')">추가만 COPY</button><button class="toggle-btn" onclick="copyByType('del')">삭제만 COPY</button><button class="toggle-btn" onclick="copyByType('chg')">변경만 COPY</button></div>`;
+  return `<div class="change-nav"><span class="sql-dialect-tag">Changes</span>${moveBtns}${btns}${more}<button class="toggle-btn" onclick="copyByType('add')">추가만 COPY</button><button class="toggle-btn" onclick="copyByType('del')">삭제만 COPY</button><button class="toggle-btn" onclick="copyByType('chg')">변경만 COPY</button></div>`;
 }
 
 function copyByType(kind){
