@@ -1580,6 +1580,15 @@ button.card-tag { appearance:none; -webkit-appearance:none; }
 
 .tool-card:hover .card-cta { gap: 10px; }
 
+/* Recent cards: compact to visually separate from category sections */
+.recent-grid .tool-card { min-height: 158px; padding: 14px; border-radius: 14px; }
+.recent-grid .card-icon { width: 36px; height: 36px; font-size: 11px; }
+.recent-grid .card-title { font-size: 15px; }
+.recent-grid .card-desc { font-size: 11px; -webkit-line-clamp: 2; min-height: 2.8em; }
+.recent-grid .card-tags { display: none; }
+.recent-grid .card-footer { margin-top: 10px; padding-top: 8px; }
+.recent-grid .card-io { font-size: 10px; }
+
 /* ══════════════════════════════════════════════════════════
    UX Improvements
    ══════════════════════════════════════════════════════════ */
