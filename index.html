@@ -43,6 +43,10 @@
 .section-toggle-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:8px}
 .section-toggle-btn:hover{color:var(--text);border-color:var(--text-muted)}
 .category-head .head-actions{display:flex;align-items:center;gap:8px}
+.quick-access-wrap{padding:6px 0 8px}
+.quick-access-tabs{display:flex;gap:6px;margin-bottom:8px}
+.quick-tab{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace}
+.quick-tab.active{color:var(--accent);border-color:rgba(79,255,176,.4);background:rgba(79,255,176,.08)}
 
 @media (max-width: 768px){
   .hero{padding:12px 0 8px !important;margin-bottom:8px !important}
@@ -51,11 +55,12 @@
   .hero-stats{display:none}
   .finder{margin:6px 0 2px}
   .finder input{padding:9px 10px}
-  .cat-chip{padding:6px 9px;font-size:10px}
-  .recent-utility-bar{padding:6px 0 8px;display:block}
+  .cat-chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  .cat-chip{padding:6px 9px;font-size:10px;white-space:nowrap;flex:0 0 auto}
+  .quick-access-wrap{padding:4px 0 8px}
+  .quick-access-tabs{margin-bottom:6px}
   .recent-chip-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
   .recent-chip{white-space:nowrap;flex:0 0 auto}
-  .favorites-quick{margin:8px 0 0 auto}
   .tools-label{margin:6px 0 8px}
 }
 
@@ -92,6 +97,7 @@
   <!-- ─── Tools Grid ──────────────────────────────────── -->
   <p class="section-label tools-label">Tools</p>
 
+  <div id="quickAccess"></div>
   <div id="favoriteGroups"></div>
   <div id="toolsGroups"></div>
 
@@ -155,6 +161,7 @@
 
     const groupsEl = document.getElementById('toolsGroups');
     const recentGroupsEl = document.getElementById('recentGroups');
+    const quickAccessEl = document.getElementById('quickAccess');
     const favoriteGroupsEl = document.getElementById('favoriteGroups');
     const searchEl = document.getElementById('toolSearch');
     const chipsEl = document.getElementById('catChips');
@@ -166,11 +173,13 @@
     let favorites = new Set(JSON.parse(localStorage.getItem('devtools-favorites') || '[]'));
     let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
     let collapsedSections = JSON.parse(localStorage.getItem('devtools-collapsed-sections') || '{}');
+    let quickTab = localStorage.getItem('devtools-quick-tab') || 'recent';
     function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
     function saveRecents(){ localStorage.setItem('devtools-recents', JSON.stringify(recents.slice(0,4))); }
     function saveCollapsed(){ localStorage.setItem('devtools-collapsed-sections', JSON.stringify(collapsedSections)); }
     function isCollapsed(key){ return !!collapsedSections[key]; }
     function setCollapsed(key, v){ collapsedSections[key] = !!v; saveCollapsed(); }
+    function saveQuickTab(){ localStorage.setItem('devtools-quick-tab', quickTab); }
     function sectionHead(title, count, key){
       const collapsed = isCollapsed(key);
       return `
@@ -265,14 +274,14 @@
         });
       });
 
-      const fq = document.getElementById('favoritesQuickBtn');
-      if (fq) {
-        fq.addEventListener('click', (e) => {
+      document.querySelectorAll('[data-quick-tab]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
           e.preventDefault();
-          const section = document.getElementById('favoritesSection');
-          if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          quickTab = btn.dataset.quickTab;
+          saveQuickTab();
+          renderGroups();
         });
-      }
+      });
 
       document.querySelectorAll('.tool-card[data-tool-href]').forEach(card => {
         card.addEventListener('click', () => {
@@ -283,32 +292,43 @@
       });
     }
 
-    function renderRecents(query='', category='ALL'){
+    function renderQuickAccess(query='', category='ALL'){
       if ((query || '').trim() || category !== 'ALL') {
+        quickAccessEl.innerHTML = '';
         recentGroupsEl.innerHTML = '';
         return;
       }
       const recentTools = recents.map(h => TOOLS.find(t => t.href === h)).filter(Boolean).slice(0,5);
-      const favCount = TOOLS.filter(t => favorites.has(t.href)).length;
-      if (!recentTools.length && !favCount) {
+      const favTools = TOOLS.filter(t => favorites.has(t.href)).slice(0,5);
+      const list = quickTab === 'favorites' ? favTools : recentTools;
+
+      if (!recentTools.length && !favTools.length) {
+        quickAccessEl.innerHTML = '';
         recentGroupsEl.innerHTML = '';
         return;
       }
-      recentGroupsEl.innerHTML = `
-        <div class="recent-utility-bar">
+
+      quickAccessEl.innerHTML = `
+        <div class="quick-access-wrap">
+          <div class="quick-access-tabs">
+            <button class="quick-tab ${quickTab==='recent'?'active':''}" data-quick-tab="recent">Recent ${recentTools.length}</button>
+            <button class="quick-tab ${quickTab==='favorites'?'active':''}" data-quick-tab="favorites">Favorites ${favTools.length}</button>
+          </div>
           <div class="recent-chip-row">
-            ${recentTools.map(t => `
+            ${list.map(t => `
               <a class="recent-chip" href="tools/${t.href}" data-recent-open="${t.href}">
                 <span>${t.icon}</span>
                 <span>${t.title || t.label}</span>
-                <button class="recent-chip-remove" data-remove-recent-chip="${t.href}" title="Recent에서 제거">✕</button>
+                ${quickTab==='recent' ? `<button class="recent-chip-remove" data-remove-recent-chip="${t.href}" title="Recent에서 제거">✕</button>` : ''}
               </a>
             `).join('')}
           </div>
-          ${favCount ? `<button class="favorites-quick" id="favoritesQuickBtn">★ Favorites ${favCount}</button>` : ''}
         </div>
       `;
+      recentGroupsEl.innerHTML = '';
     }
+
+    function renderRecents(){ recentGroupsEl.innerHTML = ''; }
 
     function renderFavorites(query='', category='ALL'){
       if ((query || '').trim() || category !== 'ALL') {
@@ -352,8 +372,13 @@
         groupsEl.innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">🔎</div><p>검색 결과가 없어</p></div></div>`;
       }
 
-      renderRecents(q, activeCategory);
-      renderFavorites(q, activeCategory);
+      renderQuickAccess(q, activeCategory);
+      renderRecents();
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        favoriteGroupsEl.innerHTML = '';
+      } else {
+        renderFavorites(q, activeCategory);
+      }
       bindCardButtons();
     }
 
