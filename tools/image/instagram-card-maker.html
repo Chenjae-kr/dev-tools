@@ -152,6 +152,11 @@
 
         <div id="bodyTableWrap" class="hidden">
           <div class="options-bar row-tight">
+            <span class="options-label">Data</span>
+            <div class="toggle-group" id="tblDataGroup">
+              <button class="toggle-btn tbldata-btn active" data-tbl-data="text">TEXT</button>
+              <button class="toggle-btn tbldata-btn" data-tbl-data="json">JSON</button>
+            </div>
             <span class="options-label" id="tblSepLabel">구분자</span>
             <div class="toggle-group" id="tblSepGroup">
               <button class="toggle-btn tblsep-btn active" data-sep="auto">AUTO</button>
@@ -321,6 +326,7 @@ let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
 let page=1, pages=[{}], bodyType='text';
 let exportFormat='png';
 let tableSepMode='auto';
+let tableDataMode='text';
 let tableInputMode='text';
 let presetScope='current';
 const PRESET_KEY='insta-card-presets-v1';
@@ -589,7 +595,61 @@ function parseMarkdownTable(text){
   return {head, body};
 }
 
+function parseJsonTable(text){
+  try {
+    const data = JSON.parse(text || '[]');
+
+    if (Array.isArray(data)) {
+      if (!data.length) return null;
+
+      if (Array.isArray(data[0])) {
+        const maxCols = Math.max(...data.map(r => Array.isArray(r) ? r.length : 0));
+        if (!maxCols) return null;
+        const head = Array.from({length:maxCols}, (_,i)=>`col_${i+1}`);
+        const body = data.map(r => {
+          const row = Array.isArray(r) ? r : [];
+          const x = row.slice(0, maxCols).map(v => String(v ?? ''));
+          while (x.length < maxCols) x.push('');
+          return x;
+        });
+        return { head, body };
+      }
+
+      if (typeof data[0] === 'object' && data[0] !== null) {
+        const head = [];
+        data.forEach(obj => {
+          if (!obj || typeof obj !== 'object') return;
+          Object.keys(obj).forEach(k => { if (!head.includes(k)) head.push(k); });
+        });
+        if (!head.length) return null;
+        const body = data.map(obj => head.map(k => String((obj && obj[k] != null) ? obj[k] : '')));
+        return { head, body };
+      }
+
+      return null;
+    }
+
+    if (data && typeof data === 'object' && Array.isArray(data.head) && Array.isArray(data.body)) {
+      const head = data.head.map(v => String(v ?? ''));
+      const body = data.body.map(r => {
+        const row = Array.isArray(r) ? r : [];
+        const x = row.slice(0, head.length).map(v => String(v ?? ''));
+        while (x.length < head.length) x.push('');
+        return x;
+      });
+      if (!head.length) return null;
+      return { head, body };
+    }
+
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
 function parseCsvTable(text){
+  if (tableDataMode === 'json') return parseJsonTable(text);
+
   const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   if(lines.length<2) return null;
 
@@ -628,7 +688,15 @@ function setTableInputUI(){
   const dual = document.getElementById('tableDual');
   const sepLabel = document.getElementById('tblSepLabel');
   const sepGroup = document.getElementById('tblSepGroup');
+  const textArea = document.getElementById('tableText');
   dual.style.gridTemplateColumns = '1fr';
+
+  const isJson = tableDataMode === 'json';
+  if (textArea) {
+    textArea.placeholder = isJson
+      ? '[\n  {"기업명":"케이뱅크","예상가치":"3조 3,673억","주요사업":"인터넷전문은행"},\n  {"기업명":"한화에너지","예상가치":"5조원 이상","주요사업":"에너지 발전·공급"}\n]'
+      : '기업명\t예상가치\t주요사업\n케이뱅크\t3조 3,673억\t인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |';
+  }
 
   if (tableInputMode === 'grid') {
     textWrap.classList.add('hidden');
@@ -638,8 +706,8 @@ function setTableInputUI(){
   } else {
     textWrap.classList.remove('hidden');
     gridWrap.classList.add('hidden');
-    if (sepLabel) sepLabel.classList.remove('hidden');
-    if (sepGroup) sepGroup.classList.remove('hidden');
+    if (sepLabel) sepLabel.classList.toggle('hidden', isJson);
+    if (sepGroup) sepGroup.classList.toggle('hidden', isJson);
   }
 }
 
@@ -700,9 +768,17 @@ function syncTextFromGrid(doRender=true){
 }
 
 function serializeTableData(head, body){
+  if (tableDataMode === 'json') {
+    const rows = body.map(r => {
+      const obj = {};
+      head.forEach((h, i) => { obj[String(h || `col_${i+1}`)] = String((r && r[i]) ?? ''); });
+      return obj;
+    });
+    return JSON.stringify(rows, null, 2);
+  }
+
   const mode = tableSepMode === 'auto' ? 'tab' : tableSepMode;
   if (mode === 'pipe') {
-    const sep = '|';
     const h = `| ${head.join(' | ')} |`;
     const s = `| ${head.map(()=> '---').join(' | ')} |`;
     const b = body.map(r => `| ${r.map(v=>String(v||'')).join(' | ')} |`);
@@ -1091,6 +1167,14 @@ document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.query
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').classList.toggle('hidden', bgMode!=='image');renderCard();});
 document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
 document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;if(tableInputMode==='grid') syncGridFromText();renderCard();});
+document.querySelectorAll('.tbldata-btn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tbldata-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  tableDataMode = b.dataset.tblData;
+  setTableInputUI();
+  if (tableInputMode === 'grid') syncGridFromText();
+  renderCard();
+});
 /* table input mode is controlled by single toggle button */
 document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.bodybgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodybgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');setBodyBgUI();savePage();renderCard();});
