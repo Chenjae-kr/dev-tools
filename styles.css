@@ -810,6 +810,16 @@ body::before {
 @media (max-width: 980px) {
   .options-row.options-row-2 { grid-template-columns: 1fr; }
 }
+@media (max-width: 768px) {
+  .setting-group .options-bar {
+    gap: 6px;
+    align-items: stretch;
+  }
+  .setting-group .options-bar > .options-label {
+    flex: 0 0 100% !important;
+    min-width: 0 !important;
+  }
+}
 
 .row-tight { border-top: none !important; padding-top: 0 !important; gap: 8px; flex-wrap: wrap; }
 .mt-8 { margin-top: 8px; }
