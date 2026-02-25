@@ -57,8 +57,8 @@ function maskNow(){
   if(!t.trim()) return UIUtils.showError('out','입력 텍스트가 비어 있습니다.');
   let o=t;
   if(enabled.email) o=o.replace(/\b([A-Z0-9._%+-]{1,64})@([A-Z0-9.-]+\.[A-Z]{2,})\b/gi,(m,u,d)=>u.slice(0,2)+'***@'+d);
-  if(enabled.phone) o=o.replace(/\b01[016789][-\s]?\d{3,4}[-\s]?\d{4}\b/g,m=>m.replace(/\d(?=\d{4})/g,'*'));
-  if(enabled.card)  o=o.replace(/\b(?:\d{4}[-\s]?){3}\d{4}\b/g,m=>m.replace(/\d(?=\d{4})/g,'*'));
+  if(enabled.phone) o=o.replace(/\b(?:\+?82[-\s]?)?0?1[016789][-\s]?\d{3,4}[-\s]?\d{4}\b/g,m=>m.replace(/\d(?=(?:\D*\d){4})/g,'*'));
+  if(enabled.card)  o=o.replace(/\b(?:\d{4}[-\s]?){3}\d{4}\b/g,m=>m.replace(/\d(?=(?:\D*\d){4})/g,'*'));
   if(enabled.rrn)   o=o.replace(/\b\d{6}[-\s]?[1-4]\d{6}\b/g,m=>m.slice(0,8)+'******');
 
   const id='mask_'+Date.now();
