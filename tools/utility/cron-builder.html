@@ -69,6 +69,7 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title"><div class="dot"></div>BUILDER</div>
+          <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
         <div class="form-grid">
@@ -109,6 +110,7 @@
         <div class="options-bar row-tight">
           <button class="generate-btn" onclick="buildCron()">⚡ GENERATE</button>
         </div>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -218,6 +220,15 @@ function copyExpr(expr) {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') buildCron();
 });
+
+function loadSample() {
+  // 매일 오전 9시 (평일)
+  const fields = { min: '0', hour: '9', dom: '*', mon: '*', dow: '1-5' };
+  Object.entries(fields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) { el.value = val; el.dispatchEvent(new Event('input', { bubbles: true })); }
+  });
+}
 </script>
 </body>
 </html>

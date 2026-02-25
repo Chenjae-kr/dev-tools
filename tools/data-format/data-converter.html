@@ -24,7 +24,7 @@
   <div class="main-grid">
     <div>
       <div class="panel">
-        <div class="panel-header"><div class="panel-title"><div class="dot"></div>INPUT</div></div>
+        <div class="panel-header"><div class="panel-title"><div class="dot"></div>INPUT</div><button class="sample-btn" onclick="loadSample()">예시 불러오기</button></div>
 
         <div class="options-bar">
           <span class="options-label">Input Type</span>
@@ -51,6 +51,7 @@
         </div>
 
         <button class="generate-btn" onclick="convertNow()">⚡ CONVERT</button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -165,11 +166,14 @@ async function convertNow(){
       copyBtnId:`copy_${id}`,
       copyLabel:'COPY',
       copyHandler:`copyOut('${id}')`,
+      wrapBtnId:id,
       bodyHtml:`<pre class="sql-code" id="${id}">${esc(result)}</pre>`
     });
+    scrollToOutput(out);
   }catch(e){UIUtils.showError('out',e.message||String(e));}
 }
 function copyOut(id){UIUtils.copyElementText(id,`copy_${id}`,'COPY');}
+function loadSample(){document.getElementById('textInput').value=JSON.stringify([{id:1,name:'Alice',age:30,email:'alice@example.com'},{id:2,name:'Bob',age:25,email:'bob@example.com'}],null,2);}
 setInputUI();
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')convertNow();});
 </script>

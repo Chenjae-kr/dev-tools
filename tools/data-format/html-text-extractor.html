@@ -34,6 +34,7 @@
           <div class="options-bar">
             <label class="options-label"><input type="checkbox" id="keepLines" checked> 줄바꿈 유지</label>
             <button class="generate-btn" onclick="extractTextNow()">⚡ 추출</button>
+            <span class="kb-hint" style="margin:0 4px"><kbd>Ctrl</kbd>+<kbd>Enter</kbd></span>
             <button class="toggle-btn" onclick="resetForm()">RESET</button>
             <button class="toggle-btn" onclick="copyOut()">COPY</button>
             <button class="toggle-btn" onclick="downloadOut()">⬇ .txt</button>
@@ -117,8 +118,10 @@ function extractTextNow(){
       copyBtnId:`copy_${id}`,
       copyLabel:'COPY',
       copyHandler:`UIUtils.copyElementText('${id}','copy_${id}','COPY')`,
+      wrapBtnId:id,
       bodyHtml:`<pre class="sql-code" id="${id}">${UIUtils.escHtml(txt)}</pre>`
     });
+    scrollToOutput(document.getElementById('outputPanel'));
   } catch(e){
     UIUtils.showError('outputPanel', e.message || String(e));
   }
@@ -136,6 +139,9 @@ function resetForm(){
     document.getElementById('outputPanel').innerHTML = '<div class="panel"><div class="empty-state"><div class="icon">TXT</div><p>HTML 입력 후 텍스트 추출</p></div></div>';
   });
 }
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') extractTextNow();
+});
 </script>
 </body>
 </html>
