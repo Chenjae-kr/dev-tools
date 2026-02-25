@@ -49,10 +49,6 @@
           <span class="stat-num" id="categoryCount">4</span>
           <span class="stat-label">Categories</span>
         </div>
-        <div class="hero-stat">
-          <span class="stat-num">Multi</span>
-          <span class="stat-label">Outputs</span>
-        </div>
       </div>
     </div>
   </section>
@@ -65,8 +61,8 @@
     <div class="cat-chips" id="catChips"></div>
   </div>
 
-  <div id="recentGroups"></div>
   <div id="favoriteGroups"></div>
+  <div id="recentGroups"></div>
   <div id="toolsGroups"></div>
 
   <script>
@@ -138,7 +134,7 @@
     let favorites = new Set(JSON.parse(localStorage.getItem('devtools-favorites') || '[]'));
     let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
     function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
-    function saveRecents(){ localStorage.setItem('devtools-recents', JSON.stringify(recents.slice(0,5))); }
+    function saveRecents(){ localStorage.setItem('devtools-recents', JSON.stringify(recents.slice(0,4))); }
 
     function matchesQuery(tool, q){
       if(!q) return true;
@@ -184,7 +180,7 @@
       document.querySelectorAll('.tool-card[data-tool-href]').forEach(card => {
         card.addEventListener('click', () => {
           const href = card.dataset.toolHref;
-          recents = [href, ...recents.filter(x => x !== href)].slice(0, 5);
+          recents = [href, ...recents.filter(x => x !== href)].slice(0, 4);
           saveRecents();
         });
       });
