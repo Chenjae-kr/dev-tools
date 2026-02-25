@@ -1144,16 +1144,19 @@ kbd {
   .all-toggle,
   .export-btn
 ) {
-  border-radius: 8px;
+  border-radius: 10px;
   min-height: 34px;
-  padding: 7px 12px;
-  font-family: 'JetBrains Mono', monospace;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .25px;
+  border: 1px solid rgba(66,135,255,.45);
+  background: linear-gradient(135deg,#0f4db8,#2a77ff);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(42,119,255,.22);
   transition: all .16s ease;
 }
-
 :is(
   .generate-btn,
   .toggle-btn,
@@ -1178,12 +1181,12 @@ kbd {
   transform: translateY(0);
 }
 
-/* Primary action prominence */
-.generate-btn {
-  box-shadow: 0 8px 24px rgba(79,255,176,0.18);
+/* Unified button prominence */
+:is(.generate-btn,.toggle-btn,.copy-btn,.wrap-btn,.sample-btn,.file-select-btn,.dialect-btn,.crud-toggle,.all-toggle,.export-btn) {
+  box-shadow: 0 8px 20px rgba(42,119,255,.22);
 }
-[data-theme="light"] .generate-btn {
-  box-shadow: 0 6px 18px rgba(0,184,122,0.16);
+[data-theme="light"] :is(.generate-btn,.toggle-btn,.copy-btn,.wrap-btn,.sample-btn,.file-select-btn,.dialect-btn,.crud-toggle,.all-toggle,.export-btn) {
+  box-shadow: 0 6px 16px rgba(30,78,180,.18);
 }
 
 /* ══════════════════════════════════════════════════════════
