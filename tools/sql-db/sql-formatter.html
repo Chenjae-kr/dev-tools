@@ -49,6 +49,7 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title"><div class="dot"></div>SQL INPUT</div>
+          <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
         <textarea id="sqlInput" class="sql-input" placeholder="SELECT * FROM users WHERE id=1;"></textarea>
@@ -65,6 +66,7 @@
         </div>
 
         <button class="generate-btn" onclick="runFormatLint()">⚡ FORMAT + LINT</button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -201,8 +203,10 @@ function runFormatLint() {
     copyBtnId: `copy_${blockId}`,
     copyLabel: 'COPY',
     copyHandler: `copySQL('${blockId}')`,
+    wrapBtnId: blockId,
     bodyHtml,
   });
+  scrollToOutput(output);
 }
 
 function copySQL(id) {
@@ -212,6 +216,14 @@ function copySQL(id) {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runFormatLint();
 });
+
+function loadSample() {
+  document.getElementById('sqlInput').value =
+`select u.id,u.name,o.amount from users u
+left join orders o on u.id=o.user_id
+where u.is_active=1 and o.amount>100
+order by o.amount desc`;
+}
 </script>
 </body>
 </html>

@@ -57,9 +57,16 @@
     copyHandler = '',
     extraHeaderHtml = '',
     bodyHtml = '',
+    wrapBtnId = '',
   } = {}) {
     const copyBtn = copyBtnId && copyHandler
       ? `<button class="copy-btn" id="${escHtml(copyBtnId)}" onclick="${copyHandler}">${escHtml(copyLabel)}</button>`
+      : '';
+    const wrapBtn = wrapBtnId
+      ? `<button class="wrap-btn" id="wrap_${escHtml(wrapBtnId)}" onclick="toggleWrap('${escHtml(wrapBtnId)}')">WRAP</button>`
+      : '';
+    const actions = (wrapBtn || copyBtn)
+      ? `<div class="block-actions">${wrapBtn}${copyBtn}</div>`
       : '';
 
     return `
@@ -67,7 +74,7 @@
         <div class="sql-block-header">
           <span class="sql-type-badge badge-insert">${escHtml(badge)}</span>
           <span class="sql-dialect-tag">${escHtml(tag)}</span>
-          ${copyBtn}
+          ${actions}
           ${extraHeaderHtml}
         </div>
         ${bodyHtml}

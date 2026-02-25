@@ -35,6 +35,7 @@
           <div class="setting-title">Convert</div>
           <div class="options-bar row-tight">
             <button class="generate-btn" onclick="convertNow()">⚡ 변환</button>
+            <span class="kb-hint" style="margin:0 4px"><kbd>Ctrl</kbd>+<kbd>Enter</kbd></span>
             <button class="toggle-btn" onclick="resetForm()">RESET</button>
             <button class="toggle-btn" onclick="copyOut()">COPY</button>
             <button class="toggle-btn" id="downloadBtn" onclick="downloadOut()">⬇ 다운로드</button>
@@ -241,8 +242,10 @@ function convertNow(){
       copyBtnId:`copy_${id}`,
       copyLabel:'COPY',
       copyHandler:`UIUtils.copyElementText('${id}','copy_${id}','COPY')`,
+      wrapBtnId:id,
       bodyHtml:`<pre class="sql-code" id="${id}">${esc(outText)}</pre>`
     });
+    scrollToOutput(document.getElementById('outPanel'));
   }catch(e){ UIUtils.showError('outPanel', e.message||String(e)); }
 }
 
@@ -262,6 +265,9 @@ function resetForm(){
     document.getElementById('outPanel').innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">↔</div><p>HTML 또는 Markdown 입력 후 변환</p></div></div>`;
   });
 }
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') convertNow();
+});
 </script>
 </body>
 </html>

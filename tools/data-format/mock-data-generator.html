@@ -41,6 +41,7 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title"><div class="dot"></div>SCHEMA INPUT</div>
+          <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
         <div class="options-bar row-tight">
@@ -83,6 +84,7 @@ is_active:bool</textarea>
         </div>
 
         <button class="generate-btn" onclick="generateMock()">⚡ GENERATE</button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -304,8 +306,10 @@ function generateMock() {
       copyBtnId: `copy_${blockId}`,
       copyLabel: 'COPY',
       copyHandler: `copyOut('${blockId}')`,
+      wrapBtnId: blockId,
       bodyHtml: `<pre class="sql-code" id="${blockId}">${escHtml(text)}</pre>`,
     });
+    scrollToOutput(output);
   } catch (e) {
     output.innerHTML = `<div class="error-msg">❌ ${escHtml(e.message)}</div>`;
   }
@@ -318,6 +322,13 @@ function copyOut(id) {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateMock();
 });
+
+function loadSample() {
+  const ddlInput = document.getElementById('ddlInput');
+  const schemaInput = document.getElementById('schemaInput');
+  if (ddlInput) ddlInput.value = 'CREATE TABLE users (\n  id INT NOT NULL,\n  name VARCHAR(50),\n  email VARCHAR(100),\n  age INT,\n  is_active BOOLEAN\n);';
+  if (schemaInput) schemaInput.value = 'users: id:int pk, name:string, email:email, age:int(18,65), is_active:bool';
+}
 </script>
 </body>
 </html>

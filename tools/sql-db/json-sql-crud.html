@@ -38,6 +38,7 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title"><div class="dot"></div>INPUT</div>
+          <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
         <textarea id="jsonInput" class="json-textarea" placeholder='{"id": 1, "name": "Alice", "email": "alice@example.com", "age": 30}'>{
@@ -77,6 +78,7 @@
         </div>
 
         <button class="generate-btn" onclick="generateCRUD()">⚡ SQL 생성</button>
+        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -235,8 +237,10 @@ function generateCRUD() {
       copyBtnId: `copy_${blockId}`,
       copyLabel: 'COPY',
       copyHandler: `copyCRUD('${blockId}')`,
+      wrapBtnId: blockId,
       bodyHtml: `<pre class="sql-code" id="${blockId}">${escHtml(sql)}</pre>`,
     });
+    scrollToOutput(out);
   } catch (e) {
     UIUtils.showError(out, e.message || String(e));
   }
@@ -249,6 +253,18 @@ function copyCRUD(id) {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateCRUD();
 });
+
+function loadSample() {
+  document.getElementById('tableName').value = 'orders';
+  document.getElementById('jsonInput').value = JSON.stringify({
+    order_id: 1001,
+    user_id: 42,
+    product: 'Keyboard',
+    amount: 89000,
+    status: 'paid',
+    created_at: '2026-02-25'
+  }, null, 2);
+}
 </script>
 </body>
 </html>
