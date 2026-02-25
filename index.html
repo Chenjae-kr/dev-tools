@@ -1,163 +1,609 @@
 <!DOCTYPE html>
 <html lang="ko" data-theme="light">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dev Tools</title>
-<script src="tools.js"></script>
-<script src="nav.js"></script>
-<link rel="stylesheet" href="styles.css">
-<style>
-.hero{padding:56px 0 24px;margin-bottom:20px}
-.finder{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 8px}
-.search-wrap{position:relative;flex:1;min-width:220px}
-.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:14px;pointer-events:none}
-.finder input{width:100%;background:#f8fafc;border:1px solid color-mix(in srgb, var(--border) 78%, #fff 22%);border-radius:10px;padding:10px 12px 10px 34px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:16px}
-.finder input::placeholder{color:var(--text-muted)}
-.tools-label{margin:10px 0 12px}
-.cat-chips{display:flex;gap:8px;flex-wrap:wrap}
-.cat-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-muted);padding:7px 10px;border-radius:999px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}
-.cat-chip.active{transform:translateY(-1px)}
-.cat-chip-all.active{color:var(--accent);border-color:rgba(79,255,176,.42);background:rgba(79,255,176,.10)}
-.cat-chip-sql-db.active{color:#dbeafe;border-color:rgba(96,165,250,.55);background:rgba(96,165,250,.16)}
-.cat-chip-data-format.active{color:#ede9fe;border-color:rgba(167,139,250,.55);background:rgba(167,139,250,.16)}
-.cat-chip-image.active{color:#dcfce7;border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.16)}
-.cat-chip-text-compare.active{color:#fef3c7;border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.16)}
-.cat-chip-utility.active{color:#fee2e2;border-color:rgba(248,113,113,.55);background:rgba(248,113,113,.16)}
-[data-theme="light"] .cat-chip-sql-db.active{color:#1e3a8a;background:rgba(96,165,250,.20)}
-[data-theme="light"] .cat-chip-data-format.active{color:#5b21b6;background:rgba(167,139,250,.20)}
-[data-theme="light"] .cat-chip-image.active{color:#065f46;background:rgba(52,211,153,.20)}
-[data-theme="light"] .cat-chip-text-compare.active{color:#92400e;background:rgba(251,191,36,.22)}
-[data-theme="light"] .cat-chip-utility.active{color:#991b1b;background:rgba(248,113,113,.20)}
-.card-tag.cat-sql-db{background:rgba(96,165,250,.16);border-color:rgba(96,165,250,.42);color:#e5e7eb}
-.card-tag.cat-data-format{background:rgba(167,139,250,.16);border-color:rgba(167,139,250,.42);color:#e5e7eb}
-.card-tag.cat-image{background:rgba(52,211,153,.16);border-color:rgba(52,211,153,.42);color:#e5e7eb}
-.card-tag.cat-text-compare{background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.42);color:#e5e7eb}
-.card-tag.cat-utility{background:rgba(248,113,113,.16);border-color:rgba(248,113,113,.42);color:#e5e7eb}
-[data-theme="light"] .card-tag.cat-sql-db{background:rgba(96,165,250,.14);border-color:rgba(96,165,250,.38);color:#334155}
-[data-theme="light"] .card-tag.cat-data-format{background:rgba(167,139,250,.14);border-color:rgba(167,139,250,.38);color:#334155}
-[data-theme="light"] .card-tag.cat-image{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.38);color:#334155}
-[data-theme="light"] .card-tag.cat-text-compare{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.38);color:#334155}
-[data-theme="light"] .card-tag.cat-utility{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.38);color:#334155}
-.category-head{display:flex;justify-content:space-between;align-items:center;margin-top:22px}
-.category-head .count{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
-.fav-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px}
-.fav-btn.active{color:#fbbf24;border-color:#fbbf24;background:rgba(251,191,36,.12)}
-.recent-remove-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;margin-left:6px}
-.recent-remove-btn:hover{color:#f87171;border-color:#f87171;background:rgba(248,113,113,.12)}
-.recent-utility-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0 12px}
-.recent-chip-row{display:flex;flex-wrap:wrap;gap:8px}
-.recent-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:5px 10px;font-size:11px;text-decoration:none}
-.recent-chip:hover{border-color:var(--accent)}
-.recent-chip-remove{border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:11px;padding:0 2px;line-height:1}
-.recent-chip-remove:hover{color:#f87171}
-.favorites-quick{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer}
-.favorites-quick:hover{color:var(--text);border-color:var(--text-muted)}
-.section-toggle-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:8px}
-.section-toggle-btn:hover{color:var(--text);border-color:var(--text-muted)}
-.category-head .head-actions{display:flex;align-items:center;gap:8px}
-.quick-access-wrap{padding:6px 0 8px}
-.quick-access-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.quick-access-title{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase}
-.quick-access-toggle{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;width:28px;height:28px;cursor:pointer;font-size:13px;font-family:var(--font-ui);font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0}
-.quick-access-toggle:hover{color:var(--text);border-color:var(--text-muted)}
-.quick-access-tabs{display:flex;gap:6px;margin-bottom:8px}
-.quick-tab{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace}
-.quick-tab.active{color:var(--accent);border-color:rgba(79,255,176,.4);background:rgba(79,255,176,.08)}
-[data-theme="dark"] .finder input,
-[data-theme="dark"] .cat-chips { background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%); }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dev Tools</title>
+  <script src="tools.js"></script>
+  <script src="nav.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .hero {
+      padding: 56px 0 24px;
+      margin-bottom: 20px
+    }
 
-@media (max-width: 768px){
-  .hero{padding:12px 0 8px !important;margin-bottom:8px !important}
-  .hero-kicker{display:none}
-  .hero h1{display:none}
-  .hero-stats{display:none}
-  .finder{margin:6px 0 2px}
-  .search-wrap{width:100%}
-  .finder input{padding:9px 10px 9px 34px;background:#f8fafc}
-  .cat-chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:8px;border:1px solid color-mix(in srgb, var(--border) 78%, #fff 22%);background:#f8fafc;border-radius:12px;-ms-overflow-style:none;scrollbar-width:none}
-  .cat-chips::-webkit-scrollbar{display:none}
-  .cat-chip{padding:6px 9px;font-size:10px;white-space:nowrap;flex:0 0 auto}
-  .quick-access-wrap{padding:4px 0 8px}
-  .quick-access-tabs{margin-bottom:6px}
-  .recent-chip-row{flex-wrap:wrap;overflow:visible;padding-bottom:0;gap:6px}
-  .recent-chip{white-space:nowrap;flex:0 1 auto}
-  .tools-label{display:none}
-  .category-head{margin-top:12px}
-  .category-head .section-label{font-size:10px;letter-spacing:1.2px;margin-bottom:6px;gap:8px}
-  .category-head .count{font-size:10px}
-  .section-toggle-btn{padding:2px 6px;font-size:10px;margin-left:4px}
-  .tools-grid{gap:12px;margin-bottom:30px}
-  .tool-card{padding:12px;border-radius:12px}
-  .tool-card .card-title{font-size:18px}
-  .tool-card .card-desc{-webkit-line-clamp:1;min-height:auto}
-  .tool-card .card-io{display:none}
-  .tool-card .card-tags{display:none}
-  .tool-card .card-footer{margin-top:8px;padding-top:6px}
-}
+    .finder {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin: 18px 0 8px
+    }
 
-</style>
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 14px;
+      pointer-events: none
+    }
+
+    .finder input {
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid color-mix(in srgb, var(--border) 78%, #fff 22%);
+      border-radius: 10px;
+      padding: 10px 12px 10px 34px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px
+    }
+
+    .finder input::placeholder {
+      color: var(--text-muted)
+    }
+
+    .tools-label {
+      margin: 10px 0 12px
+    }
+
+    .cat-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .cat-chip {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      padding: 7px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px
+    }
+
+    .cat-chip.active {
+      transform: translateY(-1px)
+    }
+
+    .cat-chip-all.active {
+      color: var(--accent);
+      border-color: rgba(79, 255, 176, .42);
+      background: rgba(79, 255, 176, .10)
+    }
+
+    .cat-chip-sql-db.active {
+      color: #dbeafe;
+      border-color: rgba(96, 165, 250, .55);
+      background: rgba(96, 165, 250, .16)
+    }
+
+    .cat-chip-data-format.active {
+      color: #ede9fe;
+      border-color: rgba(167, 139, 250, .55);
+      background: rgba(167, 139, 250, .16)
+    }
+
+    .cat-chip-image.active {
+      color: #dcfce7;
+      border-color: rgba(52, 211, 153, .55);
+      background: rgba(52, 211, 153, .16)
+    }
+
+    .cat-chip-text-compare.active {
+      color: #fef3c7;
+      border-color: rgba(251, 191, 36, .55);
+      background: rgba(251, 191, 36, .16)
+    }
+
+    .cat-chip-utility.active {
+      color: #fee2e2;
+      border-color: rgba(248, 113, 113, .55);
+      background: rgba(248, 113, 113, .16)
+    }
+
+    [data-theme="light"] .cat-chip-sql-db.active {
+      color: #1e3a8a;
+      background: rgba(96, 165, 250, .20)
+    }
+
+    [data-theme="light"] .cat-chip-data-format.active {
+      color: #5b21b6;
+      background: rgba(167, 139, 250, .20)
+    }
+
+    [data-theme="light"] .cat-chip-image.active {
+      color: #065f46;
+      background: rgba(52, 211, 153, .20)
+    }
+
+    [data-theme="light"] .cat-chip-text-compare.active {
+      color: #92400e;
+      background: rgba(251, 191, 36, .22)
+    }
+
+    [data-theme="light"] .cat-chip-utility.active {
+      color: #991b1b;
+      background: rgba(248, 113, 113, .20)
+    }
+
+    .card-tag.cat-sql-db {
+      background: rgba(96, 165, 250, .16);
+      border-color: rgba(96, 165, 250, .42);
+      color: #e5e7eb
+    }
+
+    .card-tag.cat-data-format {
+      background: rgba(167, 139, 250, .16);
+      border-color: rgba(167, 139, 250, .42);
+      color: #e5e7eb
+    }
+
+    .card-tag.cat-image {
+      background: rgba(52, 211, 153, .16);
+      border-color: rgba(52, 211, 153, .42);
+      color: #e5e7eb
+    }
+
+    .card-tag.cat-text-compare {
+      background: rgba(251, 191, 36, .16);
+      border-color: rgba(251, 191, 36, .42);
+      color: #e5e7eb
+    }
+
+    .card-tag.cat-utility {
+      background: rgba(248, 113, 113, .16);
+      border-color: rgba(248, 113, 113, .42);
+      color: #e5e7eb
+    }
+
+    [data-theme="light"] .card-tag.cat-sql-db {
+      background: rgba(96, 165, 250, .14);
+      border-color: rgba(96, 165, 250, .38);
+      color: #334155
+    }
+
+    [data-theme="light"] .card-tag.cat-data-format {
+      background: rgba(167, 139, 250, .14);
+      border-color: rgba(167, 139, 250, .38);
+      color: #334155
+    }
+
+    [data-theme="light"] .card-tag.cat-image {
+      background: rgba(52, 211, 153, .14);
+      border-color: rgba(52, 211, 153, .38);
+      color: #334155
+    }
+
+    [data-theme="light"] .card-tag.cat-text-compare {
+      background: rgba(251, 191, 36, .14);
+      border-color: rgba(251, 191, 36, .38);
+      color: #334155
+    }
+
+    [data-theme="light"] .card-tag.cat-utility {
+      background: rgba(248, 113, 113, .14);
+      border-color: rgba(248, 113, 113, .38);
+      color: #334155
+    }
+
+    .category-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 22px
+    }
+
+    .category-head .count {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .fav-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      border-radius: 8px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px
+    }
+
+    .fav-btn.active {
+      color: #fbbf24;
+      border-color: #fbbf24;
+      background: rgba(251, 191, 36, .12)
+    }
+
+    .recent-remove-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      border-radius: 8px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 6px
+    }
+
+    .recent-remove-btn:hover {
+      color: #f87171;
+      border-color: #f87171;
+      background: rgba(248, 113, 113, .12)
+    }
+
+    .recent-utility-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0 12px
+    }
+
+    .recent-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px
+    }
+
+    .recent-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      text-decoration: none
+    }
+
+    .recent-chip:hover {
+      border-color: var(--accent)
+    }
+
+    .recent-chip-remove {
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 11px;
+      padding: 0 2px;
+      line-height: 1
+    }
+
+    .recent-chip-remove:hover {
+      color: #f87171
+    }
+
+    .favorites-quick {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer
+    }
+
+    .favorites-quick:hover {
+      color: var(--text);
+      border-color: var(--text-muted)
+    }
+
+    .section-toggle-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      border-radius: 8px;
+      padding: 3px 8px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      margin-left: 8px
+    }
+
+    .section-toggle-btn:hover {
+      color: var(--text);
+      border-color: var(--text-muted)
+    }
+
+    .category-head .head-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .quick-access-wrap {
+      padding: 6px 0 8px
+    }
+
+    .quick-access-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px
+    }
+
+    .quick-access-title {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1px;
+      text-transform: uppercase
+    }
+
+    .quick-access-toggle {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      border-radius: 999px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: var(--font-ui);
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0
+    }
+
+    .quick-access-toggle:hover {
+      color: var(--text);
+      border-color: var(--text-muted)
+    }
+
+    .quick-access-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px
+    }
+
+    .quick-tab {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      border-radius: 999px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .quick-tab.active {
+      color: var(--accent);
+      border-color: rgba(79, 255, 176, .4);
+      background: rgba(79, 255, 176, .08)
+    }
+
+    [data-theme="dark"] .finder input,
+    [data-theme="dark"] .cat-chips {
+      background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%);
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 12px 0 8px !important;
+        margin-bottom: 8px !important
+      }
+
+      .hero-kicker {
+        display: none
+      }
+
+      .hero h1 {
+        display: none
+      }
+
+      .hero-stats {
+        display: none
+      }
+
+      .finder {
+        margin: 6px 0 2px
+      }
+
+      .search-wrap {
+        width: 100%
+      }
+
+      .finder input {
+        padding: 9px 10px 9px 34px;
+        background: #f8fafc
+      }
+
+      .cat-chips {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 6px;
+        padding: 8px;
+        border: 1px solid color-mix(in srgb, var(--border) 78%, #fff 22%);
+        background: #f8fafc;
+        border-radius: 12px;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent);
+        mask-image: linear-gradient(90deg, #000 90%, transparent);
+      }
+
+      .cat-chips::-webkit-scrollbar {
+        display: none
+      }
+
+      .cat-chip {
+        padding: 6px 9px;
+        font-size: 10px;
+        white-space: nowrap;
+        flex: 0 0 auto
+      }
+
+      .quick-access-wrap {
+        padding: 4px 0 8px
+      }
+
+      .quick-access-tabs {
+        margin-bottom: 6px
+      }
+
+      .recent-chip-row {
+        flex-wrap: wrap;
+        overflow: visible;
+        padding-bottom: 0;
+        gap: 6px
+      }
+
+      .recent-chip {
+        white-space: nowrap;
+        flex: 0 1 auto
+      }
+
+      .tools-label {
+        display: none
+      }
+
+      .category-head {
+        margin-top: 12px
+      }
+
+      .category-head .section-label {
+        font-size: 10px;
+        letter-spacing: 1.2px;
+        margin-bottom: 6px;
+        gap: 8px
+      }
+
+      .category-head .count {
+        font-size: 10px
+      }
+
+      .section-toggle-btn {
+        padding: 2px 6px;
+        font-size: 10px;
+        margin-left: 4px
+      }
+
+      .tools-grid {
+        gap: 12px;
+        margin-bottom: 30px
+      }
+
+      .tool-card {
+        padding: 12px;
+        border-radius: 12px
+      }
+
+      .tool-card .card-title {
+        font-size: 18px
+      }
+
+      .tool-card .card-desc {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        -webkit-line-clamp: 2;
+        min-height: auto;
+        margin-top: 2px
+      }
+
+      .tool-card .card-io {
+        display: none
+      }
+
+      .tool-card .card-tags {
+        display: none
+      }
+
+      .tool-card .card-footer {
+        margin-top: 8px;
+        padding-top: 6px
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<script>renderNav();</script>
+  <script>renderNav();</script>
 
-<!-- ─── Hero ─────────────────────────────────────────── -->
-<div class="container">
-  <section class="hero">
-    <p class="hero-kicker">developer utilities</p>
-    <div class="hero-row">
-      <h1>Dev<em>Tools</em></h1>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span class="stat-num" id="toolCount">2</span>
-          <span class="stat-label">Tools</span>
-        </div>
-        <div class="hero-stat">
-          <span class="stat-num" id="categoryCount">4</span>
-          <span class="stat-label">Categories</span>
+  <!-- ─── Hero ─────────────────────────────────────────── -->
+  <div class="container">
+    <section class="hero">
+      <p class="hero-kicker">developer utilities</p>
+      <div class="hero-row">
+        <h1>Dev<em>Tools</em></h1>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="stat-num" id="toolCount">2</span>
+            <span class="stat-label">Tools</span>
+          </div>
+          <div class="hero-stat">
+            <span class="stat-num" id="categoryCount">4</span>
+            <span class="stat-label">Categories</span>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="finder">
-      <div class="search-wrap">
-        <span class="search-icon" aria-hidden="true">⌕</span>
-        <input id="toolSearch" aria-label="툴 검색">
+      <div class="finder">
+        <div class="search-wrap">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="toolSearch" aria-label="툴 검색">
+        </div>
+        <div class="cat-chips" id="catChips"></div>
       </div>
-      <div class="cat-chips" id="catChips"></div>
-    </div>
-    <div id="recentGroups"></div>
-  </section>
+      <div id="recentGroups"></div>
+    </section>
 
-  <div id="quickAccess"></div>
+    <div id="quickAccess"></div>
 
-  <!-- ─── Tools Grid ──────────────────────────────────── -->
-  <p class="section-label tools-label">Tools</p>
+    <!-- ─── Tools Grid ──────────────────────────────────── -->
+    <p class="section-label tools-label">Tools</p>
 
-  <div id="favoriteGroups"></div>
-  <div id="toolsGroups"></div>
+    <div id="favoriteGroups"></div>
+    <div id="toolsGroups"></div>
 
-  <script>
-    function oneLineSummary({ desc }) {
-      const text = String(desc || '').replace(/\s+/g, ' ').trim();
-      if (!text) return '';
-      const firstSentence = text.split('. ')[0].trim();
-      return firstSentence.endsWith('.') ? firstSentence : `${firstSentence}.`;
-    }
+    <script>
+      function oneLineSummary({ desc }) {
+        const text = String(desc || '').replace(/\s+/g, ' ').trim();
+        if (!text) return '';
+        const firstSentence = text.split('. ')[0].trim();
+        return firstSentence.endsWith('.') ? firstSentence : `${firstSentence}.`;
+      }
 
-    function slugCategory(cat) {
-      return String(cat || 'other').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-');
-    }
+      function slugCategory(cat) {
+        return String(cat || 'other').toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-');
+      }
 
-    function renderToolCard({ href, icon, title, desc, tags, footer, category }, opts = {}) {
-      const catClass = `cat-${slugCategory(category)}`;
-      const shownTags = (tags || []).slice(0, 3);
-      const hiddenTagCount = Math.max(0, (tags || []).length - shownTags.length);
-      const ioText = String(footer || '').replace(/\s+/g, ' ').trim();
-      const isFav = favorites.has(href);
-      const removableRecent = opts.removableRecent === true;
+      function renderToolCard({ href, icon, title, desc, tags, footer, category }, opts = {}) {
+        const catClass = `cat-${slugCategory(category)}`;
+        const shownTags = (tags || []).slice(0, 3);
+        const hiddenTagCount = Math.max(0, (tags || []).length - shownTags.length);
+        const ioText = String(footer || '').replace(/\s+/g, ' ').trim();
+        const isFav = favorites.has(href);
+        const removableRecent = opts.removableRecent === true;
 
-      return `
+        return `
         <a class="tool-card ${catClass}" href="tools/${href}" data-tool-href="${href}">
           <div class="card-top">
             <div class="card-icon">${icon}</div>
@@ -178,36 +624,36 @@
             <span>${footer}</span>
           </div>
         </a>`;
-    }
+      }
 
-    const groupsEl = document.getElementById('toolsGroups');
-    const recentGroupsEl = document.getElementById('recentGroups');
-    const quickAccessEl = document.getElementById('quickAccess');
-    const favoriteGroupsEl = document.getElementById('favoriteGroups');
-    const searchEl = document.getElementById('toolSearch');
-    const chipsEl = document.getElementById('catChips');
-    const categories = (typeof TOOL_CATEGORIES !== 'undefined' && TOOL_CATEGORIES.length)
-      ? TOOL_CATEGORIES
-      : [...new Set(TOOLS.map(t => t.category || 'Other'))];
+      const groupsEl = document.getElementById('toolsGroups');
+      const recentGroupsEl = document.getElementById('recentGroups');
+      const quickAccessEl = document.getElementById('quickAccess');
+      const favoriteGroupsEl = document.getElementById('favoriteGroups');
+      const searchEl = document.getElementById('toolSearch');
+      const chipsEl = document.getElementById('catChips');
+      const categories = (typeof TOOL_CATEGORIES !== 'undefined' && TOOL_CATEGORIES.length)
+        ? TOOL_CATEGORIES
+        : [...new Set(TOOLS.map(t => t.category || 'Other'))];
 
-    let activeCategory = 'ALL';
-    let favorites = new Set(JSON.parse(localStorage.getItem('devtools-favorites') || '[]'));
-    let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
-    let collapsedSections = JSON.parse(localStorage.getItem('devtools-collapsed-sections') || '{}');
-    let quickTab = localStorage.getItem('devtools-quick-tab') || 'favorites';
-    let quickAccessCollapsed = localStorage.getItem('devtools-quick-collapsed');
-    quickAccessCollapsed = quickAccessCollapsed == null ? true : quickAccessCollapsed === '1';
-    function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
-    function saveRecents(){ localStorage.setItem('devtools-recents', JSON.stringify(recents.slice(0,4))); }
-    function saveCollapsed(){ localStorage.setItem('devtools-collapsed-sections', JSON.stringify(collapsedSections)); }
-    function isCollapsed(key){ return !!collapsedSections[key]; }
-    function setCollapsed(key, v){ collapsedSections[key] = !!v; saveCollapsed(); }
-    function saveQuickTab(){ localStorage.setItem('devtools-quick-tab', quickTab); }
-    function saveQuickCollapsed(){ localStorage.setItem('devtools-quick-collapsed', quickAccessCollapsed ? '1' : '0'); }
-    function isMobileView(){ return window.matchMedia('(max-width: 768px)').matches; }
-    function sectionHead(title, count, key){
-      const collapsed = isCollapsed(key);
-      return `
+      let activeCategory = 'ALL';
+      let favorites = new Set(JSON.parse(localStorage.getItem('devtools-favorites') || '[]'));
+      let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
+      let collapsedSections = JSON.parse(localStorage.getItem('devtools-collapsed-sections') || '{}');
+      let quickTab = localStorage.getItem('devtools-quick-tab') || 'favorites';
+      let quickAccessCollapsed = localStorage.getItem('devtools-quick-collapsed');
+      quickAccessCollapsed = quickAccessCollapsed == null ? true : quickAccessCollapsed === '1';
+      function saveFavorites() { localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
+      function saveRecents() { localStorage.setItem('devtools-recents', JSON.stringify(recents.slice(0, 4))); }
+      function saveCollapsed() { localStorage.setItem('devtools-collapsed-sections', JSON.stringify(collapsedSections)); }
+      function isCollapsed(key) { return !!collapsedSections[key]; }
+      function setCollapsed(key, v) { collapsedSections[key] = !!v; saveCollapsed(); }
+      function saveQuickTab() { localStorage.setItem('devtools-quick-tab', quickTab); }
+      function saveQuickCollapsed() { localStorage.setItem('devtools-quick-collapsed', quickAccessCollapsed ? '1' : '0'); }
+      function isMobileView() { return window.matchMedia('(max-width: 768px)').matches; }
+      function sectionHead(title, count, key) {
+        const collapsed = isCollapsed(key);
+        return `
         <div class="category-head">
           <p class="section-label">${title}</p>
           <div class="head-actions">
@@ -216,137 +662,137 @@
           </div>
         </div>
       `;
-    }
+      }
 
-    function matchesQuery(tool, q){
-      if(!q) return true;
-      const hay = [tool.title, tool.label, tool.desc, ...(tool.tags||[])].join(' ').toLowerCase();
-      return hay.includes(q);
-    }
+      function matchesQuery(tool, q) {
+        if (!q) return true;
+        const hay = [tool.title, tool.label, tool.desc, ...(tool.tags || [])].join(' ').toLowerCase();
+        return hay.includes(q);
+      }
 
-    function renderChips(){
-      const all = ['ALL', ...categories];
-      chipsEl.innerHTML = all.map(cat => {
-        const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
-        return `<button class="cat-chip ${cls}${cat===activeCategory?' active':''}" data-cat="${cat}">${cat}</button>`;
-      }).join('');
+      function renderChips() {
+        const all = ['ALL', ...categories];
+        chipsEl.innerHTML = all.map(cat => {
+          const cls = cat === 'ALL' ? 'cat-chip-all' : `cat-chip-${slugCategory(cat)}`;
+          return `<button class="cat-chip ${cls}${cat === activeCategory ? ' active' : ''}" data-cat="${cat}">${cat}</button>`;
+        }).join('');
 
-      chipsEl.querySelectorAll('.cat-chip[data-cat]').forEach(btn=>btn.addEventListener('click', ()=>{
-        activeCategory = btn.dataset.cat;
-        renderChips();
-        renderGroups();
-      }));
-    }
-
-    function bindCardButtons(){
-      document.querySelectorAll('[data-fav]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const href = btn.dataset.fav;
-          if (favorites.has(href)) favorites.delete(href);
-          else favorites.add(href);
-          saveFavorites();
+        chipsEl.querySelectorAll('.cat-chip[data-cat]').forEach(btn => btn.addEventListener('click', () => {
+          activeCategory = btn.dataset.cat;
+          renderChips();
           renderGroups();
-        });
-      });
+        }));
+      }
 
-      document.querySelectorAll('[data-tag]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          searchEl.value = btn.dataset.tag;
-          renderGroups();
+      function bindCardButtons() {
+        document.querySelectorAll('[data-fav]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const href = btn.dataset.fav;
+            if (favorites.has(href)) favorites.delete(href);
+            else favorites.add(href);
+            saveFavorites();
+            renderGroups();
+          });
         });
-      });
 
-      document.querySelectorAll('[data-remove-recent]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const href = btn.dataset.removeRecent;
-          recents = recents.filter(x => x !== href);
-          saveRecents();
-          renderGroups();
+        document.querySelectorAll('[data-tag]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            searchEl.value = btn.dataset.tag;
+            renderGroups();
+          });
         });
-      });
 
-      document.querySelectorAll('[data-remove-recent-chip]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const href = btn.dataset.removeRecentChip;
-          recents = recents.filter(x => x !== href);
-          saveRecents();
-          renderGroups();
+        document.querySelectorAll('[data-remove-recent]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const href = btn.dataset.removeRecent;
+            recents = recents.filter(x => x !== href);
+            saveRecents();
+            renderGroups();
+          });
         });
-      });
 
-      document.querySelectorAll('[data-recent-open]').forEach(el => {
-        el.addEventListener('click', () => {
-          const href = el.dataset.recentOpen;
-          recents = [href, ...recents.filter(x => x !== href)].slice(0, 4);
-          saveRecents();
+        document.querySelectorAll('[data-remove-recent-chip]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const href = btn.dataset.removeRecentChip;
+            recents = recents.filter(x => x !== href);
+            saveRecents();
+            renderGroups();
+          });
         });
-      });
 
-      document.querySelectorAll('[data-section-toggle]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const key = btn.dataset.sectionToggle;
-          setCollapsed(key, !isCollapsed(key));
-          renderGroups();
+        document.querySelectorAll('[data-recent-open]').forEach(el => {
+          el.addEventListener('click', () => {
+            const href = el.dataset.recentOpen;
+            recents = [href, ...recents.filter(x => x !== href)].slice(0, 4);
+            saveRecents();
+          });
         });
-      });
 
-      document.querySelectorAll('[data-quick-tab]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          quickTab = btn.dataset.quickTab;
-          saveQuickTab();
-          renderGroups();
+        document.querySelectorAll('[data-section-toggle]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const key = btn.dataset.sectionToggle;
+            setCollapsed(key, !isCollapsed(key));
+            renderGroups();
+          });
         });
-      });
 
-      const qaToggle = document.getElementById('quickAccessToggle');
-      if (qaToggle) {
-        qaToggle.addEventListener('click', (e) => {
-          e.preventDefault();
-          quickAccessCollapsed = !quickAccessCollapsed;
-          saveQuickCollapsed();
-          renderGroups();
+        document.querySelectorAll('[data-quick-tab]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            quickTab = btn.dataset.quickTab;
+            saveQuickTab();
+            renderGroups();
+          });
+        });
+
+        const qaToggle = document.getElementById('quickAccessToggle');
+        if (qaToggle) {
+          qaToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            quickAccessCollapsed = !quickAccessCollapsed;
+            saveQuickCollapsed();
+            renderGroups();
+          });
+        }
+
+        document.querySelectorAll('.tool-card[data-tool-href]').forEach(card => {
+          card.addEventListener('click', () => {
+            const href = card.dataset.toolHref;
+            recents = [href, ...recents.filter(x => x !== href)].slice(0, 4);
+            saveRecents();
+          });
         });
       }
 
-      document.querySelectorAll('.tool-card[data-tool-href]').forEach(card => {
-        card.addEventListener('click', () => {
-          const href = card.dataset.toolHref;
-          recents = [href, ...recents.filter(x => x !== href)].slice(0, 4);
-          saveRecents();
-        });
-      });
-    }
+      function renderQuickAccess(query = '', category = 'ALL') {
+        if ((query || '').trim() || category !== 'ALL') {
+          quickAccessEl.innerHTML = '';
+          recentGroupsEl.innerHTML = '';
+          return;
+        }
+        const recentTools = recents.map(h => TOOLS.find(t => t.href === h)).filter(Boolean).slice(0, 5);
+        const favTools = TOOLS.filter(t => favorites.has(t.href)).slice(0, 5);
+        const list = quickTab === 'favorites' ? favTools : recentTools;
 
-    function renderQuickAccess(query='', category='ALL'){
-      if ((query || '').trim() || category !== 'ALL') {
-        quickAccessEl.innerHTML = '';
-        recentGroupsEl.innerHTML = '';
-        return;
-      }
-      const recentTools = recents.map(h => TOOLS.find(t => t.href === h)).filter(Boolean).slice(0,5);
-      const favTools = TOOLS.filter(t => favorites.has(t.href)).slice(0,5);
-      const list = quickTab === 'favorites' ? favTools : recentTools;
+        if (!recentTools.length && !favTools.length) {
+          quickAccessEl.innerHTML = '';
+          recentGroupsEl.innerHTML = '';
+          return;
+        }
 
-      if (!recentTools.length && !favTools.length) {
-        quickAccessEl.innerHTML = '';
-        recentGroupsEl.innerHTML = '';
-        return;
-      }
-
-      const mobile = isMobileView();
-      const collapsed = mobile ? quickAccessCollapsed : false;
-      quickAccessEl.innerHTML = `
+        const mobile = isMobileView();
+        const collapsed = mobile ? quickAccessCollapsed : false;
+        quickAccessEl.innerHTML = `
         <div class="quick-access-wrap">
           <div class="quick-access-head">
             <span class="quick-access-title">Quick Access</span>
@@ -354,89 +800,90 @@
           </div>
           <div class="${collapsed ? 'hidden' : ''}">
             <div class="quick-access-tabs">
-              <button class="quick-tab ${quickTab==='favorites'?'active':''}" data-quick-tab="favorites">Favorites ${favTools.length}</button>
-              <button class="quick-tab ${quickTab==='recent'?'active':''}" data-quick-tab="recent">Recent ${recentTools.length}</button>
+              <button class="quick-tab ${quickTab === 'favorites' ? 'active' : ''}" data-quick-tab="favorites">Favorites ${favTools.length}</button>
+              <button class="quick-tab ${quickTab === 'recent' ? 'active' : ''}" data-quick-tab="recent">Recent ${recentTools.length}</button>
             </div>
             <div class="recent-chip-row">
               ${list.map(t => `
                 <a class="recent-chip" href="tools/${t.href}" data-recent-open="${t.href}">
                   <span>${t.icon}</span>
                   <span>${t.title || t.label}</span>
-                  ${quickTab==='recent' ? `<button class="recent-chip-remove" data-remove-recent-chip="${t.href}" title="Recent에서 제거">✕</button>` : ''}
+                  ${quickTab === 'recent' ? `<button class="recent-chip-remove" data-remove-recent-chip="${t.href}" title="Recent에서 제거">✕</button>` : ''}
                 </a>
               `).join('')}
             </div>
           </div>
         </div>
       `;
-      recentGroupsEl.innerHTML = '';
-    }
-
-    function renderRecents(){ recentGroupsEl.innerHTML = ''; }
-
-    function renderFavorites(query='', category='ALL'){
-      if ((query || '').trim() || category !== 'ALL') {
-        favoriteGroupsEl.innerHTML = '';
-        return;
+        recentGroupsEl.innerHTML = '';
       }
 
-      const favTools = TOOLS.filter(t => favorites.has(t.href));
-      if (!favTools.length) {
-        favoriteGroupsEl.innerHTML = '';
-        return;
-      }
-      const key = 'favorites';
-      favoriteGroupsEl.innerHTML = `
+      function renderRecents() { recentGroupsEl.innerHTML = ''; }
+
+      function renderFavorites(query = '', category = 'ALL') {
+        if ((query || '').trim() || category !== 'ALL') {
+          favoriteGroupsEl.innerHTML = '';
+          return;
+        }
+
+        const favTools = TOOLS.filter(t => favorites.has(t.href));
+        if (!favTools.length) {
+          favoriteGroupsEl.innerHTML = '';
+          return;
+        }
+        const key = 'favorites';
+        favoriteGroupsEl.innerHTML = `
         <div id="favoritesSection"></div>
         ${sectionHead('Favorites', favTools.length, key)}
         <div class="tools-grid favorite-grid ${isCollapsed(key) ? 'hidden' : ''}">${favTools.map(renderToolCard).join('')}</div>
       `;
-    }
+      }
 
-    function renderGroups(){
-      const q = (searchEl.value || '').trim().toLowerCase();
+      function renderGroups() {
+        const q = (searchEl.value || '').trim().toLowerCase();
 
-      groupsEl.innerHTML = categories.map(cat => {
-        const tools = TOOLS
-          .filter(t => (t.category || 'Other') === cat)
-          .filter(t => activeCategory === 'ALL' || activeCategory === cat)
-          .filter(t => matchesQuery(t, q));
+        groupsEl.innerHTML = categories.map(cat => {
+          const tools = TOOLS
+            .filter(t => (t.category || 'Other') === cat)
+            .filter(t => activeCategory === 'ALL' || activeCategory === cat)
+            .filter(t => matchesQuery(t, q));
 
-        if (!tools.length) return '';
-        const key = `cat:${slugCategory(cat)}`;
-        return `
+          if (!tools.length) return '';
+          const key = `cat:${slugCategory(cat)}`;
+          return `
           ${sectionHead(cat, tools.length, key)}
           <div class="tools-grid ${isCollapsed(key) ? 'hidden' : ''}">
             ${tools.map(renderToolCard).join('')}
           </div>
         `;
-      }).join('');
+        }).join('');
 
-      if (!groupsEl.innerHTML.trim()) {
-        groupsEl.innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">🔎</div><p>검색 결과가 없어</p></div></div>`;
+        if (!groupsEl.innerHTML.trim()) {
+          groupsEl.innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">🔎</div><p>검색 결과가 없어</p><button class="toggle-btn" style="margin-top: 12px; max-width: 120px;" onclick="document.getElementById('toolSearch').value=''; document.getElementById('toolSearch').dispatchEvent(new Event('input'))">검색 초기화</button></div></div>`;
+        }
+
+        renderQuickAccess(q, activeCategory);
+        renderRecents();
+        if (window.matchMedia('(max-width: 768px)').matches) {
+          favoriteGroupsEl.innerHTML = '';
+        } else {
+          renderFavorites(q, activeCategory);
+        }
+        bindCardButtons();
       }
 
-      renderQuickAccess(q, activeCategory);
-      renderRecents();
-      if (window.matchMedia('(max-width: 768px)').matches) {
-        favoriteGroupsEl.innerHTML = '';
-      } else {
-        renderFavorites(q, activeCategory);
-      }
-      bindCardButtons();
-    }
+      renderChips();
+      renderGroups();
+      searchEl.addEventListener('input', renderGroups);
+      window.addEventListener('resize', () => { renderChips(); renderGroups(); });
 
-    renderChips();
-    renderGroups();
-    searchEl.addEventListener('input', renderGroups);
-    window.addEventListener('resize', () => { renderChips(); renderGroups(); });
+      document.getElementById('toolCount').textContent = TOOLS.length;
+      document.getElementById('categoryCount').textContent = categories.filter(cat => TOOLS.some(t => (t.category || 'Other') === cat)).length;
+    </script>
 
-    document.getElementById('toolCount').textContent = TOOLS.length;
-    document.getElementById('categoryCount').textContent = categories.filter(cat => TOOLS.some(t => (t.category || 'Other') === cat)).length;
-  </script>
-
-  <footer>// Dev Tools — a collection of developer utilities</footer>
-</div>
+    <footer>// Dev Tools — a collection of developer utilities</footer>
+  </div>
 
 </body>
+
 </html>
