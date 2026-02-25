@@ -787,6 +787,24 @@ body::before {
 .setting-group .options-bar > .options-label:first-child { flex: 0 0 112px; min-width: 112px; }
 .setting-group .options-bar > .options-label:not(:first-child) { min-width: auto; color: var(--text-dim); }
 
+.options-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.options-row.options-row-2 {
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+}
+.options-item {
+  min-width: 0;
+}
+.options-item .options-bar {
+  height: 100%;
+}
+@media (max-width: 980px) {
+  .options-row.options-row-2 { grid-template-columns: 1fr; }
+}
+
 .row-tight { border-top: none !important; padding-top: 0 !important; gap: 8px; flex-wrap: wrap; }
 .mt-8 { margin-top: 8px; }
 .mt-10 { margin-top: 10px; }

@@ -207,53 +207,65 @@
         <div class="setting-group" data-level="basic">
           <div class="setting-title">SQL Options</div>
 
-        <!-- Table Name -->
-        <div class="options-bar">
-          <span class="options-label">Table</span>
-          <input type="text" id="tableName" class="table-name-input" placeholder="table_name">
-        </div>
-
-        <!-- Delimiter -->
-        <div class="options-bar row-tight">
-          <span class="options-label">Delimiter</span>
-          <div class="toggle-group">
-            <button class="toggle-btn delim-btn active" data-delim=",">콤마 (,)</button>
-            <button class="toggle-btn delim-btn" data-delim=";">세미콜론 (;)</button>
-            <button class="toggle-btn delim-btn" data-delim="tab">탭 (↹)</button>
+        <div class="options-row options-row-2">
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Table</span>
+              <input type="text" id="tableName" class="table-name-input" placeholder="table_name">
+            </div>
+          </div>
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Delimiter</span>
+              <div class="toggle-group">
+                <button class="toggle-btn delim-btn active" data-delim=",">콤마 (,)</button>
+                <button class="toggle-btn delim-btn" data-delim=";">세미콜론 (;)</button>
+                <button class="toggle-btn delim-btn" data-delim="tab">탭 (↹)</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Dialect -->
-        <div class="options-bar row-tight">
-          <span class="options-label">Dialect</span>
-          <div class="dialect-group">
-            <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
-            <button class="dialect-btn" data-dialect="oracle">Oracle</button>
-            <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+        <div class="options-row options-row-2">
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Dialect</span>
+              <div class="dialect-group">
+                <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
+                <button class="dialect-btn" data-dialect="oracle">Oracle</button>
+                <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+              </div>
+            </div>
+          </div>
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Mode</span>
+              <div class="toggle-group">
+                <button class="toggle-btn mode-btn active" data-mode="individual">Individual</button>
+                <button class="toggle-btn mode-btn" data-mode="bulk">Bulk</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Mode</span>
-          <div class="toggle-group">
-            <button class="toggle-btn mode-btn active" data-mode="individual">Individual</button>
-            <button class="toggle-btn mode-btn" data-mode="bulk">Bulk</button>
+        <div class="options-row options-row-2">
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Upsert</span>
+              <div class="toggle-group">
+                <button class="toggle-btn upsert-btn active" data-upsert="off">OFF</button>
+                <button class="toggle-btn upsert-btn" data-upsert="on">ON</button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div class="options-bar row-tight">
-          <span class="options-label">Upsert</span>
-          <div class="toggle-group">
-            <button class="toggle-btn upsert-btn active" data-upsert="off">OFF</button>
-            <button class="toggle-btn upsert-btn" data-upsert="on">ON</button>
-          </div>
-        </div>
-
-        <div class="options-bar row-tight">
-          <span class="options-label">Empty값</span>
-          <div class="toggle-group">
-            <button class="toggle-btn null-btn active" data-null="null">NULL</button>
-            <button class="toggle-btn null-btn" data-null="empty">''</button>
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Empty값</span>
+              <div class="toggle-group">
+                <button class="toggle-btn null-btn active" data-null="null">NULL</button>
+                <button class="toggle-btn null-btn" data-null="empty">''</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -262,14 +274,21 @@
           <input type="text" id="conflictKeys" class="table-name-input" placeholder="id 또는 id,email">
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Preview</span>
-          <input type="number" id="previewRows" class="table-name-input input-xs" value="10" min="1" max="100">
+        <div class="options-row options-row-2">
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Preview</span>
+              <input type="number" id="previewRows" class="table-name-input input-xs" value="10" min="1" max="100">
+            </div>
+          </div>
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Chunk</span>
+              <input type="number" id="chunkSize" class="table-name-input input-sm" value="1000" min="1">
+            </div>
+          </div>
         </div>
-        <div class="options-bar row-tight">
-          <span class="options-label">Chunk</span>
-          <input type="number" id="chunkSize" class="table-name-input input-sm" value="1000" min="1">
-        </div>
+
         <div class="options-bar row-tight">
           <span class="options-label">Required Cols</span>
           <input type="text" id="requiredCols" class="table-name-input" placeholder="예: id,name,email">
