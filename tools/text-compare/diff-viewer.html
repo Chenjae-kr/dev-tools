@@ -133,61 +133,103 @@
       <div class="panel-title"><div class="dot"></div>INPUT</div>
       <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
     </div>
-    <div class="diff-grid">
-      <div>
-        <div class="diff-panel-label">◀ 원본 (ORIGINAL)</div>
-        <textarea class="diff-textarea" id="originalInput" placeholder="원본 텍스트를 여기에 붙여넣으세요..."></textarea>
+    <div class="setting-group" data-level="basic">
+      <div class="setting-title">Source</div>
+      <div class="diff-grid">
+        <div>
+          <div class="diff-panel-label">◀ 원본 (ORIGINAL)</div>
+          <textarea class="diff-textarea" id="originalInput" placeholder="원본 텍스트를 여기에 붙여넣으세요..."></textarea>
+        </div>
+        <div>
+          <div class="diff-panel-label">▶ 변경 (MODIFIED)</div>
+          <textarea class="diff-textarea" id="modifiedInput" placeholder="변경된 텍스트를 여기에 붙여넣으세요..."></textarea>
+        </div>
       </div>
-      <div>
-        <div class="diff-panel-label">▶ 변경 (MODIFIED)</div>
-        <textarea class="diff-textarea" id="modifiedInput" placeholder="변경된 텍스트를 여기에 붙여넣으세요..."></textarea>
+
+      <div class="options-row options-row-2">
+        <div class="options-item">
+          <div class="options-bar row-tight">
+            <span class="options-label">원본 파일</span>
+            <input id="origFile" type="file" accept=".txt,.json,.md,.csv,text/plain,application/json">
+          </div>
+        </div>
+        <div class="options-item">
+          <div class="options-bar row-tight">
+            <span class="options-label">변경 파일</span>
+            <input id="modFile" type="file" accept=".txt,.json,.md,.csv,text/plain,application/json">
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="setting-group" data-level="basic">
-      <div class="setting-title">View & Compare</div>
-      <div class="options-bar">
-        <span class="options-label">Mode</span>
-        <div class="toggle-group">
-          <button class="toggle-btn active" data-mode="text">Text</button>
-          <button class="toggle-btn" data-mode="json">JSON</button>
+      <div class="setting-title">Compare Options</div>
+
+      <div class="options-row options-row-2">
+        <div class="options-item">
+          <div class="options-bar row-tight">
+            <span class="options-label">Mode</span>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-mode="text">Text</button>
+              <button class="toggle-btn" data-mode="json">JSON</button>
+            </div>
+          </div>
         </div>
-        <span class="options-label">View</span>
-        <div class="toggle-group">
-          <button class="toggle-btn active" data-view="unified">Unified</button>
-          <button class="toggle-btn" data-view="split">Split</button>
-        </div>
-        <span class="options-label">Context</span>
-        <div class="toggle-group">
-          <button class="toggle-btn" data-ctx="0">없음</button>
-          <button class="toggle-btn active" data-ctx="3">3줄</button>
-          <button class="toggle-btn" data-ctx="5">5줄</button>
-          <button class="toggle-btn" data-ctx="-1">전체</button>
-        </div>
-      </div>
-      <div class="options-bar">
-        <span class="options-label">무시</span>
-        <div class="toggle-group">
-          <button class="toggle-btn active" data-trim="on">공백 무시</button>
-          <button class="toggle-btn" data-trim="off">공백 포함</button>
-        </div>
-        <span class="options-label">옵션</span>
-        <div class="toggle-group">
-          <button class="toggle-btn opt-case" data-case="off">대소문자 구분</button>
-          <button class="toggle-btn opt-case active" data-case="on">대소문자 무시</button>
-          <button class="toggle-btn opt-blank" data-blank="off">빈 줄 포함</button>
-          <button class="toggle-btn opt-blank active" data-blank="on">빈 줄 무시</button>
-        </div>
-        <span class="options-label">변경 이동</span>
-        <div class="toggle-group">
-          <button class="toggle-btn" onclick="jumpChange(-1)">이전</button>
-          <button class="toggle-btn" onclick="jumpChange(1)">다음</button>
+        <div class="options-item">
+          <div class="options-bar row-tight">
+            <span class="options-label">View</span>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-view="unified">Unified</button>
+              <button class="toggle-btn" data-view="split">Split</button>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="options-bar row-tight">
-        <span class="options-label">파일</span>
-        <input id="origFile" type="file" accept=".txt,.json,.md,.csv,text/plain,application/json">
-        <input id="modFile" type="file" accept=".txt,.json,.md,.csv,text/plain,application/json">
+
+      <div class="options-row options-row-2">
+        <div class="options-item">
+          <div class="options-bar row-tight">
+            <span class="options-label">Context</span>
+            <div class="toggle-group">
+              <button class="toggle-btn" data-ctx="0">없음</button>
+              <button class="toggle-btn active" data-ctx="3">3줄</button>
+              <button class="toggle-btn" data-ctx="5">5줄</button>
+              <button class="toggle-btn" data-ctx="-1">전체</button>
+            </div>
+          </div>
+        </div>
+        <div class="options-item">
+          <div class="options-bar row-tight">
+            <span class="options-label">공백 처리</span>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-trim="on">공백 무시</button>
+              <button class="toggle-btn" data-trim="off">공백 포함</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="options-row options-row-2">
+        <div class="options-item">
+          <div class="options-bar row-tight">
+            <span class="options-label">텍스트 옵션</span>
+            <div class="toggle-group">
+              <button class="toggle-btn opt-case" data-case="off">대소문자 구분</button>
+              <button class="toggle-btn opt-case active" data-case="on">대소문자 무시</button>
+              <button class="toggle-btn opt-blank" data-blank="off">빈 줄 포함</button>
+              <button class="toggle-btn opt-blank active" data-blank="on">빈 줄 무시</button>
+            </div>
+          </div>
+        </div>
+        <div class="options-item">
+          <div class="options-bar row-tight">
+            <span class="options-label">변경 이동</span>
+            <div class="toggle-group">
+              <button class="toggle-btn" onclick="jumpChange(-1)">이전</button>
+              <button class="toggle-btn" onclick="jumpChange(1)">다음</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
