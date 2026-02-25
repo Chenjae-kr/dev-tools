@@ -12,7 +12,8 @@
 .finder{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 8px}
 .search-wrap{position:relative;flex:1;min-width:220px}
 .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:14px;pointer-events:none}
-.finder input{width:100%;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px 10px 34px;color:#334155;font-family:'JetBrains Mono',monospace;font-size:16px}
+.finder input{width:100%;background:#f8fafc;border:1px solid color-mix(in srgb, var(--border) 78%, #fff 22%);border-radius:10px;padding:10px 12px 10px 34px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:16px}
+.finder input::placeholder{color:var(--text-muted)}
 .tools-label{margin:10px 0 12px}
 .cat-chips{display:flex;gap:8px;flex-wrap:wrap}
 .cat-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-muted);padding:7px 10px;border-radius:999px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}
@@ -53,6 +54,8 @@
 .quick-access-tabs{display:flex;gap:6px;margin-bottom:8px}
 .quick-tab{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace}
 .quick-tab.active{color:var(--accent);border-color:rgba(79,255,176,.4);background:rgba(79,255,176,.08)}
+[data-theme="dark"] .finder input,
+[data-theme="dark"] .cat-chips { background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%); }
 
 @media (max-width: 768px){
   .hero{padding:12px 0 8px !important;margin-bottom:8px !important}
@@ -61,8 +64,8 @@
   .hero-stats{display:none}
   .finder{margin:6px 0 2px}
   .search-wrap{width:100%}
-  .finder input{padding:9px 10px 9px 34px;background:#fff}
-  .cat-chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:8px;border:1px solid var(--border);background:#fff;border-radius:12px;-ms-overflow-style:none;scrollbar-width:none}
+  .finder input{padding:9px 10px 9px 34px;background:#f8fafc}
+  .cat-chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:8px;border:1px solid color-mix(in srgb, var(--border) 78%, #fff 22%);background:#f8fafc;border-radius:12px;-ms-overflow-style:none;scrollbar-width:none}
   .cat-chips::-webkit-scrollbar{display:none}
   .cat-chip{padding:6px 9px;font-size:10px;white-space:nowrap;flex:0 0 auto}
   .quick-access-wrap{padding:4px 0 8px}
