@@ -441,8 +441,17 @@ body::before {
 
 /* ─── Mobile Nav Drawer ───────────────────────────────────── */
 @media (max-width: 768px) {
+  .nav-inner {
+    justify-content: space-between;
+  }
+
   .mobile-menu-btn {
     display: flex;
+  }
+
+  .nav-actions {
+    margin-left: auto;
+    padding-left: 10px;
   }
 
   .nav-tools {
