@@ -1145,8 +1145,8 @@ kbd {
   transform: translateY(0);
 }
 
-/* Instagram-style only for primary actions */
-:is(.generate-btn,.export-btn) {
+/* Download button accent (Instagram-style) */
+.download-btn {
   border-radius: 10px;
   min-height: 34px;
   padding: 8px 12px;
@@ -1160,9 +1160,13 @@ kbd {
   box-shadow: 0 8px 20px rgba(42,119,255,.22);
   transition: all .16s ease;
 }
-[data-theme="light"] :is(.generate-btn,.export-btn) {
-  box-shadow: 0 6px 16px rgba(30,78,180,.18);
+.download-btn.all {
+  border-color: rgba(122,92,255,.45);
+  background: linear-gradient(135deg,#5b49d8,#7a5cff);
+  box-shadow: 0 8px 20px rgba(122,92,255,.22);
 }
+[data-theme="light"] .download-btn { box-shadow: 0 6px 16px rgba(30,78,180,.18); }
+[data-theme="light"] .download-btn.all { box-shadow: 0 6px 16px rgba(91,73,216,.18); }
 
 /* ══════════════════════════════════════════════════════════
    Home Page — index.html
