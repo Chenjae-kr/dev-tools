@@ -171,6 +171,10 @@ function syncToolHeaderFromRegistry() {
   const titleText = meta.title || meta.label || h1?.textContent || '';
   if (h1) h1.textContent = titleText;
   if (p) p.textContent = `// ${meta.desc || ''}`;
+
+  const footerEl = document.querySelector('footer');
+  if (footerEl && meta.footer) footerEl.textContent = `// ${meta.footer}`;
+
   if (titleText) document.title = `${titleText} | Dev Tools`;
   return true;
 }

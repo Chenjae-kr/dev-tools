@@ -152,7 +152,7 @@
         <div class="panel-header">
           <div class="panel-title">
             <div class="dot"></div>
-            CSV INPUT
+            INPUT
           </div>
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
@@ -262,7 +262,7 @@
         </div>
 
         <button class="generate-btn" id="generateBtn" onclick="generate()">
-          ⚡ INSERT 생성
+          ⚡ 생성
         </button>
         <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
@@ -852,7 +852,7 @@ function generate() {
       output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
     }
 
-    btn.textContent = '⚡ INSERT 생성';
+    btn.textContent = '⚡ 생성';
     btn.classList.remove('loading');
   }, 10);
 }

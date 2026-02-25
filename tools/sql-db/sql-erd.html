@@ -129,7 +129,7 @@
   <!-- ── Input Panel ──────────────────────────────────── -->
   <div class="panel mb-16">
     <div class="panel-header">
-      <div class="panel-title"><div class="dot"></div>SQL DDL INPUT</div>
+      <div class="panel-title"><div class="dot"></div>SQL INPUT</div>
     </div>
 
     <textarea id="sqlInput" placeholder="CREATE TABLE users (
@@ -161,7 +161,7 @@ CREATE TABLE orders (
     <div id="erdError" class="hidden"></div>
 
     <button class="generate-btn" id="erdBtn" onclick="generateERD()">
-      ⚡ ERD 생성
+      ⚡ 생성
     </button>
     <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
   </div>
@@ -830,7 +830,7 @@ function generateERD() {
       errDiv.classList.remove('hidden');
       document.getElementById('erdSection').classList.add('hidden');
     }
-    btn.textContent = '⚡ ERD 생성';
+    btn.textContent = '⚡ 생성';
     btn.classList.remove('loading');
   }, 50);
 }
