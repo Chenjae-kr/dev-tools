@@ -12,13 +12,19 @@
 <style>
 .drop-zone{border:1px dashed var(--border);border-radius:12px;padding:20px;text-align:center;background:var(--surface2);cursor:pointer}
 .drop-zone input{display:none}
-.opt-result-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-.opt-item{border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--surface)}
-.opt-item-top{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.opt-name{font-size:12px;font-family:var(--font-mono);word-break:break-all}
+.opt-result-list{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.opt-item{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--surface2)}
+.opt-item-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.opt-name{font-size:12px;font-family:var(--font-mono);word-break:break-all;max-width:100%}
 .opt-meta{font-size:11px;color:var(--text-dim);margin-top:4px}
+.opt-actions{margin-top:0}
 .opt-progress-wrap{margin-top:8px}
 .opt-progress-bar{width:100%;height:8px}
+@media(max-width:768px){
+  .drop-zone{padding:16px}
+  .opt-item{padding:10px}
+  .opt-item-top{gap:8px}
+}
 </style>
 </head>
 <body>
@@ -190,7 +196,9 @@ function renderOutput(){
                 <div class="opt-name">${UIUtils.escHtml(r.name)}</div>
                 <div class="opt-meta">${r.done ? `${bytes(r.inSize)} → ${bytes(r.outSize)} (${((1-r.outSize/r.inSize)*100).toFixed(1)}%)` : '처리중...'}</div>
               </div>
-              <button class="toggle-btn" data-dl="${i}" ${r.done ? '' : 'disabled'}>다운로드</button>
+              <div class="download-actions opt-actions">
+                <button class="download-btn single" data-dl="${i}" ${r.done ? '' : 'disabled'}>⬇ 다운로드</button>
+              </div>
             </div>
             <div class="opt-progress-wrap"><progress class="opt-progress-bar" max="100" value="${r.done?100:r.progress||0}"></progress></div>
           </div>`).join('')}
