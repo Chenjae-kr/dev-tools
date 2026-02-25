@@ -487,7 +487,6 @@ body::before {
   .options-bar.row-tight .table-name-input.input-xs { flex-basis: 90px; max-width: 90px !important; }
   .options-bar.row-tight .table-name-input.input-sm { flex-basis: 120px; max-width: 120px !important; }
   .options-bar.row-tight .table-name-input.input-md { flex-basis: 160px; max-width: 160px !important; }
-}
 
   .topnav.nav-open .nav-tools {
     display: flex;
