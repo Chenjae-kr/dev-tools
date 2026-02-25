@@ -30,6 +30,9 @@
 .fav-btn.active{color:#fbbf24;border-color:#fbbf24;background:rgba(251,191,36,.12)}
 .recent-remove-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px;margin-left:6px}
 .recent-remove-btn:hover{color:#f87171;border-color:#f87171;background:rgba(248,113,113,.12)}
+.section-toggle-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;margin-left:8px}
+.section-toggle-btn:hover{color:var(--text);border-color:var(--text-muted)}
+.category-head .head-actions{display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
@@ -138,8 +141,24 @@
     let activeCategory = 'ALL';
     let favorites = new Set(JSON.parse(localStorage.getItem('devtools-favorites') || '[]'));
     let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
+    let collapsedSections = JSON.parse(localStorage.getItem('devtools-collapsed-sections') || '{}');
     function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
     function saveRecents(){ localStorage.setItem('devtools-recents', JSON.stringify(recents.slice(0,4))); }
+    function saveCollapsed(){ localStorage.setItem('devtools-collapsed-sections', JSON.stringify(collapsedSections)); }
+    function isCollapsed(key){ return !!collapsedSections[key]; }
+    function setCollapsed(key, v){ collapsedSections[key] = !!v; saveCollapsed(); }
+    function sectionHead(title, count, key){
+      const collapsed = isCollapsed(key);
+      return `
+        <div class="category-head">
+          <p class="section-label">${title}</p>
+          <div class="head-actions">
+            <span class="count">${count} tools</span>
+            <button class="section-toggle-btn" data-section-toggle="${key}">${collapsed ? '펼치기' : '접기'}</button>
+          </div>
+        </div>
+      `;
+    }
 
     function matchesQuery(tool, q){
       if(!q) return true;
@@ -193,6 +212,16 @@
         });
       });
 
+      document.querySelectorAll('[data-section-toggle]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const key = btn.dataset.sectionToggle;
+          setCollapsed(key, !isCollapsed(key));
+          renderGroups();
+        });
+      });
+
       document.querySelectorAll('.tool-card[data-tool-href]').forEach(card => {
         card.addEventListener('click', () => {
           const href = card.dataset.toolHref;
@@ -212,12 +241,10 @@
         recentGroupsEl.innerHTML = '';
         return;
       }
+      const key = 'recent';
       recentGroupsEl.innerHTML = `
-        <div class="category-head">
-          <p class="section-label">Recent</p>
-          <span class="count">${recentTools.length} tools</span>
-        </div>
-        <div class="tools-grid recent-grid">${recentTools.map(t => renderToolCard(t, { removableRecent: true })).join('')}</div>
+        ${sectionHead('Recent', recentTools.length, key)}
+        <div class="tools-grid recent-grid ${isCollapsed(key) ? 'hidden' : ''}">${recentTools.map(t => renderToolCard(t, { removableRecent: true })).join('')}</div>
       `;
     }
 
@@ -228,12 +255,10 @@
         favoriteGroupsEl.innerHTML = '';
         return;
       }
+      const key = 'favorites';
       favoriteGroupsEl.innerHTML = `
-        <div class="category-head">
-          <p class="section-label">Favorites</p>
-          <span class="count">${favTools.length} tools</span>
-        </div>
-        <div class="tools-grid favorite-grid">${favTools.map(renderToolCard).join('')}</div>
+        ${sectionHead('Favorites', favTools.length, key)}
+        <div class="tools-grid favorite-grid ${isCollapsed(key) ? 'hidden' : ''}">${favTools.map(renderToolCard).join('')}</div>
       `;
     }
 
@@ -247,12 +272,10 @@
           .filter(t => matchesQuery(t, q));
 
         if (!tools.length) return '';
+        const key = `cat:${slugCategory(cat)}`;
         return `
-          <div class="category-head">
-            <p class="section-label">${cat}</p>
-            <span class="count">${tools.length} tools</span>
-          </div>
-          <div class="tools-grid">
+          ${sectionHead(cat, tools.length, key)}
+          <div class="tools-grid ${isCollapsed(key) ? 'hidden' : ''}">
             ${tools.map(renderToolCard).join('')}
           </div>
         `;
