@@ -48,7 +48,7 @@
 .quick-access-wrap{padding:6px 0 8px}
 .quick-access-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .quick-access-title{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase}
-.quick-access-toggle{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:6px 11px;cursor:pointer;font-size:12px;font-family:var(--font-ui);font-weight:600;letter-spacing:-0.1px}
+.quick-access-toggle{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;width:28px;height:28px;cursor:pointer;font-size:13px;font-family:var(--font-ui);font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0}
 .quick-access-toggle:hover{color:var(--text);border-color:var(--text-muted)}
 .quick-access-tabs{display:flex;gap:6px;margin-bottom:8px}
 .quick-tab{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace}
@@ -196,7 +196,7 @@
     let favorites = new Set(JSON.parse(localStorage.getItem('devtools-favorites') || '[]'));
     let recents = JSON.parse(localStorage.getItem('devtools-recents') || '[]');
     let collapsedSections = JSON.parse(localStorage.getItem('devtools-collapsed-sections') || '{}');
-    let quickTab = localStorage.getItem('devtools-quick-tab') || 'recent';
+    let quickTab = localStorage.getItem('devtools-quick-tab') || 'favorites';
     let quickAccessCollapsed = localStorage.getItem('devtools-quick-collapsed');
     quickAccessCollapsed = quickAccessCollapsed == null ? true : quickAccessCollapsed === '1';
     function saveFavorites(){ localStorage.setItem('devtools-favorites', JSON.stringify([...favorites])); }
@@ -352,12 +352,12 @@
         <div class="quick-access-wrap">
           <div class="quick-access-head">
             <span class="quick-access-title">Quick Access</span>
-            <button class="quick-access-toggle" id="quickAccessToggle">${collapsed ? '빠른 접근 보기' : '빠른 접근 숨기기'}</button>
+            <button class="quick-access-toggle" id="quickAccessToggle" title="${collapsed ? '빠른 접근 펼치기' : '빠른 접근 접기'}">${collapsed ? '▸' : '▾'}</button>
           </div>
           <div class="${collapsed ? 'hidden' : ''}">
             <div class="quick-access-tabs">
-              <button class="quick-tab ${quickTab==='recent'?'active':''}" data-quick-tab="recent">Recent ${recentTools.length}</button>
               <button class="quick-tab ${quickTab==='favorites'?'active':''}" data-quick-tab="favorites">Favorites ${favTools.length}</button>
+              <button class="quick-tab ${quickTab==='recent'?'active':''}" data-quick-tab="recent">Recent ${recentTools.length}</button>
             </div>
             <div class="recent-chip-row">
               ${list.map(t => `
