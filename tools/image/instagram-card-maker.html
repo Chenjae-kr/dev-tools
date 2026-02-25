@@ -129,19 +129,29 @@
           <input id="labelText" class="table-name-input" placeholder="2026년 IPO 예상 주요 기업" value="2026년 IPO 예상 주요 기업">
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Content JSON</span>
-          <button class="toggle-btn" onclick="fillHeadlineJsonFromInputs()">현재값 채우기</button>
-          <button class="toggle-btn" onclick="openHeadlineJsonPopup()">팝업 입력</button>
-          <button class="toggle-btn" onclick="applyHeadlineJsonToInputs()">JSON 적용</button>
+        <div class="options-row options-row-2">
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Content JSON</span>
+              <button class="toggle-btn" onclick="openHeadlineJsonPopup()">JSON 입력</button>
+              <button class="toggle-btn" onclick="document.getElementById('headlineJsonFile').click()">JSON 파일</button>
+              <input id="headlineJsonFile" type="file" accept=".json,application/json" class="hidden">
+            </div>
+          </div>
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Actions</span>
+              <button class="toggle-btn" onclick="resetHeadlineInputs()">입력값 초기화</button>
+            </div>
+          </div>
         </div>
-        <textarea id="headlineJsonInput" class="input-area" placeholder='{
+        <textarea id="headlineJsonInput" class="input-area hidden" placeholder='{
   "headline1": "카드뉴스 제목 1줄",
   "headline2": "카드뉴스 제목 2줄",
   "subtitle": "소제목/요약",
   "label": "라벨 배너"
 }'></textarea>
-        <div id="headlineJsonHint" class="text-muted mt-8">헤드라인/서브타이틀/라벨을 묶어서 JSON으로 한번에 입력할 수 있어요.</div>
+        <div id="headlineJsonHint" class="text-muted mt-8 hidden">헤드라인/서브타이틀/라벨을 묶어서 JSON으로 한번에 입력할 수 있어요.</div>
 
         <div class="control-grid-4">
           <input id="h1Scale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="H1 Size%">
@@ -574,6 +584,18 @@ function applyHeadlineJsonFromPopup(){
   document.getElementById('headlineJsonInput').value = input.value;
   applyHeadlineJsonToInputs();
   closeHeadlineJsonPopup();
+}
+
+function resetHeadlineInputs(){
+  document.getElementById('titleText').value = '';
+  document.getElementById('titleText2').value = '';
+  document.getElementById('subTitleText').value = '';
+  document.getElementById('labelText').value = '';
+  document.getElementById('headlineJsonInput').value = '';
+  const dialogInput = document.getElementById('headlineJsonDialogInput');
+  if (dialogInput) dialogInput.value = '';
+  savePage();
+  renderCard();
 }
 
 function applyHeadlineJsonToInputs(){
@@ -1307,6 +1329,7 @@ document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.
 document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
 document.getElementById('bodyBgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyBgImageData=ev.target.result;savePage();renderCard();};r.readAsDataURL(f);});
 document.getElementById('presetImport').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const data=JSON.parse(ev.target.result||'{}');if(!data||typeof data!=='object')return;const presets=getPresets();setPresets({...presets,...data});refreshPresetSelect();}catch(_){}};r.readAsText(f,'utf-8');});
+document.getElementById('headlineJsonFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const txt=String(ev.target?.result||'');document.getElementById('headlineJsonInput').value=txt;applyHeadlineJsonToInputs();}catch(_){document.getElementById('headlineJsonHint').textContent='JSON 파일을 읽는 중 오류가 발생했습니다.';}};r.readAsText(f,'utf-8');});
 
 // init
 pages[0]={
