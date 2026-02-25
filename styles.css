@@ -1559,15 +1559,15 @@ button.card-tag { appearance:none; -webkit-appearance:none; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-color: rgba(248,113,113,.45);
-  color: #fda4af;
-  background: rgba(248,113,113,.08);
+  border-color: var(--border);
+  color: var(--text-dim);
+  background: var(--surface2);
 }
 .reset-icon-btn:hover {
-  border-color: rgba(248,113,113,.72);
-  color: #fecdd3;
-  background: rgba(248,113,113,.16);
-  transform: translateY(-1px) rotate(-20deg);
+  border-color: var(--text-muted);
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface2) 86%, white 14%);
+  transform: translateY(-1px);
 }
 
 .card-tag-more {
