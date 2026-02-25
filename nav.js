@@ -233,15 +233,35 @@ function initAdvancedSettingsCollapse() {
     });
   });
 
-  if (!document.querySelector('.settings-mode-bar')) {
-    const firstPanel = document.querySelector('.main-grid .panel');
-    if (!firstPanel) return;
-    const bar = document.createElement('div');
-    bar.className = 'settings-mode-bar';
-    bar.innerHTML = `<button type="button" class="settings-mode-toggle" id="settingsModeToggle">고급 기능 펼치기</button>`;
-    firstPanel.parentNode.insertBefore(bar, firstPanel);
+  document.querySelector('.settings-mode-bar')?.remove();
 
-    const btn = bar.querySelector('#settingsModeToggle');
+  let btn = document.getElementById('settingsModeToggle');
+  if (!btn) {
+    const firstPanel = document.querySelector('.main-grid .panel');
+    const header = firstPanel?.querySelector('.panel-header');
+    const title = header?.querySelector('.panel-title');
+    if (!header || !title) return;
+
+    let actions = header.querySelector('.panel-header-actions');
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = 'panel-header-actions';
+      [...header.children].forEach((child) => {
+        if (child !== title) actions.appendChild(child);
+      });
+      header.appendChild(actions);
+    }
+
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'settingsModeToggle';
+    btn.className = 'sample-btn settings-mode-toggle';
+    btn.textContent = '고급 기능 펼치기';
+    actions.appendChild(btn);
+  }
+
+  if (btn.dataset.boundCollapse !== '1') {
+    btn.dataset.boundCollapse = '1';
     btn.addEventListener('click', () => {
       const expand = !btn.classList.contains('active');
       document.querySelectorAll('.setting-group.is-advanced').forEach(g => g.classList.toggle('collapsed', !expand));

@@ -587,6 +587,12 @@ body::before {
   background: var(--accent);
   box-shadow: 0 0 8px var(--accent);
 }
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
 
 /* ─── Options Bar ────────────────────────────────────────── */
 .options-bar {
