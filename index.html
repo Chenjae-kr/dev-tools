@@ -202,7 +202,11 @@
       });
     }
 
-    function renderRecents(){
+    function renderRecents(query=''){
+      if ((query || '').trim()) {
+        recentGroupsEl.innerHTML = '';
+        return;
+      }
       const recentTools = recents.map(h => TOOLS.find(t => t.href === h)).filter(Boolean);
       if (!recentTools.length) {
         recentGroupsEl.innerHTML = '';
@@ -258,7 +262,7 @@
         groupsEl.innerHTML = `<div class="panel"><div class="empty-state"><div class="icon">🔎</div><p>검색 결과가 없어</p></div></div>`;
       }
 
-      renderRecents();
+      renderRecents(q);
       renderFavorites();
       bindCardButtons();
     }
