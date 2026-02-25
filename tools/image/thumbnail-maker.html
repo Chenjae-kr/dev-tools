@@ -88,6 +88,21 @@
 3분 제작</textarea>
           <div class="options-bar"><span class="options-label">Sub</span></div>
           <textarea id="subText" class="input-area" placeholder="서브 텍스트">3분만에 블로그 썸네일 만들기</textarea>
+
+          <div class="options-bar row-tight">
+            <span class="options-label">JSON Data</span>
+            <button class="toggle-btn" onclick="fillThumbJsonFromInputs()">현재값 채우기</button>
+            <button class="toggle-btn" onclick="applyThumbJsonToInputs()">JSON 적용</button>
+            <button class="toggle-btn" onclick="document.getElementById('thumbJsonFile').click()">JSON 파일</button>
+            <input id="thumbJsonFile" type="file" accept=".json,application/json" class="hidden">
+          </div>
+          <textarea id="thumbJsonInput" class="input-area" placeholder='{
+  "mainText": "블로그 썸네일\n3분 제작",
+  "subText": "3분만에 블로그 썸네일 만들기",
+  "ratio": "1:1",
+  "bgColor": "#5f6fdd"
+}'></textarea>
+          <div id="thumbJsonHint" class="text-muted mt-8">JSON으로 텍스트/스타일/배경 옵션을 한번에 반영할 수 있어요.</div>
         </div>
 
         <div class="setting-group">
@@ -227,6 +242,23 @@ document.getElementById('bgImageInput').addEventListener('change', e=>{
   r.onload=ev=>{ const img=new Image(); img.onload=()=>{ bgImage=img; renderThumb(); }; img.src=ev.target.result; };
   r.readAsDataURL(f);
 });
+
+document.getElementById('thumbJsonFile').addEventListener('change', e=>{
+  const f=e.target.files?.[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try {
+      const txt = String(ev.target?.result || '');
+      document.getElementById('thumbJsonInput').value = txt;
+      applyThumbJsonToInputs();
+    } catch (_) {
+      document.getElementById('thumbJsonHint').textContent = 'JSON 파일을 읽는 중 오류가 발생했습니다.';
+    }
+  };
+  r.readAsText(f, 'utf-8');
+});
+
 ['bgColor','textColor','strokeColor','strokeWidth','mainText','subText','pad','ovStrength','mainScale','subScale','mainY','subY'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>renderThumb());
 });
@@ -256,7 +288,108 @@ function applyPreset(name){
   if (p.subScale) document.getElementById('subScale').value = p.subScale;
   if (p.mainY) document.getElementById('mainY').value = p.mainY;
   if (p.subY) document.getElementById('subY').value = p.subY;
+  fillThumbJsonFromInputs(false);
   renderThumb();
+}
+
+function setToggleByData(selector, key, value){
+  document.querySelectorAll(selector).forEach(btn=>btn.classList.toggle('active', btn.dataset[key]===value));
+}
+
+function fillThumbJsonFromInputs(showMsg=true){
+  const payload = {
+    mainText: document.getElementById('mainText').value || '',
+    subText: document.getElementById('subText').value || '',
+    ratio,
+    bgMode,
+    bgColor: document.getElementById('bgColor').value || '#5f6fdd',
+    overlay: overlayMode,
+    overlayStrength: parseInt(document.getElementById('ovStrength').value || '28', 10),
+    decor: decorStyle,
+    textColor: document.getElementById('textColor').value || '#ffffff',
+    strokeColor: document.getElementById('strokeColor').value || '#000000',
+    strokeWidth: parseInt(document.getElementById('strokeWidth').value || '6', 10),
+    padding: parseInt(document.getElementById('pad').value || '90', 10),
+    mainScale: parseInt(document.getElementById('mainScale').value || '100', 10),
+    subScale: parseInt(document.getElementById('subScale').value || '100', 10),
+    mainY: parseInt(document.getElementById('mainY').value || '43', 10),
+    subY: parseInt(document.getElementById('subY').value || '72', 10),
+    saveFormat,
+    quality: parseInt(document.getElementById('imgQuality').value || '92', 10)
+  };
+  document.getElementById('thumbJsonInput').value = JSON.stringify(payload, null, 2);
+  if (showMsg) document.getElementById('thumbJsonHint').textContent = '현재 설정을 JSON으로 채웠습니다.';
+}
+
+function applyThumbJsonObject(rawObj){
+  const obj = (rawObj && typeof rawObj === 'object' && rawObj.thumbnail && typeof rawObj.thumbnail === 'object')
+    ? rawObj.thumbnail
+    : rawObj;
+  if (!obj || typeof obj !== 'object') throw new Error('object expected');
+
+  if (obj.mainText != null) document.getElementById('mainText').value = String(obj.mainText);
+  if (obj.subText != null) document.getElementById('subText').value = String(obj.subText);
+
+  if (obj.ratio && ratios[obj.ratio]) {
+    ratio = obj.ratio;
+    setToggleByData('.ratio-btn','ratio',ratio);
+  }
+  if (obj.bgMode === 'color' || obj.bgMode === 'image') {
+    bgMode = obj.bgMode;
+    setToggleByData('.bgmode-btn','bgmode',bgMode);
+    document.getElementById('bgColorBar').classList.toggle('hidden', bgMode!=='color');
+    document.getElementById('bgImageBar').classList.toggle('hidden', bgMode!=='image');
+  }
+  if (obj.bgColor) document.getElementById('bgColor').value = String(obj.bgColor);
+
+  const ov = obj.overlay ?? obj.ov;
+  if (ov && ['none','dim','gradient','vignette'].includes(String(ov))) {
+    overlayMode = String(ov);
+    setToggleByData('.ov-btn','ov',overlayMode);
+  }
+  if (obj.overlayStrength != null || obj.ovStrength != null) {
+    document.getElementById('ovStrength').value = parseInt(obj.overlayStrength ?? obj.ovStrength, 10);
+  }
+
+  if (obj.decor) {
+    decorStyle = String(obj.decor);
+    setToggleByData('.decor-btn','decor',decorStyle);
+  }
+
+  if (obj.textColor) document.getElementById('textColor').value = String(obj.textColor);
+  if (obj.strokeColor) document.getElementById('strokeColor').value = String(obj.strokeColor);
+  if (obj.strokeWidth != null) document.getElementById('strokeWidth').value = parseInt(obj.strokeWidth, 10);
+  if (obj.padding != null || obj.pad != null) document.getElementById('pad').value = parseInt(obj.padding ?? obj.pad, 10);
+  if (obj.mainScale != null) document.getElementById('mainScale').value = parseInt(obj.mainScale, 10);
+  if (obj.subScale != null) document.getElementById('subScale').value = parseInt(obj.subScale, 10);
+  if (obj.mainY != null) document.getElementById('mainY').value = parseInt(obj.mainY, 10);
+  if (obj.subY != null) document.getElementById('subY').value = parseInt(obj.subY, 10);
+
+  const fmt = obj.saveFormat ?? obj.format;
+  if (fmt && ['png','jpeg','webp'].includes(String(fmt))) {
+    saveFormat = String(fmt);
+    setToggleByData('.fmt-btn','fmt',saveFormat);
+  }
+  if (obj.quality != null || obj.imgQuality != null) {
+    document.getElementById('imgQuality').value = parseInt(obj.quality ?? obj.imgQuality, 10);
+  }
+}
+
+function applyThumbJsonToInputs(){
+  const raw = (document.getElementById('thumbJsonInput').value || '').trim();
+  if (!raw) {
+    document.getElementById('thumbJsonHint').textContent = 'JSON 입력값이 비어 있습니다.';
+    return;
+  }
+  try {
+    const obj = JSON.parse(raw);
+    applyThumbJsonObject(obj);
+    fillThumbJsonFromInputs(false);
+    renderThumb();
+    document.getElementById('thumbJsonHint').textContent = 'JSON 적용 완료';
+  } catch (_) {
+    document.getElementById('thumbJsonHint').textContent = 'JSON 형식이 올바르지 않습니다. 예시를 확인해 주세요.';
+  }
 }
 
 function drawBg(ctx,w,h){
@@ -424,6 +557,7 @@ function downloadThumb(){
 }
 
 applyPreset('quote');
+fillThumbJsonFromInputs(false);
 </script>
 </body>
 </html>
