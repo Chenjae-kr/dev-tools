@@ -187,10 +187,49 @@ function ensureToolHeaderSync(maxRetry = 20, intervalMs = 80) {
   }, intervalMs);
 }
 
+function initAdvancedSettingsCollapse() {
+  const { inTools } = getRouteInfo();
+  if (!inTools) return;
+
+  const groups = [...document.querySelectorAll('.panel .setting-group')];
+  if (groups.length < 3) return;
+
+  groups.forEach((g, i) => {
+    if (i === 0) return; // first group is basic
+    g.classList.add('is-advanced');
+    g.classList.add('collapsed');
+
+    const title = g.querySelector('.setting-title');
+    if (!title || title.dataset.collapseBound === '1') return;
+    title.dataset.collapseBound = '1';
+    title.addEventListener('click', () => {
+      g.classList.toggle('collapsed');
+    });
+  });
+
+  if (!document.querySelector('.settings-mode-bar')) {
+    const firstPanel = document.querySelector('.main-grid .panel');
+    if (!firstPanel) return;
+    const bar = document.createElement('div');
+    bar.className = 'settings-mode-bar';
+    bar.innerHTML = `<button type="button" class="settings-mode-toggle" id="settingsModeToggle">고급 옵션 펼치기</button>`;
+    firstPanel.parentNode.insertBefore(bar, firstPanel);
+
+    const btn = bar.querySelector('#settingsModeToggle');
+    btn.addEventListener('click', () => {
+      const expand = !btn.classList.contains('active');
+      document.querySelectorAll('.setting-group.is-advanced').forEach(g => g.classList.toggle('collapsed', !expand));
+      btn.classList.toggle('active', expand);
+      btn.textContent = expand ? '고급 옵션 접기' : '고급 옵션 펼치기';
+    });
+  }
+}
+
 // ─── Init after DOM ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
   updateThemeIcon();
   ensureToolHeaderSync();
+  initAdvancedSettingsCollapse();
 
   document.addEventListener('click', function (e) {
     // Close kebab when clicking outside
@@ -270,4 +309,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
 if (document.readyState !== 'loading') {
   ensureToolHeaderSync();
+  initAdvancedSettingsCollapse();
 }

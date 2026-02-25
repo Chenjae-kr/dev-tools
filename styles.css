@@ -738,6 +738,45 @@ body::before {
   text-transform: uppercase;
   letter-spacing: .4px;
 }
+
+/* Collapsible settings (Basic / Advanced) */
+.settings-mode-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 14px 6px;
+}
+.settings-mode-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+}
+.settings-mode-toggle.active {
+  color: var(--accent);
+  border-color: rgba(79,255,176,.45);
+  background: rgba(79,255,176,.08);
+}
+.setting-group.is-advanced .setting-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.setting-group.is-advanced .setting-title::after {
+  content: '▾';
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.setting-group.is-advanced.collapsed .setting-title::after {
+  content: '▸';
+}
+.setting-group.is-advanced.collapsed > :not(.setting-title) {
+  display: none !important;
+}
 .setting-group .options-bar {
   border-top: none;
   padding: 6px 0;
