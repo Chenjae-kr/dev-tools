@@ -471,6 +471,19 @@ body::before {
     animation: none;
   }
 
+  /* global mobile overflow guard for tool pages */
+  .container { padding: 0 14px; }
+  .main-grid { gap: 14px; }
+  .main-grid > *, .panel, .output-panel { min-width: 0; }
+  .setting-group { margin: 8px 10px; padding: 10px; }
+  .options-bar { padding: 10px 12px; gap: 8px; }
+  .toggle-group, .dialect-group, .crud-group { flex-wrap: wrap; max-width: 100%; }
+  .table-name-input, .mock-textarea, .ddl-textarea, .md-textarea, textarea, select, input[type="text"], input[type="number"], input[type="file"] {
+    max-width: 100% !important;
+    min-width: 0;
+  }
+}
+
   .topnav.nav-open .nav-tools {
     display: flex;
     animation: mobileNavSlideIn 0.2s ease forwards;
