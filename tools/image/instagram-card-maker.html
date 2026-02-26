@@ -48,6 +48,26 @@
 .export-btn:hover{transform:translateY(-1px);filter:brightness(1.03)}
 .export-btn:active{transform:translateY(0)}
 @media (max-width: 768px){.export-actions{grid-template-columns:1fr}}
+/* ── Mode tabs ── */
+.mode-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 16px}
+.mode-tab{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;padding:10px 14px;border:none;background:none;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.mode-tab.active{color:var(--accent);border-bottom-color:var(--accent)}.mode-tab:hover:not(.active){color:var(--text)}
+/* ── Template cards ── */
+.tpl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px}
+.tpl-card{border-radius:8px;border:2px solid var(--border);cursor:pointer;overflow:hidden;transition:border-color .15s,transform .1s;position:relative}
+.tpl-card.active{border-color:var(--accent)}.tpl-card:hover{transform:translateY(-2px)}
+.tpl-card-inner{width:100%;padding:8px;display:flex;flex-direction:column;gap:3px;min-height:80px}
+.tpl-h1{font-size:9px;font-weight:900;line-height:1.2}.tpl-h2{font-size:8px;font-weight:700}
+.tpl-sep{height:1px;background:rgba(255,255,255,0.2);margin:2px 0}
+.tpl-body{font-size:7px;line-height:1.4;opacity:.8}
+.tpl-name{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;text-align:center;padding:4px 0;color:var(--text-muted);border-top:1px solid var(--border)}
+.tpl-check{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#000;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:900}
+.tpl-card.active .tpl-check{display:flex}
+/* ── Simple mode fields ── */
+.s-label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:5px}
+.simple-textarea{width:100%;background:transparent;border:1px solid var(--border);outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;border-radius:8px}
+.s-field-wrap{padding:0 16px 12px}
+.s-brand-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}.s-brand-row .s-label{margin:0;min-width:44px;white-space:nowrap}.s-brand-row input{flex:1;min-width:0}
 </style>
 </head>
 <body>
@@ -61,6 +81,115 @@
   <div class="main-grid">
     <div>
       <div class="panel">
+        <!-- MODE TABS -->
+        <div class="mode-tabs">
+          <button class="mode-tab active" id="tabSimple" onclick="switchMode('simple')">⚡ 간편 모드</button>
+          <button class="mode-tab" id="tabAdv" onclick="switchMode('advanced')">⚙ 고급 모드</button>
+        </div>
+
+        <!-- SIMPLE PANEL -->
+        <div id="simplePanel">
+          <div class="panel-header"><div class="panel-title"><div class="dot"></div>TEMPLATE</div></div>
+          <div class="tpl-grid">
+            <div class="tpl-card active" data-tpl="navy" onclick="applyTemplate('navy')">
+              <div class="tpl-card-inner" style="background:#0b122b">
+                <div class="tpl-h1" style="color:#ffffff">📈 제목</div>
+                <div class="tpl-h2" style="color:#d41414">강조 문구</div>
+                <div class="tpl-sep"></div>
+                <div class="tpl-body" style="color:#cccccc">· 본문 항목</div>
+              </div>
+              <div class="tpl-name">Navy</div>
+              <div class="tpl-check">✓</div>
+            </div>
+            <div class="tpl-card" data-tpl="blue" onclick="applyTemplate('blue')">
+              <div class="tpl-card-inner" style="background:#102c6d">
+                <div class="tpl-h1" style="color:#ffffff">📈 제목</div>
+                <div class="tpl-h2" style="color:#6699ff">강조 문구</div>
+                <div class="tpl-sep" style="background:rgba(255,255,255,0.15)"></div>
+                <div class="tpl-body" style="color:#aaccff">· 본문 항목</div>
+              </div>
+              <div class="tpl-name">Blue</div>
+              <div class="tpl-check">✓</div>
+            </div>
+            <div class="tpl-card" data-tpl="dark" onclick="applyTemplate('dark')">
+              <div class="tpl-card-inner" style="background:#1a1a2e">
+                <div class="tpl-h1" style="color:#ffffff">📈 제목</div>
+                <div class="tpl-h2" style="color:#4fffb0">강조 문구</div>
+                <div class="tpl-sep" style="background:rgba(255,255,255,0.15)"></div>
+                <div class="tpl-body" style="color:#cccccc">· 본문 항목</div>
+              </div>
+              <div class="tpl-name">Dark</div>
+              <div class="tpl-check">✓</div>
+            </div>
+            <div class="tpl-card" data-tpl="light" onclick="applyTemplate('light')">
+              <div class="tpl-card-inner" style="background:#f5f6fa">
+                <div class="tpl-h1" style="color:#111111">📈 제목</div>
+                <div class="tpl-h2" style="color:#d41414">강조 문구</div>
+                <div class="tpl-sep" style="background:rgba(0,0,0,0.1)"></div>
+                <div class="tpl-body" style="color:#333333">· 본문 항목</div>
+              </div>
+              <div class="tpl-name">Light</div>
+              <div class="tpl-check">✓</div>
+            </div>
+          </div>
+
+          <div class="panel-header"><div class="panel-title"><div class="dot"></div>CONTENT</div></div>
+          <div class="s-field-wrap">
+            <label class="s-label">제목 (H1)</label>
+            <input id="s-title" class="table-name-input" style="width:100%;margin-bottom:10px" placeholder="📈 카드뉴스 제목">
+            <label class="s-label">강조 문구 (H2 · 컬러)</label>
+            <input id="s-title2" class="table-name-input" style="width:100%;margin-bottom:10px" placeholder="강조 문구">
+            <label class="s-label">소제목 (선택)</label>
+            <input id="s-subtitle" class="table-name-input" style="width:100%;margin-bottom:10px" placeholder="소제목/요약">
+            <label class="s-label">본문 (줄바꿈 = 새 항목)</label>
+            <textarea id="s-body" class="simple-textarea" style="min-height:100px" placeholder="항목 1&#10;항목 2&#10;항목 3"></textarea>
+          </div>
+          <div class="options-bar row-tight" style="padding:0 16px 10px;justify-content:flex-end">
+            <button class="toggle-btn" onclick="loadSimpleSample()">예시 불러오기</button>
+          </div>
+
+          <div class="panel-header"><div class="panel-title"><div class="dot"></div>SIZE</div></div>
+          <div class="options-bar" style="padding:12px 16px">
+            <button class="toggle-btn size-btn active" data-size="1:1">1:1</button>
+            <button class="toggle-btn size-btn" data-size="4:5">4:5</button>
+            <button class="toggle-btn size-btn" data-size="9:16">9:16</button>
+          </div>
+
+          <div class="panel-header"><div class="panel-title"><div class="dot"></div>BRANDING</div></div>
+          <div class="s-field-wrap">
+            <div class="s-brand-row">
+              <label class="s-label">출처</label>
+              <input id="s-source" class="table-name-input" placeholder="출처: 관련 언론보도">
+              <div class="toggle-group">
+                <button class="toggle-btn sourcevis-btn active" data-source="on">ON</button>
+                <button class="toggle-btn sourcevis-btn" data-source="off">OFF</button>
+              </div>
+            </div>
+            <div class="s-brand-row">
+              <label class="s-label">계정</label>
+              <input id="s-brand" class="table-name-input" placeholder="@instagram">
+              <div class="toggle-group">
+                <button class="toggle-btn brandvis-btn active" data-brand="on">ON</button>
+                <button class="toggle-btn brandvis-btn" data-brand="off">OFF</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-header"><div class="panel-title"><div class="dot"></div>EXPORT</div></div>
+          <div class="options-bar" style="padding:12px 16px 0">
+            <div class="toggle-group">
+              <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
+              <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
+              <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+            </div>
+          </div>
+          <div style="padding:10px 16px 16px">
+            <button class="export-btn single" style="width:100%" onclick="syncSimpleToPage();downloadCurrent()">⬇ DOWNLOAD</button>
+          </div>
+        </div><!-- end simplePanel -->
+
+        <!-- ADVANCED PANEL -->
+        <div id="advancedPanel" class="hidden">
         <div class="panel-header"><div class="panel-title"><div class="dot"></div>SETTINGS</div></div>
 
         <div class="setting-group">
@@ -278,6 +407,7 @@
             <button class="export-btn all" onclick="downloadAll()">⬇ 전체 다운로드</button>
           </div>
         </div>
+        </div><!-- end advancedPanel -->
       </div>
     </div>
 
@@ -990,6 +1120,94 @@ async function downloadAll(){
   page=cur; fillInputsFromPage(); renderCard(); setPageLabel();
 }
 
+// ── Simple Mode ──────────────────────────────────────────
+themes.dark  = { bg:'#1a1a2e', box:'#16162a', accent:'#4fffb0', text:'#eeeeee', sub:'#9d8dff' };
+themes.light = { bg:'#f5f6fa', box:'#ffffff',  accent:'#d41414', text:'#111111', sub:'#888888' };
+
+const TEMPLATES = {
+  navy:  { bg:'#0b122b', h1:'#111111', h2:'#d41414' },
+  blue:  { bg:'#102c6d', h1:'#111111', h2:'#0a52cc' },
+  dark:  { bg:'#1a1a2e', h1:'#ffffff', h2:'#4fffb0' },
+  light: { bg:'#f5f6fa', h1:'#111111', h2:'#d41414' },
+};
+let activeTpl = 'navy';
+
+function applyTemplate(id) {
+  activeTpl = id;
+  const tpl = TEMPLATES[id];
+  bgMode = 'color';
+  document.getElementById('bgColor').value      = tpl.bg;
+  document.getElementById('titleColor1').value  = tpl.h1;
+  document.getElementById('titleColor2').value  = tpl.h2;
+  document.querySelectorAll('.bgmode-btn').forEach(b => b.classList.toggle('active', b.dataset.bgmode === 'color'));
+  document.getElementById('bgImageInput').classList.add('hidden');
+  themeKey = (id in themes) ? id : 'navy';
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === themeKey));
+  document.querySelectorAll('.tpl-card').forEach(c => c.classList.toggle('active', c.dataset.tpl === id));
+  syncSimpleToPage();
+  renderCard();
+}
+
+function syncSimpleToPage() {
+  const title    = document.getElementById('s-title').value;
+  const title2   = document.getElementById('s-title2').value;
+  const subtitle = document.getElementById('s-subtitle').value;
+  const body     = document.getElementById('s-body').value;
+  const source   = document.getElementById('s-source').value;
+  const brand    = document.getElementById('s-brand').value;
+  // Mirror to advanced fields so savePage() reads correct values
+  document.getElementById('titleText').value    = title;
+  document.getElementById('titleText2').value   = title2;
+  document.getElementById('subTitleText').value = subtitle;
+  document.getElementById('bodyText').value     = body;
+  document.getElementById('sourceText').value   = source;
+  document.getElementById('brandText').value    = brand;
+  bodyType = 'text';
+  document.querySelectorAll('.bodytype-btn').forEach(b => b.classList.toggle('active', b.dataset.body === 'text'));
+  setBodyUI();
+}
+
+function syncPageToSimple() {
+  const p = current();
+  document.getElementById('s-title').value    = p.title    || '';
+  document.getElementById('s-title2').value   = p.title2   || '';
+  document.getElementById('s-subtitle').value = p.subtitle || '';
+  document.getElementById('s-body').value     = p.bodyText || '';
+  document.getElementById('s-source').value   = p.source   || '출처: 관련 자료';
+  document.getElementById('s-brand').value    = p.brand    || '@instagram';
+}
+
+function switchMode(mode) {
+  const isSimple = mode === 'simple';
+  if (isSimple) {
+    savePage();
+    syncPageToSimple();
+  } else {
+    syncSimpleToPage();
+    fillInputsFromPage();
+  }
+  document.getElementById('simplePanel').classList.toggle('hidden', !isSimple);
+  document.getElementById('advancedPanel').classList.toggle('hidden', isSimple);
+  document.getElementById('tabSimple').classList.toggle('active', isSimple);
+  document.getElementById('tabAdv').classList.toggle('active', !isSimple);
+  renderCard();
+}
+
+function loadSimpleSample() {
+  document.getElementById('s-title').value    = '📈 새해 코스피는 내가 이끈다!';
+  document.getElementById('s-title2').value   = '케이뱅크 상장, 공모가 확정';
+  document.getElementById('s-subtitle').value = '신규 상장 시장 전망 2026';
+  document.getElementById('s-body').value     = '무신사 8조원 이상\n한화에너지 5조원 이상\n케이뱅크 3조 3,673억';
+  document.getElementById('s-source').value   = '출처: 관련 언론보도';
+  document.getElementById('s-brand').value    = '@instagram';
+  syncSimpleToPage();
+  renderCard();
+}
+
+['s-title','s-title2','s-subtitle','s-body','s-source','s-brand'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { syncSimpleToPage(); renderCard(); });
+});
+
 // UI bindings
 document.querySelectorAll('.size-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');sizeKey=b.dataset.size;renderCard();});
 document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');themeKey=b.dataset.theme;document.getElementById('bgColor').value=themes[themeKey].bg;renderCard();});
@@ -1043,7 +1261,7 @@ pages[0]={
   bodyBgOpacity:100,
   bodyBgImageData:''
 };
-fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncGridFromText(false); renderCard();
+fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncGridFromText(false); syncPageToSimple(); renderCard();
 </script>
 </body>
 </html>
