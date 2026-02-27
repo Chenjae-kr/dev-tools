@@ -1172,12 +1172,15 @@ function switchMode(mode) {
     syncPageToSimple();
   } else {
     syncSimpleToPage();
+    savePage(); // persist simple-mode values before fillInputsFromPage reads pages[]
     fillInputsFromPage();
   }
   document.getElementById('simplePanel').classList.toggle('hidden', !isSimple);
   document.getElementById('advancedPanel').classList.toggle('hidden', isSimple);
   document.getElementById('tabSimple').classList.toggle('active', isSimple);
   document.getElementById('tabAdv').classList.toggle('active', !isSimple);
+  // Re-render HOT if grid mode is active and advanced panel just became visible
+  if (!isSimple && tableInputMode === 'grid' && hotInstance) hotInstance.render();
   renderCard();
 }
 
@@ -1249,7 +1252,7 @@ pages[0]={
   bodyBgOpacity:100,
   bodyBgImageData:''
 };
-fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncGridFromText(false); syncPageToSimple(); renderCard();
+fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncPageToSimple(); renderCard();
 </script>
 </body>
 </html>
