@@ -1,7 +1,9 @@
-<!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+﻿<!DOCTYPE html>
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/dev-tools/favicon.svg">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SQL → ERD | Dev Tools</title>
 <script src="../../tools.js"></script>
@@ -111,6 +113,7 @@
 .legend-dot-fk { background:#9c8cff; }
 .legend-relation-svg { overflow:visible; }
 .erd-table { cursor: grab; }
+.erd-table.is-dragging { cursor: grabbing; }
 
 /* Error area */
 #erdError { display: none; }
@@ -129,10 +132,12 @@
   <!-- ── Input Panel ──────────────────────────────────── -->
   <div class="panel mb-16">
     <div class="panel-header">
-      <div class="panel-title"><div class="dot"></div>SQL DDL INPUT</div>
+      <div class="panel-title"><div class="dot"></div>SQL INPUT</div>
     </div>
 
-    <textarea id="sqlInput" placeholder="CREATE TABLE users (
+    <div class="setting-group" data-level="basic">
+      <div class="setting-title">Source</div>
+      <textarea id="sqlInput" placeholder="CREATE TABLE users (
   user_id   INT          NOT NULL AUTO_INCREMENT,
   username  VARCHAR(50)  NOT NULL,
   email     VARCHAR(100) NOT NULL,
@@ -148,22 +153,25 @@ CREATE TABLE orders (
 );
 
 -- .sql 파일을 드래그하거나 📂 버튼으로 업로드해도 됩니다"></textarea>
-
-    <div class="options-bar">
-      <span class="options-label">파일</span>
-      <button class="toggle-btn" id="openFileBtn">📂 .sql 파일 열기</button>
-      <input type="file" id="fileInput" class="hidden" accept=".sql,.txt,.ddl">
-      <span class="options-label">예제</span>
-      <button class="toggle-btn" onclick="loadSample()">샘플 DDL 로드</button>
-      <button class="toggle-btn" onclick="clearInput()">지우기</button>
     </div>
 
-    <div id="erdError"></div>
+    <div class="setting-group" data-level="basic">
+      <div class="setting-title">Options</div>
+      <div class="options-bar">
+        <span class="options-label">파일</span>
+        <button class="toggle-btn" id="openFileBtn">📂 .sql 파일 열기</button>
+        <input type="file" id="fileInput" class="hidden" accept=".sql,.txt,.ddl">
+        <span class="options-label">예제</span>
+        <button class="toggle-btn" onclick="loadSample()">샘플 DDL 로드</button>
+        <button class="toggle-btn" onclick="clearInput()">지우기</button>
+      </div>
+    </div>
 
-    <button class="generate-btn" id="erdBtn" onclick="generateERD()">
-      ⚡ ERD 생성
+    <div id="erdError" class="hidden"></div>
+
+    <button class="generate-btn" id="erdBtn" onclick="generateERD()" data-shortcut="Ctrl + Enter">
+      ⚡ 생성
     </button>
-    <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
   </div>
 
   <!-- ── ERD Panel ────────────────────────────────────── -->
@@ -280,8 +288,8 @@ function readFile(file) {
 
 function clearInput() {
   sqlInput.value = '';
-  document.getElementById('erdSection').style.display = 'none';
-  document.getElementById('erdError').style.display   = 'none';
+  document.getElementById('erdSection').classList.add('hidden');
+  document.getElementById('erdError').classList.add('hidden');
 }
 
 function loadSample() {
@@ -702,7 +710,7 @@ erdSvg.addEventListener('pointerdown', e => {
     const tname = tg.getAttribute('data-table');
     const table = tables.find(t => t.name === tname);
     dragState = { tableName: tname, startX: e.clientX, startY: e.clientY, origX: table.x, origY: table.y };
-    tg.style.cursor = 'grabbing';
+    tg.classList.add('is-dragging');
   } else {
     panState = { startX: e.clientX, startY: e.clientY, origX: pan.x, origY: pan.y };
     document.getElementById('erdCanvas').classList.add('panning');
@@ -728,7 +736,7 @@ erdSvg.addEventListener('pointermove', e => {
 erdSvg.addEventListener('pointerup', e => {
   if (dragState) {
     const tg = findTableGroup(dragState.tableName);
-    if (tg) { tg.style.cursor = 'grab'; try { tg.releasePointerCapture(e.pointerId); } catch (_) {} }
+    if (tg) { tg.classList.remove('is-dragging'); try { tg.releasePointerCapture(e.pointerId); } catch (_) {} }
     dragState = null;
   }
   if (panState) {
@@ -798,9 +806,9 @@ function generateERD() {
   const sql    = sqlInput.value.trim();
   const btn    = document.getElementById('erdBtn');
   const errDiv = document.getElementById('erdError');
-  errDiv.style.display = 'none';
+  errDiv.classList.add('hidden');
 
-  if (!sql) { errDiv.innerHTML = `<div class="error-msg">⚠ SQL DDL을 입력해주세요.</div>`; errDiv.style.display = ''; return; }
+  if (!sql) { errDiv.innerHTML = `<div class="error-msg">⚠ SQL DDL을 입력해주세요.</div>`; errDiv.classList.remove('hidden'); return; }
 
   btn.textContent = '⏳ 생성 중...';
   btn.classList.add('loading');
@@ -818,7 +826,7 @@ function generateERD() {
       tables      = result.tables;
       foreignKeys = result.foreignKeys;
 
-      document.getElementById('erdSection').style.display   = '';
+      document.getElementById('erdSection').classList.remove('hidden');
       document.getElementById('statTables').textContent     = tables.length;
       document.getElementById('statCols').textContent       = tables.reduce((s, t) => s + t.columns.length, 0);
       document.getElementById('statFKs').textContent        = foreignKeys.length;
@@ -827,10 +835,10 @@ function generateERD() {
 
     } catch (e) {
       errDiv.innerHTML     = `<div class="error-msg">❌ ${esc(e.message)}</div>`;
-      errDiv.style.display = '';
-      document.getElementById('erdSection').style.display = 'none';
+      errDiv.classList.remove('hidden');
+      document.getElementById('erdSection').classList.add('hidden');
     }
-    btn.textContent = '⚡ ERD 생성';
+    btn.textContent = '⚡ 생성';
     btn.classList.remove('loading');
   }, 50);
 }

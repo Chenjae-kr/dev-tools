@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/svg+xml" href="/dev-tools/favicon.svg">
+    <title>Web Image Editor | Dev Tools</title>
+    <script src="../../tools.js"></script>
+    <script src="../../nav.js"></script>
+    <script src="../../ui-utils.js"></script>
+    <script src="../../image-tools-utils.js"></script>
+    <link rel="stylesheet" href="../../styles.css">
+    <!-- Fabric.js v5.3.1 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Do+Hyeon&family=Jua&family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable-dynamic-subset.css"
+        rel="stylesheet">
+
+    <style>
+        /* ── Editor App Layout (100vh) ── */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            /* 방지: 모바일에서 상하 풀당기기 새로고침 등 */
+            height: 100%;
+        }
+
+        .topnav {
+            z-index: 50;
+            position: relative;
+        }
+
+        /* nav.js 에서 가져오는 상단 네비게이션바 유지 */
+        .editor-app {
+            display: flex;
+            height: calc(100% - 61px);
+            /* 100dvh 지원 브라우저를 위해 필요 시 js에서 보정, 61=nav높이추정 */
+            height: calc(100dvh - 61px);
+            background: var(--surface);
+            color: var(--text);
+            font-family: Pretendard, sans-serif;
+            overflow: hidden;
+        }
+
+        /* ── Left Toolbar ── */
+        .editor-toolbar {
+            width: 72px;
+            background: var(--surface2);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 12px;
+            z-index: 10;
+            overflow: visible;
+            /* 자식인 popup 메뉴가 툴바 밖으로 보일 수 있게 함 */
+        }
+
+        .tool-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .tool-btn:hover {
+            background: var(--surface);
+            border-color: var(--border);
+        }
+
+        .tool-btn:active {
+            transform: scale(0.96);
+        }
+
+        .tool-icon {
+            font-size: 20px;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .tool-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        /* ── Center Workspace ── */
+        .editor-workspace {
+            flex: 1;
+            background: #1e1e1e;
+            /* Photoshop-like dark backdrop */
+            position: relative;
+            overflow: auto;
+            /* scrollable canvas area */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 모바일/데스크톱 줌 패닝을 위해 컨테이너 여백 확보 */
+            padding: 40px;
+        }
+
+        /* 바둑판 배경 래퍼 */
+        .canvas-zoom-wrapper {
+            background-image:
+                linear-gradient(45deg, #d1d1d1 25%, transparent 25%),
+                linear-gradient(-45deg, #d1d1d1 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #d1d1d1 75%),
+                linear-gradient(-45deg, transparent 75%, #d1d1d1 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+            /* 부드러운 줌아웃/초기화 시 */
+        }
+
+        /* Fabric.js 캔버스 자체 스타일 (투명) */
+        .canvas-container {
+            margin: 0 auto;
+        }
+
+        /* ── Right Properties Panel ── */
+        .editor-props {
+            width: 320px;
+            background: var(--surface2);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .prop-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .prop-section:last-child {
+            border-bottom: none;
+        }
+
+        .prop-title {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .prop-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 12px;
+            background: var(--accent);
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+
+        /* 옵션 컨트롤 스타일 */
+        .prop-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .prop-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 50px;
+        }
+
+        .prop-input-group {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            gap: 4px;
+        }
+
+        .prop-input {
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            outline: none;
+        }
+
+        .prop-input:focus {
+            border-color: var(--accent);
+        }
+
+        .size-input-box {
+            width: 64px;
+            text-align: center;
+        }
+
+        .size-x {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.15s;
+        }
+
+        .action-btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--text-muted);
+        }
+
+        .action-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        .action-btn.icon-btn {
+            flex: none;
+            width: 32px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+
+        .color-picker {
+            border: none;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .color-hex {
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .primary-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0f4db8, #2a77ff);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(42, 119, 255, 0.3);
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(42, 119, 255, 0.4);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ── Workspace Controls (Bottom Right zoom) ── */
+        .zoom-controls {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            display: flex;
+            gap: 4px;
+            background: var(--surface2);
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 20;
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        .zoom-btn:hover {
+            background: var(--surface-hover);
+        }
+
+        .zoom-label {
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+            font-family: 'JetBrains Mono';
+        }
+
+        /* ── Mobile Layout (< 768px) ── */
+        @media (max-width: 768px) {
+            .editor-app {
+                flex-direction: column;
+            }
+
+            /* Workspace가 가장 넓게 상단에 */
+            .editor-workspace {
+                order: 1;
+                padding: 16px;
+            }
+
+            /* Props Panel이 중간에 위치 (선택 시 열리는 느낌) */
+            .editor-props {
+                order: 2;
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Toolbar가 가장 하단에 가로로 스크롤 가능하게 배치 */
+            .editor-toolbar {
+                order: 3;
+                width: 100%;
+                height: 64px;
+                flex-direction: row;
+                border-right: none;
+                border-top: 1px solid var(--border);
+                padding: 0 12px;
+                gap: 8px;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            .tool-btn {
+                width: 56px;
+                height: 50px;
+                flex-shrink: 0;
+            }
+
+            .zoom-controls {
+                bottom: auto;
+                top: 16px;
+                right: 16px;
+            }
+
+            /* 줌 컨트롤을 위로 */
+        }
+
+        /* Custom Scrollbar for editor panels */
+        .editor-props::-webkit-scrollbar,
+        .editor-toolbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .editor-props::-webkit-scrollbar-track,
+        .editor-toolbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .editor-props::-webkit-scrollbar-thumb,
+        .editor-toolbar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .editor-props::-webkit-scrollbar-thumb:hover,
+        .editor-toolbar::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="topnav">
+        <script>renderNav();</script>
+    </nav>
+
+    <div class="editor-app">
+
+        <!-- Left: Toolbar -->
+        <div class="editor-toolbar">
+            <button class="tool-btn" onclick="addText()">
+                <span class="tool-icon">T</span>
+                <span class="tool-label">TEXT</span>
+            </button>
+            <button class="tool-btn" onclick="document.getElementById('imageUpload').click()">
+                <span class="tool-icon">🖼️</span>
+                <span class="tool-label">IMAGE</span>
+            </button>
+            <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="addImage(event)">
+            <button class="tool-btn" onclick="startSelectionMode()" id="btnSelect" title="영역 잡기 (자르기/모자이크)">
+                <span class="tool-icon">🔲</span>
+                <span class="tool-label">SELECT</span>
+            </button>
+            <div style="width:40px;height:1px;background:var(--border);margin:4px 0;"></div>
+            <div style="position:relative;" id="shapeMenuWrapper">
+                <button class="tool-btn" onclick="toggleShapeMenu()">
+                    <span class="tool-icon">⬛</span>
+                    <span class="tool-label">SHAPES</span>
+                </button>
+                <!-- Flyout Shape Menu -->
+                <div id="shapeMenu" class="hidden"
+                    style="position:absolute; left:72px; top:-10px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px; display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; z-index:200; box-shadow:0 10px 30px rgba(0,0,0,0.3); width: max-content;">
+                    <style>
+                        #shapeMenu .tool-btn svg {
+                            width: 20px;
+                            height: 20px;
+                            fill: currentColor;
+                        }
+
+                        #shapeMenu .tool-btn {
+                            width: 36px;
+                            height: 36px;
+                            border: none;
+                            color: var(--text);
+                        }
+                    </style>
+                    <button class="tool-btn" onclick="addShape('rect'); toggleShapeMenu()" title="사각형">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('circle'); toggleShapeMenu()" title="원">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('ellipse'); toggleShapeMenu()" title="타원">
+                        <svg viewBox="0 0 24 24">
+                            <ellipse cx="12" cy="12" rx="11" ry="6" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('triangle'); toggleShapeMenu()" title="삼각형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="12,3 22,21 2,21" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('line'); toggleShapeMenu()" title="선">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="3" />
+                        </svg>
+                    </button>
+
+                    <button class="tool-btn" onclick="addShape('pentagon'); toggleShapeMenu()" title="오각형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="12,2 22,9.5 18,21 6,21 2,9.5" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('hexagon'); toggleShapeMenu()" title="육각형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="12,2 21,7 21,17 12,22 3,17 3,7" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('octagon'); toggleShapeMenu()" title="팔각형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="8,2 16,2 22,8 22,16 16,22 8,22 2,16 2,8" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('rhombus'); toggleShapeMenu()" title="마름모">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="12,2 22,12 12,22 2,12" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('parallelogram'); toggleShapeMenu()" title="평행사변형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="6,4 22,4 18,20 2,20" />
+                        </svg>
+                    </button>
+
+                    <button class="tool-btn" onclick="addShape('arrow-right'); toggleShapeMenu()" title="오른쪽 화살표">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="2,8 12,8 12,3 22,12 12,21 12,16 2,16" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('arrow-left'); toggleShapeMenu()" title="왼쪽 화살표">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="22,16 12,16 12,21 2,12 12,3 12,8 22,8" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('arrow-up'); toggleShapeMenu()" title="위 화살표">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="8,22 8,12 3,12 12,2 21,12 16,12 16,22" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('arrow-down'); toggleShapeMenu()" title="아래 화살표">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="16,2 16,12 21,12 12,22 3,12 8,12 8,2" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('check'); toggleShapeMenu()" title="체크">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="9,16.2 4.8,12 3.4,13.4 9,19 21,7 19.6,5.6" />
+                        </svg>
+                    </button>
+
+                    <button class="tool-btn" onclick="addShape('plus'); toggleShapeMenu()" title="더하기">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="19,10 14,10 14,5 10,5 10,10 5,10 5,14 10,14 10,19 14,19 14,14 19,14" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('minus'); toggleShapeMenu()" title="빼기">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="4" y="10" width="16" height="4" rx="1" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('cross'); toggleShapeMenu()" title="엑스">
+                        <svg viewBox="0 0 24 24">
+                            <polygon
+                                points="19,6.4 17.6,5 12,10.6 6.4,5 5,6.4 10.6,12 5,17.6 6.4,19 12,13.4 17.6,19 19,17.6 13.4,12" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('home'); toggleShapeMenu()" title="집">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('message'); toggleShapeMenu()" title="말풍선">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                        </svg>
+                    </button>
+
+                    <button class="tool-btn" onclick="addShape('bookmark'); toggleShapeMenu()" title="북마크">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('tag'); toggleShapeMenu()" title="태그">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.41l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.41zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('heart'); toggleShapeMenu()" title="하트">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('star'); toggleShapeMenu()" title="별">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('sun'); toggleShapeMenu()" title="태양/빛">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 14c-1.06 0-2.06-.23-2.98-.63l.71-1.72c.7.23 1.46.35 2.27.35 4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8c0 .81.12 1.57.35 2.27l-1.72.71A9.957 9.957 0 012 12C2 6.48 6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z\nM10.74 18.06l-.5-1.93 1.76-.46.5 1.93-1.76.46zm4.84-2l-1.42-1.41 1.28-1.28 1.41 1.42-1.27 1.27zm1.19-4.82l-1.93.5-.46-1.76 1.93-.5.46 1.76zm-2-4.84l-1.41 1.42-1.28-1.27 1.42-1.41 1.27 1.26z" />
+                        </svg>
+                    </button>
+
+                    <button class="tool-btn" onclick="addShape('moon'); toggleShapeMenu()" title="달">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M11 3.03v2.09A7.994 7.994 0 0014.28 21 8.995 8.995 0 013 12c0-3.66 2.18-6.79 5.37-8.19A8.994 8.994 0 0011 3.03zm1 1.05A6.002 6.002 0 0121 12c0 3.31-2.69 6-6 6-1.99 0-3.76-.98-4.86-2.48A7 7 0 0012 4.08z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('cloud'); toggleShapeMenu()" title="구름">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('bolt'); toggleShapeMenu()" title="번개">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="11,21 11,13 6,13 14,3 14,11 19,11" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('smile'); toggleShapeMenu()" title="스마일">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+                            <circle cx="8" cy="9" r="1.5" />
+                            <circle cx="16" cy="9" r="1.5" />
+                            <path d="M7.5 14c1.5 2 4.5 3 7.5 0" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Workspace -->
+        <div class="editor-workspace" id="workspace">
+            <!-- Region Action Bar (Hidden by default) -->
+            <div id="regionActionBar" class="hidden"
+                style="position:absolute; top:20px; left:50%; transform:translateX(-50%); z-index:100; background:var(--surface); padding:8px 16px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:flex; flex-wrap:nowrap; white-space:nowrap; gap:8px; align-items:center;">
+                <span style="font-size:12px; font-weight:700; color:var(--text); margin-right:8px;">🔲 영역 옵션</span>
+                <button class="action-btn" onclick="cropByRegion()"
+                    style="background:#ffbd2e; color:#000; border:none; font-weight:800;">✂️ 자르기</button>
+                <button class="action-btn" style="flex:auto; padding:8px 12px; white-space:nowrap;"
+                    onclick="filterByRegion('pixelate')">모자이크</button>
+                <button class="action-btn" style="flex:auto; padding:8px 12px; white-space:nowrap;"
+                    onclick="filterByRegion('blur')">블러</button>
+                <div style="width:1px; height:16px; background:var(--border); margin:0 4px;"></div>
+                <button class="action-btn" style="flex:auto; padding:8px 12px; white-space:nowrap;"
+                    onclick="cancelSelection()">✖ 닫기</button>
+            </div>
+
+            <div class="canvas-zoom-wrapper" id="zoomWrapper">
+                <canvas id="c"></canvas>
+            </div>
+
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="changeZoom(-0.1)">-</button>
+                <span class="zoom-label" id="zoomLabel">100%</span>
+                <button class="zoom-btn" onclick="changeZoom(0.1)">+</button>
+                <button class="zoom-btn" onclick="resetZoom()" style="font-size:10px">FIT</button>
+            </div>
+        </div>
+
+        <!-- Right: Properties -->
+        <div class="editor-props">
+
+            <!-- Canvas Settings -->
+            <div class="prop-section" id="canvasPropsPanel">
+                <div class="prop-title">Canvas Settings</div>
+                <div class="prop-row">
+                    <span class="prop-label">Size (px)</span>
+                    <div class="prop-input-group">
+                        <input type="number" id="canvasW" class="prop-input size-input-box" value="1200" title="가로 너비">
+                        <span class="size-x">×</span>
+                        <input type="number" id="canvasH" class="prop-input size-input-box" value="800" title="세로 높이">
+                        <button class="action-btn" onclick="applyCustomSize()"
+                            style="flex:unset; padding:6px 10px;">적용</button>
+                    </div>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Background</span>
+                    <label class="color-wrap">
+                        <input type="color" id="bgColor" class="color-picker" value="#ffffff">
+                        <span class="color-hex" id="bgColorHex">#FFFFFF</span>
+                    </label>
+                </div>
+                <div class="prop-row">
+                    <input type="file" id="bgImageInput" accept="image/*" class="hidden">
+                    <button class="action-btn" style="width:100%"
+                        onclick="document.getElementById('bgImageInput').click()"
+                        title="포토샵처럼 이미지 해상도에 맞춰 캔버스가 자동으로 조절됩니다.">🖼️ 이미지 원본으로 시작하기</button>
+                </div>
+            </div>
+
+            <!-- Object Settings (Hidden by default) -->
+            <div class="prop-section hidden" id="objPropsPanel">
+                <div class="prop-title" style="color:var(--accent)">Layer Properties</div>
+
+                <div class="prop-row">
+                    <span class="prop-label">Color</span>
+                    <label class="color-wrap">
+                        <input type="color" id="objColor" class="color-picker">
+                        <span class="color-hex" id="objColorHex">#000000</span>
+                    </label>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Opacity</span>
+                    <input type="range" id="objOpacity" min="0" max="1" step="0.05" value="1" style="flex:1"
+                        onchange="updateObj('opacity', parseFloat(this.value))">
+                </div>
+
+                <!-- Text Specific Props -->
+                <div id="textPropsBar" class="hidden" style="margin-top:16px;">
+                    <div class="prop-row">
+                        <span class="prop-label">Font</span>
+                        <select id="fontFamily" class="prop-input" onchange="updateFont(this.value)">
+                            <option value="Pretendard Variable">Pretendard (고딕)</option>
+                            <option value="Noto Sans KR">Noto Sans KR (고딕)</option>
+                            <option value="Noto Serif KR">Noto Serif KR (명조)</option>
+                            <option value="Do Hyeon">배달의민족 도현 (타이틀)</option>
+                            <option value="Jua">배달의민족 주아 (유튜브)</option>
+                            <option value="Gowun Dodum">고운돋움 (본문)</option>
+                            <option value="Nanum Pen Script">나눔 손글씨 펜</option>
+                        </select>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Size</span>
+                        <input type="number" id="fontSize" class="prop-input size-input-box" min="10" max="500"
+                            value="40" onchange="updateTextSize(this.value)">
+                        <span style="font-size:10px; color:var(--text-muted)">px</span>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Outline</span>
+                        <div class="prop-input-group" style="gap:8px;">
+                            <label class="color-wrap" style="flex:0 0 auto;">
+                                <input type="color" id="textStrokeColor" class="color-picker" value="#ffffff"
+                                    onchange="updateTextOutline()">
+                            </label>
+                            <input type="number" id="textStrokeWidth" class="prop-input size-input-box" min="0" max="30"
+                                value="0" style="width:48px;" title="외곽선 두께" onchange="updateTextOutline()">
+                            <span style="font-size:10px; color:var(--text-muted)">px</span>
+                        </div>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Bg Color</span>
+                        <div class="prop-input-group" style="gap:8px;">
+                            <label class="color-wrap" style="flex:1;">
+                                <input type="color" id="textBgColor" class="color-picker"
+                                    onchange="updateTextBg(this.value)">
+                                <span class="color-hex" id="textBgColorHex" style="font-size:10px;">None</span>
+                            </label>
+                            <button class="action-btn" onclick="updateTextBg('')"
+                                style="padding:4px 8px; font-size:10px; flex:unset;">X</button>
+                        </div>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Style</span>
+                        <div class="btn-group">
+                            <button class="action-btn" id="btnBold" onclick="toggleStyle('bold')">B</button>
+                            <button class="action-btn" id="btnItalic" onclick="toggleStyle('italic')">I</button>
+                            <button class="action-btn" id="btnShadow" onclick="toggleShadow()">Shadow</button>
+                        </div>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Align</span>
+                        <div class="btn-group">
+                            <button class="action-btn" onclick="updateObj('textAlign', 'left')">Left</button>
+                            <button class="action-btn" onclick="updateObj('textAlign', 'center')">Center</button>
+                            <button class="action-btn" onclick="updateObj('textAlign', 'right')">Right</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prop-row" style="margin-top:20px;">
+                    <span class="prop-label">Order</span>
+                    <div class="btn-group">
+                        <button class="action-btn" onclick="moveLayer('up')">▲ Bring Forward</button>
+                        <button class="action-btn" onclick="moveLayer('down')">▼ Send Backward</button>
+                    </div>
+                </div>
+
+                <div class="prop-row" style="margin-top:10px;">
+                    <span class="prop-label">Actions</span>
+                    <button class="action-btn" onclick="deleteObj()" style="color:#ff5f57; font-weight:800; flex:1">🗑️
+                        Delete Layer</button>
+                </div>
+
+                <!-- Image Filters Specific Props -->
+                <div id="imageFiltersBar" class="hidden"
+                    style="margin-top:20px; border-top:1px dashed var(--border); padding-top:16px;">
+                    <div class="prop-title" style="color:#ffbd2e">Image Filters</div>
+
+                    <div class="prop-row">
+                        <label
+                            style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <input type="checkbox" id="chkGrayscale" onchange="applyFilters()"> 흑백 (Grayscale)
+                        </label>
+                    </div>
+                    <div class="prop-row">
+                        <label
+                            style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <input type="checkbox" id="chkSepia" onchange="applyFilters()"> 세피아 (Sepia)
+                        </label>
+                    </div>
+                    <div class="prop-row" style="flex-direction:column; align-items:stretch; margin-top:12px;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600;">
+                            <input type="checkbox" id="chkBlur" onchange="applyFilters()"> 블러 (Blur)
+                        </label>
+                        <div style="display:flex; align-items:center; gap:8px; padding-left:24px;">
+                            <span class="prop-label" style="min-width:40px">강도</span>
+                            <input type="range" id="blurValue" min="0" max="1" step="0.05" value="0.2" style="flex:1"
+                                onchange="if(document.getElementById('chkBlur').checked) applyFilters()">
+                        </div>
+                    </div>
+                    <div class="prop-row" style="flex-direction:column; align-items:stretch; margin-top:12px;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600;">
+                            <input type="checkbox" id="chkPixelate" onchange="applyFilters()"> 모자이크 (Pixelate)
+                        </label>
+                        <div style="display:flex; align-items:center; gap:8px; padding-left:24px;">
+                            <span class="prop-label" style="min-width:40px">크기</span>
+                            <input type="range" id="pixelateValue" min="2" max="20" step="1" value="8" style="flex:1"
+                                onchange="if(document.getElementById('chkPixelate').checked) applyFilters()">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div style="flex:1"></div> <!-- Push export to bottom -->
+
+            <!-- Save & Export -->
+            <div class="prop-section" style="background:var(--surface)">
+                <div class="prop-title">Export & Save</div>
+
+                <div class="prop-row">
+                    <span class="prop-label">Format</span>
+                    <div class="btn-group">
+                        <button class="action-btn fmt-btn active" data-fmt="png">PNG</button>
+                        <button class="action-btn fmt-btn" data-fmt="jpeg">JPG</button>
+                        <button class="action-btn fmt-btn" data-fmt="webp">WEBP</button>
+                    </div>
+                </div>
+
+                <button class="primary-btn" onclick="downloadImage()">⬇ EXPORT IMAGE</button>
+
+                <div style="margin-top:16px; display:flex; gap:8px;">
+                    <button class="action-btn" style="flex:1" onclick="saveJson()">💾 JSON 저장</button>
+                    <button class="action-btn" style="flex:1" onclick="document.getElementById('jsonUpload').click()">📂
+                        불러오기</button>
+                    <input type="file" id="jsonUpload" accept=".json" class="hidden" onchange="loadJson(event)">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let canvas;
+        let saveFormat = 'png';
+        let currentZoom = 1;
+
+        // Selection / Region state variables
+        let isSelectionMode = false;
+        let isDrawingSelection = false;
+        let selectionRect = null;
+        let startX, startY;
+
+        function initCanvas() {
+            const w = parseInt(document.getElementById('canvasW').value, 10) || 1200;
+            const h = parseInt(document.getElementById('canvasH').value, 10) || 800;
+
+            canvas = new fabric.Canvas('c', {
+                width: w,
+                height: h,
+                backgroundColor: '#ffffff',
+                preserveObjectStacking: true
+            });
+
+            canvas.on('selection:created', onObjSelected);
+            canvas.on('selection:updated', onObjSelected);
+            canvas.on('selection:cleared', onObjCleared);
+
+            // Selection 마우스 훅
+            canvas.on('mouse:down', onMouseDown);
+            canvas.on('mouse:move', onMouseMove);
+            canvas.on('mouse:up', onMouseUp);
+
+            setTimeout(resetZoom, 100); // 렌더링 후 줌 리셋
+        }
+
+        onload = () => {
+            initCanvas();
+        };
+
+        function applyCustomSize() {
+            const w = parseInt(document.getElementById('canvasW').value, 10) || 1200;
+            const h = parseInt(document.getElementById('canvasH').value, 10) || 800;
+            canvas.setWidth(w);
+            canvas.setHeight(h);
+            canvas.renderAll();
+            resetZoom();
+        }
+
+        // ─── Region Selection Logic ───
+        function startSelectionMode() {
+            if (isSelectionMode) return;
+            isSelectionMode = true;
+            canvas.discardActiveObject();
+            canvas.renderAll();
+
+            // 캔버스 인터랙션 차단 (객체 선택 안 되게)
+            canvas.forEachObject(obj => {
+                obj.selectable = false;
+                obj.evented = false;
+            });
+            canvas.defaultCursor = 'crosshair';
+
+            // UI
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btnSelect').classList.add('active');
+        }
+
+        function cancelSelection() {
+            isSelectionMode = false;
+            isDrawingSelection = false;
+
+            if (selectionRect) {
+                canvas.remove(selectionRect);
+                selectionRect = null;
+            }
+
+            // 객체 상호작용 원복
+            canvas.forEachObject(obj => {
+                obj.selectable = true;
+                obj.evented = true;
+            });
+            canvas.defaultCursor = 'default';
+
+            document.getElementById('btnSelect').classList.remove('active');
+            document.getElementById('regionActionBar').classList.add('hidden');
+            document.getElementById('regionActionBar').style.display = '';
+            canvas.renderAll();
+        }
+
+        function onMouseDown(opt) {
+            // 다른 객체 선택 시 백업 지우기
+            const activeObj = canvas.getActiveObject();
+            if (activeObj) {
+                activeObj._savedSelection = null;
+            }
+
+            if (!isSelectionMode) return;
+
+            // 기존 선택상자 있으면 제거 (바탕 클릭 시 재작성 또는 취소 용도)
+            if (selectionRect) {
+                // 클릭한 곳이 선택상자 내부면 (실은 evented=false라 안잡히지만 보수적으로)
+                canvas.remove(selectionRect);
+                selectionRect = null;
+                document.getElementById('regionActionBar').classList.add('hidden');
+                document.getElementById('regionActionBar').style.display = '';
+            }
+
+            isDrawingSelection = true;
+            const pointer = canvas.getPointer(opt.e);
+            startX = pointer.x;
+            startY = pointer.y;
+
+            selectionRect = new fabric.Rect({
+                left: startX,
+                top: startY,
+                originX: 'left',
+                originY: 'top',
+                width: 0,
+                height: 0,
+                fill: 'rgba(0,122,255,0.1)',
+                stroke: '#007aff',
+                strokeWidth: 2,
+                strokeDashArray: [5, 5],
+                selectable: false, // 만들어진 후에도 선택 안되게
+                evented: false,
+                strokeUniform: true
+            });
+            canvas.add(selectionRect);
+        }
+
+        function onMouseMove(opt) {
+            if (!isDrawingSelection) return;
+            const pointer = canvas.getPointer(opt.e);
+
+            if (startX > pointer.x) {
+                selectionRect.set({ left: Math.abs(pointer.x) });
+            }
+            if (startY > pointer.y) {
+                selectionRect.set({ top: Math.abs(pointer.y) });
+            }
+
+            selectionRect.set({ width: Math.abs(startX - pointer.x) });
+            selectionRect.set({ height: Math.abs(startY - pointer.y) });
+            canvas.renderAll();
+        }
+
+        function onMouseUp(opt) {
+            if (!isDrawingSelection) return;
+            isDrawingSelection = false;
+
+            if (selectionRect && selectionRect.width > 20 && selectionRect.height > 20) {
+                // 영역 그리기 성공시 액션바 띄움
+                document.getElementById('regionActionBar').classList.remove('hidden');
+                document.getElementById('regionActionBar').style.display = 'flex'; // hidden 덮어쓰기 위해
+            } else {
+                // 너무 작으면 실수로 간주하고 취소
+                if (selectionRect) canvas.remove(selectionRect);
+                selectionRect = null;
+            }
+            canvas.renderAll();
+        }
+
+        // ─── Region Action Functions ───
+
+        // 1. 자르기 (Crop Canvas)
+        function cropByRegion() {
+            if (!selectionRect) return;
+
+            const rWidth = parseInt(selectionRect.width, 10);
+            const rHeight = parseInt(selectionRect.height, 10);
+            const rLeft = selectionRect.left;
+            const rTop = selectionRect.top;
+
+            // 모든 객체의 좌표를 rLeft, rTop 만큼 빼서 이동
+            canvas.forEachObject(obj => {
+                if (obj === selectionRect) return; // 자신 제외
+                obj.left -= rLeft;
+                obj.top -= rTop;
+                obj.setCoords();
+            });
+
+            // 배경 이미지가 통으로 들어가 있으면 배경 삭제 (잘라낼 수 없기 때문 - 보통 Crop 시 배경색 위로 올림)
+            if (canvas.backgroundImage) {
+                // 원본 배경을 그냥 이미지 객체로 바꿔서 잘라내게 만드는 꼼수도 있으나 단순화를 위해 일단 backgroundImg 제거 (원래 캔버스 잘라내는 용도)
+                const bgImg = canvas.backgroundImage;
+                bgImg.left -= rLeft;
+                bgImg.top -= rTop;
+                canvas.backgroundImage = null;
+                canvas.backgroundColor = '#ffffff';
+                canvas.add(bgImg);
+                canvas.sendToBack(bgImg);
+            }
+
+            // 캔버스 크기 줄임
+            document.getElementById('canvasW').value = rWidth;
+            document.getElementById('canvasH').value = rHeight;
+            canvas.setWidth(rWidth);
+            canvas.setHeight(rHeight);
+
+            cancelSelection();
+            resetZoom();
+        }
+
+        // 2. 부분 필터 (모자이크 / 블러)
+        function filterByRegion(filterType) {
+            if (!selectionRect) return;
+
+            // 화면 캡쳐 후 해당 영역만 잘라서 필터 먹인 새 조각을 얹기
+            // 우선 selectionRect 숨기기
+            selectionRect.visible = false;
+            canvas.renderAll();
+
+            const rLeft = selectionRect.left;
+            const rTop = selectionRect.top;
+            const rWidth = selectionRect.width;
+            const rHeight = selectionRect.height;
+
+            // 전체 캔버스를 이미지로 변환
+            const dataURL = canvas.toDataURL({
+                format: 'png',
+                multiplier: 1 // 1:1 대응
+            });
+
+            // 그 다음 복구
+            selectionRect.visible = true;
+            canvas.renderAll();
+
+            fabric.Image.fromURL(dataURL, function (img) {
+                // 잘라낼 구역(영역 밖은 안보이게 crop)만 설정
+                img.set({
+                    cropX: rLeft,
+                    cropY: rTop,
+                    width: rWidth,
+                    height: rHeight,
+                    left: rLeft,
+                    top: rTop,
+                    originX: 'left',
+                    originY: 'top',
+                    selectable: true
+                });
+
+                // 지정된 필터 적용
+                if (filterType === 'pixelate') {
+                    img.filters.push(new fabric.Image.filters.Pixelate({ blocksize: 10 }));
+                } else if (filterType === 'blur') {
+                    img.filters.push(new fabric.Image.filters.Blur({ blur: 0.1 }));
+                }
+
+                img.applyFilters();
+                canvas.add(img);
+
+                cancelSelection(); // 선택 모드 종료 (새 객체로 떨어짐)
+                canvas.setActiveObject(img);
+            });
+        }
+
+        function resizeCanvasToImage(img) {
+            document.getElementById('canvasW').value = img.width;
+            document.getElementById('canvasH').value = img.height;
+            canvas.setWidth(img.width);
+            canvas.setHeight(img.height);
+            resetZoom();
+        }
+
+        document.querySelectorAll('.fmt-btn').forEach(b => b.onclick = () => {
+            document.querySelectorAll('.fmt-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            saveFormat = b.dataset.fmt;
+        });
+
+        function onObjSelected(e) {
+            // 자르기 중이면 무시
+            if (isSelectionMode) return;
+
+            const obj = e.selected[0];
+            if (!obj) return;
+            document.getElementById('objPropsPanel').classList.remove('hidden');
+
+            // 색상 연동
+            if (obj.fill && typeof obj.fill === 'string') {
+                document.getElementById('objColor').value = obj.fill;
+                document.getElementById('objColorHex').textContent = obj.fill.toUpperCase();
+            }
+
+            // 텍스트 속성창 표시 토글
+            const isText = (obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text');
+            document.getElementById('textPropsBar').classList.toggle('hidden', !isText);
+
+            if (isText) {
+                document.getElementById('fontFamily').value = obj.fontFamily || 'Pretendard Variable';
+                document.getElementById('btnBold').classList.toggle('active', obj.fontWeight === 'bold');
+                document.getElementById('btnItalic').classList.toggle('active', obj.fontStyle === 'italic');
+
+                // 텍스트 추가 속성 반영
+                // 사용자가 캔버스에서 코너를 당겨 scale을 바꿀수 있으므로 시각적 최종 폰트 크기를 보여줌
+                document.getElementById('fontSize').value = Math.round((obj.fontSize || 40) * (obj.scaleX || 1));
+
+                document.getElementById('textStrokeColor').value = obj.stroke || '#ffffff';
+                document.getElementById('textStrokeWidth').value = obj.strokeWidth || 0;
+
+                if (obj.textBackgroundColor) {
+                    document.getElementById('textBgColor').value = obj.textBackgroundColor;
+                    document.getElementById('textBgColorHex').textContent = obj.textBackgroundColor.toUpperCase();
+                } else {
+                    document.getElementById('textBgColorHex').textContent = 'None';
+                }
+            }
+
+            // 이미지 필터 속성창 표시 토글
+            const isImage = (obj.type === 'image');
+            // document.getElementById('imageFiltersBar').classList.toggle('hidden', !isImage); // 부분 필터 툴(Region Selection)로 대체하므로 우측 필터 옵션은 굳이 막지 않으나 로직 구조를 위해 남김
+            document.getElementById('imageFiltersBar').classList.toggle('hidden', !isImage);
+
+            if (isImage) {
+                // 현재 적용된 필터 상태를 UI에 반영
+                document.getElementById('chkGrayscale').checked = !!obj.filters.find(f => f && f.type === 'Grayscale');
+                document.getElementById('chkSepia').checked = !!obj.filters.find(f => f && f.type === 'Sepia');
+                const blurF = obj.filters.find(f => f && f.type === 'Blur');
+                document.getElementById('chkBlur').checked = !!blurF;
+                if (blurF) document.getElementById('blurValue').value = blurF.blur;
+
+                const pixF = obj.filters.find(f => f && f.type === 'Pixelate');
+                document.getElementById('chkPixelate').checked = !!pixF;
+                if (pixF) document.getElementById('pixelateValue').value = pixF.blocksize;
+            }
+
+            // 공통 속성
+            document.getElementById('objOpacity').value = obj.opacity !== undefined ? obj.opacity : 1;
+            document.getElementById('btnShadow').classList.toggle('active', !!obj.shadow);
+        }
+
+        function onObjCleared() {
+            if (isSelectionMode) return;
+            document.getElementById('objPropsPanel').classList.add('hidden');
+        }
+
+        function updateObj(key, val) {
+            const obj = canvas.getActiveObject();
+            if (!obj) return;
+            obj.set(key, val);
+            canvas.renderAll();
+        }
+
+        // 텍스트 선택 영역에 스타일을 줄 때 Fabric.js 내부 캐시 꼬임 방지 (글자가 뒤섞이는 현상 해결)
+        function applySelectionStyle(obj, styleObj) {
+            obj.setSelectionStyles(styleObj);
+            // 캐시와 크기 계산 강제 갱신
+            obj.initDimensions();
+            obj.setCoords();
+            canvas.renderAll();
+        }
+
+        document.getElementById('objColor').addEventListener('input', e => {
+            const obj = canvas.getActiveObject();
+            const val = e.target.value;
+            document.getElementById('objColorHex').textContent = val.toUpperCase();
+            if (!obj) return;
+
+            if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
+                applySelectionStyle(obj, { fill: val });
+            } else if (obj.type === 'path' || obj.type === 'line') {
+                obj.set('stroke', val);
+            } else {
+                obj.set('fill', val);
+            }
+            canvas.renderAll();
+        });
+
+        // 웹 폰트를 캔버스에 그리기 전에 명시적으로 브라우저에 로드 (캔버스 미적용 버그 픽스)
+        function updateFont(fontName) {
+            const obj = canvas.getActiveObject();
+            if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
+
+            const applyFont = () => {
+                if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
+                    applySelectionStyle(obj, { fontFamily: fontName });
+                } else {
+                    obj.set('fontFamily', fontName);
+                    canvas.renderAll();
+                }
+            };
+
+            // 시스템 기본 폰트는 그냥 바로 적용
+            if (fontName === 'sans-serif') {
+                applyFont();
+                return;
+            }
+
+            // 웹 폰트는 document.fonts.load를 통해 확실히 로드된 후 적용해야 캔버스에 그려짐
+            document.fonts.load(`16px "${fontName}"`).then(() => {
+                applyFont();
+            }).catch(err => {
+                // 로드 실패 시에도 일단 적용 시도
+                console.warn('Font load error:', err);
+                applyFont();
+            });
+        }
+
+        // 텍스트 크기 직접 입력 시 크기 조절
+        function updateTextSize(val) {
+            const obj = canvas.getActiveObject();
+            if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
+            const size = parseInt(val, 10);
+            if (isNaN(size)) return;
+
+            if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
+                applySelectionStyle(obj, { fontSize: size });
+            } else {
+                // scaleX, scaleY를 시각적으로 초기화하고 실제 fontSize를 반영
+                obj.set({ fontSize: size, scaleX: 1, scaleY: 1 });
+                canvas.renderAll();
+            }
+        }
+
+        // 텍스트 외곽선 (Stroke)
+        function updateTextOutline() {
+            const obj = canvas.getActiveObject();
+            if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
+            const color = document.getElementById('textStrokeColor').value;
+            const width = parseInt(document.getElementById('textStrokeWidth').value, 10);
+
+            if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
+                applySelectionStyle(obj, { stroke: color, strokeWidth: width });
+            } else {
+                obj.set({ stroke: color, strokeWidth: width });
+                canvas.renderAll();
+            }
+        }
+
+        // 텍스트 배경 (Highlight)
+        function updateTextBg(val) {
+            const obj = canvas.getActiveObject();
+            const hexLbl = document.getElementById('textBgColorHex');
+
+            if (!val) {
+                hexLbl.textContent = 'None';
+            } else {
+                hexLbl.textContent = val.toUpperCase();
+            }
+
+            if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
+
+            if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
+                applySelectionStyle(obj, { textBackgroundColor: val || null });
+            } else {
+                obj.set('textBackgroundColor', val || null);
+                canvas.renderAll();
+            }
+        }
+
+        function toggleStyle(type) {
+            const obj = canvas.getActiveObject();
+            if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
+
+            const isSelection = obj.isEditing && obj.selectionStart !== obj.selectionEnd;
+
+            if (type === 'bold') {
+                const currentBold = obj.fontWeight === 'bold';
+                const newVal = currentBold ? 'normal' : 'bold';
+                if (isSelection) applySelectionStyle(obj, { fontWeight: newVal });
+                else {
+                    obj.set('fontWeight', newVal);
+                    canvas.renderAll();
+                }
+                document.getElementById('btnBold').classList.toggle('active', newVal === 'bold');
+            } else if (type === 'italic') {
+                const currentItalic = obj.fontStyle === 'italic';
+                const newVal = currentItalic ? 'normal' : 'italic';
+                if (isSelection) applySelectionStyle(obj, { fontStyle: newVal });
+                else {
+                    obj.set('fontStyle', newVal);
+                    canvas.renderAll();
+                }
+                document.getElementById('btnItalic').classList.toggle('active', newVal === 'italic');
+            }
+        }
+
+        function toggleShadow() {
+            const obj = canvas.getActiveObject();
+            if (!obj) return;
+            if (obj.shadow) {
+                obj.set('shadow', null);
+                document.getElementById('btnShadow').classList.remove('active');
+            } else {
+                obj.set('shadow', new fabric.Shadow({
+                    color: 'rgba(0,0,0,0.5)',
+                    blur: 20, offsetX: 0, offsetY: 10
+                }));
+                document.getElementById('btnShadow').classList.add('active');
+            }
+            canvas.renderAll();
+        }
+
+        // 이미지 필터 모음 관리 함수
+        function applyFilters() {
+            const obj = canvas.getActiveObject();
+            if (!obj || obj.type !== 'image') return;
+
+            // 기존 필터 초기화 배열
+            obj.filters = [];
+
+            if (document.getElementById('chkGrayscale').checked) {
+                obj.filters.push(new fabric.Image.filters.Grayscale());
+            }
+            if (document.getElementById('chkSepia').checked) {
+                obj.filters.push(new fabric.Image.filters.Sepia());
+            }
+            if (document.getElementById('chkBlur').checked) {
+                // webgl 지원 여부 문제로 가끔 blur가 안 먹을 수 있음 - fabric의 canvas backend fallback
+                obj.filters.push(new fabric.Image.filters.Blur({
+                    blur: parseFloat(document.getElementById('blurValue').value)
+                }));
+            }
+            if (document.getElementById('chkPixelate').checked) {
+                obj.filters.push(new fabric.Image.filters.Pixelate({
+                    blocksize: parseInt(document.getElementById('pixelateValue').value, 10)
+                }));
+            }
+
+            // 필터 적용 (비동기 처리)
+            obj.applyFilters();
+            canvas.renderAll();
+        }
+
+        function deleteObj() {
+            if (isSelectionMode) return; // 선택모드 중 삭제 방지
+            const objects = canvas.getActiveObjects();
+            if (!objects.length) return;
+            objects.forEach(o => canvas.remove(o));
+            canvas.discardActiveObject();
+            canvas.renderAll();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && !document.activeElement.matches('input, textarea, select, [contenteditable]')) {
+                deleteObj();
+            }
+        });
+
+        function moveLayer(dir) {
+            const obj = canvas.getActiveObject();
+            if (!obj) return;
+            if (dir === 'up') canvas.bringForward(obj);
+            else canvas.sendBackwards(obj);
+        }
+
+        function getCenter() { return { x: canvas.width / 2, y: canvas.height / 2 }; }
+
+        function addText(text = '이곳을 더블클릭하여 수정하세요') {
+            const center = getCenter();
+            const t = new fabric.Textbox(text, {
+                left: center.x, top: center.y, originX: 'center', originY: 'center',
+                fontSize: Math.max(24, Math.floor(canvas.height * 0.08)), fill: '#1d1d1f',
+                fontFamily: 'Pretendard Variable', fontWeight: 'bold',
+                textAlign: 'center',
+                width: Math.min(600, canvas.width - 100)
+            });
+            canvas.add(t);
+            canvas.setActiveObject(t);
+        }
+
+        function getPolygonPoints(type, baseDim) {
+            const createRegularPolygon = (sides) => {
+                const points = [];
+                for (let i = 0; i < sides; i++) {
+                    const angle = (i * 2 * Math.PI / sides) - (Math.PI / 2);
+                    points.push({ x: 50 * Math.cos(angle), y: 50 * Math.sin(angle) });
+                }
+                return points;
+            };
+
+            const mapToDim = (pts) => pts.map(p => ({ x: (p.x / 100 - 0.5) * baseDim, y: (p.y / 100 - 0.5) * baseDim }));
+
+            if (type === 'pentagon') return createRegularPolygon(5).map(p => ({ x: p.x / 100 * baseDim, y: p.y / 100 * baseDim }));
+            if (type === 'hexagon') return createRegularPolygon(6).map(p => ({ x: p.x / 100 * baseDim, y: p.y / 100 * baseDim }));
+            if (type === 'octagon') return createRegularPolygon(8).map(p => ({ x: p.x / 100 * baseDim, y: p.y / 100 * baseDim }));
+            if (type === 'rhombus') return mapToDim([{ x: 50, y: 0 }, { x: 100, y: 50 }, { x: 50, y: 100 }, { x: 0, y: 50 }]);
+            if (type === 'parallelogram') return mapToDim([{ x: 25, y: 0 }, { x: 100, y: 0 }, { x: 75, y: 100 }, { x: 0, y: 100 }]);
+            if (type === 'arrow-right') return mapToDim([{ x: 0, y: 25 }, { x: 50, y: 25 }, { x: 50, y: 0 }, { x: 100, y: 50 }, { x: 50, y: 100 }, { x: 50, y: 75 }, { x: 0, y: 75 }]);
+            if (type === 'arrow-left') return mapToDim([{ x: 100, y: 25 }, { x: 50, y: 25 }, { x: 50, y: 0 }, { x: 0, y: 50 }, { x: 50, y: 100 }, { x: 50, y: 75 }, { x: 100, y: 75 }]);
+            if (type === 'arrow-up') return mapToDim([{ x: 25, y: 100 }, { x: 25, y: 50 }, { x: 0, y: 50 }, { x: 50, y: 0 }, { x: 100, y: 50 }, { x: 75, y: 50 }, { x: 75, y: 100 }]);
+            if (type === 'arrow-down') return mapToDim([{ x: 25, y: 0 }, { x: 75, y: 0 }, { x: 75, y: 50 }, { x: 100, y: 50 }, { x: 50, y: 100 }, { x: 0, y: 50 }, { x: 25, y: 50 }]);
+            if (type === 'plus') return mapToDim([{ x: 35, y: 0 }, { x: 65, y: 0 }, { x: 65, y: 35 }, { x: 100, y: 35 }, { x: 100, y: 65 }, { x: 65, y: 65 }, { x: 65, y: 100 }, { x: 35, y: 100 }, { x: 35, y: 65 }, { x: 0, y: 65 }, { x: 0, y: 35 }, { x: 35, y: 35 }]);
+            if (type === 'cross') return mapToDim([{ x: 15, y: 0 }, { x: 50, y: 35 }, { x: 85, y: 0 }, { x: 100, y: 15 }, { x: 65, y: 50 }, { x: 100, y: 85 }, { x: 85, y: 100 }, { x: 50, y: 65 }, { x: 15, y: 100 }, { x: 0, y: 85 }, { x: 35, y: 50 }, { x: 0, y: 15 }]);
+            if (type === 'check') return mapToDim([{ x: 15, y: 45 }, { x: 40, y: 70 }, { x: 85, y: 5 }, { x: 100, y: 20 }, { x: 40, y: 100 }, { x: 0, y: 60 }]);
+            if (type === 'home') return mapToDim([{ x: 50, y: 0 }, { x: 100, y: 40 }, { x: 85, y: 40 }, { x: 85, y: 100 }, { x: 15, y: 100 }, { x: 15, y: 40 }, { x: 0, y: 40 }]);
+            if (type === 'message') return mapToDim([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 70 }, { x: 30, y: 70 }, { x: 0, y: 100 }, { x: 0, y: 0 }]);
+            if (type === 'bookmark') return mapToDim([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 50, y: 70 }, { x: 0, y: 100 }]);
+            if (type === 'tag') return mapToDim([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 50 }, { x: 50, y: 100 }, { x: 0, y: 50 }]);
+
+            return null;
+        }
+
+        function addShape(type) {
+            const center = getCenter();
+            let obj;
+            const baseDim = Math.min(canvas.width, canvas.height) * 0.3;
+            const defaultColor = '#ffbd2e';
+
+            // Basic built-in Fabric geometries
+            if (type === 'rect') {
+                obj = new fabric.Rect({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim * 1.5, height: baseDim, fill: '#cfd4de', rx: 8, ry: 8 });
+            } else if (type === 'circle') {
+                obj = new fabric.Circle({ left: center.x, top: center.y, originX: 'center', originY: 'center', radius: baseDim / 2, fill: '#5f6fdd' });
+            } else if (type === 'ellipse') {
+                obj = new fabric.Ellipse({ left: center.x, top: center.y, originX: 'center', originY: 'center', rx: baseDim * 0.75, ry: baseDim / 2, fill: '#5f6fdd' });
+            } else if (type === 'triangle') {
+                obj = new fabric.Triangle({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim, height: baseDim, fill: defaultColor });
+            } else if (type === 'line') {
+                obj = new fabric.Line([center.x - baseDim, center.y, center.x + baseDim, center.y], {
+                    stroke: '#1d1d1f', strokeWidth: 8, originX: 'center', originY: 'center'
+                });
+            } else if (type === 'minus') {
+                obj = new fabric.Rect({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim, height: baseDim * 0.2, fill: defaultColor, rx: 4, ry: 4 });
+            } else {
+                // Polygon geometries
+                const points = getPolygonPoints(type, baseDim);
+                if (points) {
+                    obj = new fabric.Polygon(points, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: defaultColor, objectCaching: false });
+                } else {
+                    // SVG Paths fallback
+                    let path = "";
+                    if (type === 'heart') {
+                        path = "M 272.70141,238.71731 C 206.46141,238.71731 152.70146,292.4773 152.70146,358.71731 C 152.70146,493.47282 288.63461,528.80461 381.26391,662.02535 C 468.83815,529.62199 609.82641,489.17075 609.82641,358.71731 C 609.82641,292.4773 556.06651,238.71731 489.82641,238.71731 C 441.77681,238.71731 400.42481,266.90222 381.26391,309.51385 C 362.10311,266.90222 320.75111,238.71731 272.70141,238.71731 z";
+                    } else if (type === 'star') {
+                        path = "M 119.349 27.601 L 140.404 90.963 L 206.848 91.56 L 153.305 131.25 L 173.238 194.88 L 119.349 156.4 L 65.461 194.88 L 85.393 131.25 L 31.851 91.56 L 98.295 90.963 Z";
+                    } else if (type === 'bolt') {
+                        path = "M 152.33 13.92 L 63.85 158.42 L 129.23 158.42 L 102.34 290.79 L 210.89 126.96 L 142.14 126.96 Z";
+                    } else if (type === 'smile') {
+                        path = "M 100 0 A 100 100 0 1 0 100 200 A 100 100 0 1 0 100 0 Z M 65 65 A 15 15 0 1 1 65 95 A 15 15 0 1 1 65 65 Z M 135 65 A 15 15 0 1 1 135 95 A 15 15 0 1 1 135 65 Z M 100 150 C 70 150 50 120 50 120 L 65 110 C 65 110 80 135 100 135 C 120 135 135 110 135 110 L 150 120 C 150 120 130 150 100 150 Z";
+                    } else if (type === 'cloud') {
+                        path = "M 30,70 A 20,20 0 0,1 30,30 A 25,25 0 0,1 70,25 A 20,20 0 0,1 70,70 Z";
+                    } else if (type === 'moon') {
+                        path = "M 50,10 A 40,40 0 1,0 90,50 A 30,30 0 0,1 50,10 Z";
+                    } else if (type === 'sun') {
+                        path = "M 50 10 L 60 25 L 75 25 L 75 40 L 90 50 L 75 60 L 75 75 L 60 75 L 50 90 L 40 75 L 25 75 L 25 60 L 10 50 L 25 40 L 25 25 L 40 25 Z";
+                    }
+
+                    if (path) {
+                        obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: defaultColor, objectCaching: false });
+                        // Scale path to fit baseDim
+                        const bound = obj.getBoundingRect();
+                        obj.scale(baseDim / Math.max(bound.width, bound.height));
+                    }
+                }
+            }
+
+            if (obj) {
+                canvas.add(obj);
+                canvas.setActiveObject(obj);
+            }
+        }
+
+        function addImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                fabric.Image.fromURL(ev.target.result, function (img) {
+                    img.set({ left: canvas.width / 2, top: canvas.height / 2, originX: 'center', originY: 'center' });
+                    if (img.width > canvas.width * 0.8) {
+                        img.scaleToWidth(canvas.width * 0.8);
+                    }
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                });
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        }
+
+        document.getElementById('bgColor').addEventListener('input', e => {
+            const val = e.target.value;
+            canvas.backgroundColor = val;
+            canvas.backgroundImage = null;
+            document.getElementById('bgColorHex').textContent = val.toUpperCase();
+            canvas.renderAll();
+        });
+
+        document.getElementById('bgImageInput').addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                fabric.Image.fromURL(ev.target.result, function (img) {
+                    resizeCanvasToImage(img);
+                    img.set({ originX: 'center', originY: 'center', left: canvas.width / 2, top: canvas.height / 2 });
+                    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+                });
+            };
+            reader.readAsDataURL(f);
+            e.target.value = '';
+        });
+
+        function downloadImage() {
+            canvas.discardActiveObject();
+            canvas.renderAll();
+            const dataUrl = canvas.toDataURL({ format: saveFormat, quality: 0.92, multiplier: 1 });
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `exported_image_${Date.now()}.${saveFormat}`;
+            a.click();
+        }
+
+        function saveJson() {
+            const obj = canvas.toJSON(['id', 'opacity', 'shadow']);
+            obj.customW = canvas.width;
+            obj.customH = canvas.height;
+            const json = JSON.stringify(obj);
+            const blob = new Blob([json], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `image_project_${Date.now()}.json`;
+            a.click();
+        }
+
+        function loadJson(e) {
+            const f = e.target.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (data.customW && data.customH) {
+                        document.getElementById('canvasW').value = data.customW;
+                        document.getElementById('canvasH').value = data.customH;
+                        canvas.setWidth(data.customW);
+                        canvas.setHeight(data.customH);
+                    }
+                    canvas.loadFromJSON(data, function () {
+                        if (!canvas.backgroundColor) canvas.backgroundColor = '#ffffff';
+                        canvas.renderAll();
+                        resetZoom();
+                    });
+                } catch (err) {
+                    alert("올바른 프로젝트 파일이 아닙니다.");
+                }
+            };
+            reader.readAsText(f);
+            e.target.value = '';
+        }
+
+        // ─── Scaled Canvas View (Zoom) ───
+        function getFitScale() {
+            const ws = document.getElementById('workspace');
+            const availW = ws.clientWidth - 40; // padding
+            const availH = ws.clientHeight - 40;
+            if (availW <= 0 || availH <= 0) return 1;
+            const scaleX = availW / canvas.width;
+            const scaleY = availH / canvas.height;
+            return Math.min(scaleX, scaleY, 1); // 1보다 커지진 않게 (원본 비율유지)
+        }
+
+        function applyZoom() {
+            document.getElementById('zoomWrapper').style.transform = `scale(${currentZoom})`;
+            document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function resetZoom() {
+            currentZoom = getFitScale();
+            applyZoom();
+        }
+
+        function changeZoom(delta) {
+            currentZoom += delta;
+            if (currentZoom < 0.1) currentZoom = 0.1;
+            if (currentZoom > 3) currentZoom = 3;
+            applyZoom();
+        }
+
+        window.addEventListener('resize', () => { setTimeout(resetZoom, 100); });
+
+        // Shape Menu Logic
+        function toggleShapeMenu() {
+            document.getElementById('shapeMenu').classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (e) => {
+            const wrapper = document.getElementById('shapeMenuWrapper');
+            // shape menu 외부 클릭 시 닫기
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('shapeMenu').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>

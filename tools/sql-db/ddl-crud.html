@@ -1,7 +1,9 @@
-<!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+﻿<!DOCTYPE html>
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/dev-tools/favicon.svg">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DDL → CRUD Generator | Dev Tools</title>
 <script src="../../tools.js"></script>
@@ -24,12 +26,14 @@
         <div class="panel-header">
           <div class="panel-title">
             <div class="dot"></div>
-            DDL INPUT
+            INPUT
           </div>
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
-        <textarea class="ddl-textarea" id="ddlInput" placeholder="CREATE TABLE users (
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <textarea class="ddl-textarea" id="ddlInput" placeholder="CREATE TABLE users (
   user_id     NUMBER(10)    NOT NULL,
   username    VARCHAR2(50)  NOT NULL,
   email       VARCHAR2(100) NOT NULL,
@@ -37,32 +41,35 @@
   is_active   NUMBER(1)     DEFAULT 1,
   CONSTRAINT pk_users PRIMARY KEY (user_id)
 );"></textarea>
+        </div>
 
-        <div class="options-bar">
-          <span class="options-label">Dialect</span>
-          <div class="dialect-group">
-            <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
-            <button class="dialect-btn" data-dialect="oracle">Oracle</button>
-            <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
-            <button class="dialect-btn" data-dialect="mybatis">MyBatis</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Options</div>
+          <div class="options-bar">
+            <span class="options-label">Dialect</span>
+            <div class="dialect-group">
+              <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
+              <button class="dialect-btn" data-dialect="oracle">Oracle</button>
+              <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+              <button class="dialect-btn" data-dialect="mybatis">MyBatis</button>
+            </div>
+          </div>
+
+          <div class="options-bar row-tight">
+            <span class="options-label">CRUD</span>
+            <div class="crud-group">
+              <button class="crud-toggle active" data-crud="INSERT">INSERT</button>
+              <button class="crud-toggle active" data-crud="SELECT">SELECT</button>
+              <button class="crud-toggle active" data-crud="UPDATE">UPDATE</button>
+              <button class="crud-toggle active" data-crud="DELETE">DELETE</button>
+            </div>
+            <button class="all-toggle" id="allToggle">전체해제</button>
           </div>
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">CRUD</span>
-          <div class="crud-group">
-            <button class="crud-toggle active" data-crud="INSERT">INSERT</button>
-            <button class="crud-toggle active" data-crud="SELECT">SELECT</button>
-            <button class="crud-toggle active" data-crud="UPDATE">UPDATE</button>
-            <button class="crud-toggle active" data-crud="DELETE">DELETE</button>
-          </div>
-          <button class="all-toggle" id="allToggle">전체해제</button>
-        </div>
-
-        <button class="generate-btn" id="generateBtn" onclick="generate()">
-          ⚡ SQL 생성
+        <button class="generate-btn" id="generateBtn" onclick="generate()" data-shortcut="Ctrl + Enter">
+          ⚡ 생성
         </button>
-        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -369,7 +376,7 @@ function generate() {
     } catch (e) {
       output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
     }
-    btn.textContent = '⚡ SQL 생성';
+    btn.textContent = '⚡ 생성';
     btn.classList.remove('loading');
   }, 200);
 }

@@ -34,6 +34,11 @@ for (const file of toolFiles) {
   const html = read(file);
   const isRedirectOnly = file.endsWith('md-to-insert.html');
 
+  const badBtnLabels = [...html.matchAll(/<button[^>]*class="[^"]*generate-btn[^"]*"[^>]*>([\s\S]*?)<\/button>/g)]
+    .map(m => m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim())
+    .filter(txt => txt && !txt.startsWith('⚡'));
+  if (badBtnLabels.length) warn(`${file}: generate-btn 라벨 표준(⚡ prefix) 확인 필요`);
+
   if (!isRedirectOnly) {
     if (!html.includes('tools.js')) fail(`${file}: tools.js 로드 누락`);
     if (!html.includes('nav.js')) fail(`${file}: nav.js 로드 누락`);
@@ -44,6 +49,9 @@ for (const file of toolFiles) {
   const htmlWithoutScripts = html.replace(/<script[\s\S]*?<\/script>/gi, '');
   if (/style\s*=\s*"/i.test(htmlWithoutScripts) || /style\s*=\s*'/i.test(htmlWithoutScripts)) {
     fail(`${file}: inline style 속성 검출(정적 마크업)`);
+  }
+  if (/\.style\.display\s*=|style\.display\s*=/.test(html)) {
+    fail(`${file}: style.display 직접 토글 사용 검출`);
   }
 }
 ok(`tools/**/*.html ${toolFiles.length}개 점검 완료`);

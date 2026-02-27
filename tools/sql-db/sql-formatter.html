@@ -1,7 +1,9 @@
-<!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+﻿<!DOCTYPE html>
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/dev-tools/favicon.svg">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SQL Formatter + Lint | Dev Tools</title>
 <script src="../../tools.js"></script>
@@ -52,21 +54,26 @@
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
-        <textarea id="sqlInput" class="sql-input" placeholder="SELECT * FROM users WHERE id=1;"></textarea>
-
-        <div class="options-bar">
-          <span class="options-label">Keyword Case</span>
-          <div class="toggle-group">
-            <button class="toggle-btn case-btn active" data-case="upper">UPPER</button>
-            <button class="toggle-btn case-btn" data-case="lower">lower</button>
-          </div>
-
-          <span class="options-label">Indent</span>
-          <input id="indentSize" class="table-name-input input-xs" type="number" value="2" min="1" max="8">
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <textarea id="sqlInput" class="sql-input" placeholder="SELECT * FROM users WHERE id=1;"></textarea>
         </div>
 
-        <button class="generate-btn" onclick="runFormatLint()">⚡ FORMAT + LINT</button>
-        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Options</div>
+          <div class="options-bar">
+            <span class="options-label">Keyword Case</span>
+            <div class="toggle-group">
+              <button class="toggle-btn case-btn active" data-case="upper">UPPER</button>
+              <button class="toggle-btn case-btn" data-case="lower">lower</button>
+            </div>
+
+            <span class="options-label">Indent</span>
+            <input id="indentSize" class="table-name-input input-xs" type="number" value="2" min="1" max="8">
+          </div>
+        </div>
+
+        <button class="generate-btn" onclick="runFormatLint()" data-shortcut="Ctrl + Enter">⚡ 실행</button>
       </div>
     </div>
 

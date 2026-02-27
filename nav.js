@@ -4,8 +4,19 @@
 
 // ─── Theme init (runs immediately to prevent flash) ──────
 (function () {
+  const root = document.documentElement;
   const t = localStorage.getItem('devtools-theme');
-  if (t) document.documentElement.setAttribute('data-theme', t);
+  root.setAttribute('data-theme', t || 'light');
+
+  const mq = window.matchMedia('(max-width: 768px)');
+  const syncViewportClass = () => {
+    const isMobile = mq.matches;
+    root.classList.toggle('is-mobile', isMobile);
+    root.classList.toggle('is-desktop', !isMobile);
+  };
+  syncViewportClass();
+  if (mq.addEventListener) mq.addEventListener('change', syncViewportClass);
+  else window.addEventListener('resize', syncViewportClass);
 })();
 
 // ─── Render nav at current script position ───────────────
@@ -171,6 +182,10 @@ function syncToolHeaderFromRegistry() {
   const titleText = meta.title || meta.label || h1?.textContent || '';
   if (h1) h1.textContent = titleText;
   if (p) p.textContent = `// ${meta.desc || ''}`;
+
+  const footerEl = document.querySelector('footer');
+  if (footerEl && meta.footer) footerEl.textContent = `// ${meta.footer}`;
+
   if (titleText) document.title = `${titleText} | Dev Tools`;
   return true;
 }
@@ -183,10 +198,95 @@ function ensureToolHeaderSync(maxRetry = 20, intervalMs = 80) {
   }, intervalMs);
 }
 
+function initAdvancedSettingsCollapse() {
+  const { inTools } = getRouteInfo();
+  if (!inTools) return;
+
+  const groups = [...document.querySelectorAll('.panel .setting-group')];
+  if (groups.length < 2) return;
+
+  const basicTitleHints = ['source', 'input', '기본', 'basic', 'convert', 'render', 'export', 'file'];
+
+  const basicGroups = [];
+  const advancedGroups = [];
+
+  groups.forEach((g, idx) => {
+    const titleEl = g.querySelector('.setting-title');
+    const t = (titleEl?.textContent || '').trim().toLowerCase();
+
+    const explicitBasic = g.dataset.level === 'basic';
+    const explicitAdvanced = g.dataset.level === 'advanced';
+    const hintedBasic = basicTitleHints.some(h => t.includes(h));
+
+    if (explicitAdvanced) advancedGroups.push(g);
+    else if (explicitBasic || hintedBasic) basicGroups.push(g);
+    else advancedGroups.push(g);
+
+    // 최소 1개는 basic으로 보장
+    if (idx === 0 && !basicGroups.includes(g) && !explicitAdvanced) {
+      basicGroups.push(g);
+      const i = advancedGroups.indexOf(g);
+      if (i >= 0) advancedGroups.splice(i, 1);
+    }
+  });
+
+  if (!advancedGroups.length) return;
+
+  advancedGroups.forEach((g) => {
+    g.classList.add('is-advanced');
+    g.classList.add('collapsed');
+
+    const title = g.querySelector('.setting-title');
+    if (!title || title.dataset.collapseBound === '1') return;
+    title.dataset.collapseBound = '1';
+    title.addEventListener('click', () => {
+      g.classList.toggle('collapsed');
+    });
+  });
+
+  document.querySelector('.settings-mode-bar')?.remove();
+
+  let btn = document.getElementById('settingsModeToggle');
+  if (!btn) {
+    const firstPanel = document.querySelector('.main-grid .panel');
+    const header = firstPanel?.querySelector('.panel-header');
+    const title = header?.querySelector('.panel-title');
+    if (!header || !title) return;
+
+    let actions = header.querySelector('.panel-header-actions');
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = 'panel-header-actions';
+      [...header.children].forEach((child) => {
+        if (child !== title) actions.appendChild(child);
+      });
+      header.appendChild(actions);
+    }
+
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'settingsModeToggle';
+    btn.className = 'sample-btn settings-mode-toggle';
+    btn.textContent = '고급 기능 펼치기';
+    actions.appendChild(btn);
+  }
+
+  if (btn.dataset.boundCollapse !== '1') {
+    btn.dataset.boundCollapse = '1';
+    btn.addEventListener('click', () => {
+      const expand = !btn.classList.contains('active');
+      document.querySelectorAll('.setting-group.is-advanced').forEach(g => g.classList.toggle('collapsed', !expand));
+      btn.classList.toggle('active', expand);
+      btn.textContent = expand ? '고급 기능 접기' : '고급 기능 펼치기';
+    });
+  }
+}
+
 // ─── Init after DOM ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
   updateThemeIcon();
   ensureToolHeaderSync();
+  initAdvancedSettingsCollapse();
 
   document.addEventListener('click', function (e) {
     // Close kebab when clicking outside
@@ -266,4 +366,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
 if (document.readyState !== 'loading') {
   ensureToolHeaderSync();
+  initAdvancedSettingsCollapse();
 }

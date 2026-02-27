@@ -1,7 +1,9 @@
-<!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+﻿<!DOCTYPE html>
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/dev-tools/favicon.svg">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Blog Thumbnail Maker | Dev Tools</title>
 <script src="../../tools.js"></script>
@@ -33,7 +35,7 @@
 /* ── Simple mode fields ── */
 .s-label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:5px}
 .simple-textarea{width:100%;background:transparent;border:1px solid var(--border);outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;border-radius:8px}
-.s-field-wrap{padding:0 16px 12px}
+.s-field-wrap{padding:12px 16px}
 </style>
 </head>
 <body>
@@ -111,7 +113,7 @@
           </div>
 
           <div class="panel-header"><div class="panel-title"><div class="dot"></div>SIZE</div></div>
-          <div class="options-bar" style="padding:12px 16px">
+          <div class="options-bar" style="padding:12px 16px;border-top:none">
             <button class="toggle-btn ratio-btn active" data-ratio="1:1">1:1</button>
             <button class="toggle-btn ratio-btn" data-ratio="16:9">16:9</button>
             <button class="toggle-btn ratio-btn" data-ratio="4:3">4:3</button>
@@ -119,7 +121,7 @@
           </div>
 
           <div class="panel-header"><div class="panel-title"><div class="dot"></div>EXPORT</div></div>
-          <div class="options-bar" style="padding:12px 16px 0">
+          <div class="options-bar" style="padding:12px 16px 0;border-top:none">
             <div class="toggle-group">
               <button class="toggle-btn fmt-btn active" data-fmt="png">PNG</button>
               <button class="toggle-btn fmt-btn" data-fmt="jpeg">JPG</button>
@@ -183,7 +185,10 @@
               <button class="toggle-btn decor-btn" data-decor="clean-box">Style 4</button>
               <button class="toggle-btn decor-btn" data-decor="minimal">Style 5</button>
               <button class="toggle-btn decor-btn" data-decor="terminal">Terminal</button>
+              <button class="toggle-btn decor-btn" data-decor="minimal">None</button>
             </div>
+            <span class="options-label">Color</span>
+            <input id="decorColor" type="color" value="#ffffff" class="table-name-input input-xs color-input">
           </div>
         </div>
 
@@ -194,6 +199,22 @@
 3분 제작</textarea>
           <div class="options-bar"><span class="options-label">Sub</span></div>
           <textarea id="subText" class="input-area" placeholder="서브 텍스트">3분만에 블로그 썸네일 만들기</textarea>
+
+          <div class="options-bar row-tight json-action-bar">
+            <span class="options-label">JSON Data</span>
+            <button class="toggle-btn" onclick="openThumbJsonPopup()">JSON 입력</button>
+            <button class="toggle-btn" onclick="document.getElementById('thumbJsonFile').click()">JSON 파일</button>
+            <input id="thumbJsonFile" type="file" accept=".json,application/json" class="hidden">
+            <button class="toggle-btn reset-icon-btn" onclick="resetThumbTextInputs()" title="입력값 초기화" aria-label="입력값 초기화">↻</button>
+          </div>
+          <textarea id="thumbJsonInput" class="input-area hidden" placeholder='{
+  "mainText": "블로그 썸네일\n3분 제작",
+  "subText": "3분만에 블로그 썸네일 만들기",
+  "ratio": "1:1",
+  "bgColor": "#5f6fdd",
+  "decorColor": "#ffffff"
+}'></textarea>
+          <div id="thumbJsonHint" class="text-muted mt-8 hidden">JSON으로 텍스트/스타일/배경 옵션을 한번에 반영할 수 있어요.</div>
         </div>
 
         <div class="setting-group">
@@ -225,16 +246,26 @@
 
         <div class="setting-group">
           <div class="setting-title">Export</div>
-          <div class="options-bar">
-            <span class="options-label">Save As</span>
-            <div class="toggle-group">
-              <button class="toggle-btn fmt-btn active" data-fmt="png">PNG</button>
-              <button class="toggle-btn fmt-btn" data-fmt="jpeg">JPG</button>
-              <button class="toggle-btn fmt-btn" data-fmt="webp">WEBP</button>
+          <div class="options-row options-row-2">
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Save As</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn fmt-btn active" data-fmt="png">PNG</button>
+                  <button class="toggle-btn fmt-btn" data-fmt="jpeg">JPG</button>
+                  <button class="toggle-btn fmt-btn" data-fmt="webp">WEBP</button>
+                </div>
+              </div>
             </div>
-            <span class="options-label">Quality</span>
-            <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input input-xs">
-            <button class="generate-btn" onclick="downloadThumb()">⬇ 다운로드</button>
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Quality</span>
+                <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input input-sm">
+              </div>
+            </div>
+          </div>
+          <div class="download-actions">
+            <button class="export-btn all download-btn all full" onclick="downloadThumb()">⬇ 다운로드</button>
           </div>
         </div>
         </div><!-- end thumbAdvPanel -->
@@ -251,6 +282,15 @@
   </div>
   <footer>// Thumbnail Maker</footer>
 </div>
+
+<dialog id="thumbJsonDialog" class="json-dialog">
+  <div class="json-dialog-head">썸네일 JSON 입력</div>
+  <textarea id="thumbJsonDialogInput" class="input-area json-dialog-input"></textarea>
+  <div class="json-dialog-actions">
+    <button class="toggle-btn" onclick="closeThumbJsonPopup()">취소</button>
+    <button class="download-btn single" onclick="applyThumbJsonFromPopup()">적용</button>
+  </div>
+</dialog>
 
 <script>
 let ratio = '1:1';
@@ -298,8 +338,8 @@ document.querySelectorAll('.ratio-btn').forEach(b=>b.onclick=()=>{
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); bgMode=b.dataset.bgmode;
-  document.getElementById('bgColorBar').style.display = bgMode==='color' ? 'flex':'none';
-  document.getElementById('bgImageBar').style.display = bgMode==='image' ? 'flex':'none';
+  document.getElementById('bgColorBar').classList.toggle('hidden', bgMode!=='color');
+  document.getElementById('bgImageBar').classList.toggle('hidden', bgMode!=='image');
   renderThumb();
 });
 
@@ -336,7 +376,24 @@ document.getElementById('bgImageInput').addEventListener('change', e=>{
   r.onload=ev=>{ const img=new Image(); img.onload=()=>{ bgImage=img; renderThumb(); }; img.src=ev.target.result; };
   r.readAsDataURL(f);
 });
-['bgColor','textColor','strokeColor','strokeWidth','mainText','subText','pad','ovStrength','mainScale','subScale','mainY','subY'].forEach(id=>{
+
+document.getElementById('thumbJsonFile').addEventListener('change', e=>{
+  const f=e.target.files?.[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try {
+      const txt = String(ev.target?.result || '');
+      document.getElementById('thumbJsonInput').value = txt;
+      applyThumbJsonToInputs();
+    } catch (_) {
+      document.getElementById('thumbJsonHint').textContent = 'JSON 파일을 읽는 중 오류가 발생했습니다.';
+    }
+  };
+  r.readAsText(f, 'utf-8');
+});
+
+['bgColor','textColor','strokeColor','strokeWidth','mainText','subText','pad','ovStrength','mainScale','subScale','mainY','subY','decorColor'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>renderThumb());
 });
 
@@ -354,6 +411,7 @@ function applyPreset(name){
   document.querySelectorAll('.decor-btn').forEach(x=>x.classList.toggle('active', x.dataset.decor===decorStyle));
 
   document.getElementById('bgColor').value = p.bgColor;
+  if (p.decorColor) document.getElementById('decorColor').value = p.decorColor;
   document.getElementById('textColor').value = p.textColor;
   document.getElementById('strokeColor').value = p.strokeColor || '#000000';
   if (p.strokeWidth != null) document.getElementById('strokeWidth').value = p.strokeWidth;
@@ -560,12 +618,23 @@ function drawTerminalTemplate(ctx, w, h, main, sub) {
   ctx.fillStyle = '#0a1929'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(badgeText, bx + bw/2, by + bh/2);
 }
+  
+function toRgba(hex, alpha=1){
+  const h = String(hex || '#ffffff').replace('#','').trim();
+  const full = h.length===3 ? h.split('').map(c=>c+c).join('') : h.padEnd(6, 'f').slice(0,6);
+  const n = parseInt(full, 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 function drawDecor(ctx, w, h) {
+  const decorColor = document.getElementById('decorColor')?.value || '#ffffff';
   const m=Math.max(34,Math.floor(w*0.08));
   const lw=Math.max(6,Math.floor(w*0.007));
-  ctx.strokeStyle='rgba(255,255,255,0.92)';
-  ctx.fillStyle='rgba(255,255,255,0.95)';
+  ctx.strokeStyle=toRgba(decorColor, 0.92);
+  ctx.fillStyle=toRgba(decorColor, 0.95);
   ctx.lineWidth=lw;
 
   if (decorStyle === 'minimal') return;
@@ -606,7 +675,7 @@ function drawDecor(ctx, w, h) {
     ctx.globalAlpha=0.8;
     ctx.fillRect(m,m,w-m*2,h-m*2);
     ctx.globalAlpha=1;
-    ctx.strokeStyle='rgba(255,255,255,0.65)';
+    ctx.strokeStyle=toRgba(decorColor, 0.65);
     ctx.strokeRect(m,m,w-m*2,h-m*2);
     return;
   }

@@ -1,7 +1,9 @@
-<!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+﻿<!DOCTYPE html>
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/dev-tools/favicon.svg">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Table Data → INSERT/UPSERT SQL | Dev Tools</title>
 <script src="../../vendor/xlsx.full.min.js"></script>
@@ -152,18 +154,21 @@
         <div class="panel-header">
           <div class="panel-title">
             <div class="dot"></div>
-            CSV INPUT
+            INPUT
           </div>
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Input</span>
-          <div class="toggle-group">
-            <button class="toggle-btn inputmode-btn active" data-input="csv">CSV</button>
-            <button class="toggle-btn inputmode-btn" data-input="md">Markdown</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <div class="options-bar row-tight">
+            <span class="options-label">Input</span>
+            <div class="toggle-group">
+              <button class="toggle-btn inputmode-btn active" data-input="csv">CSV</button>
+              <button class="toggle-btn inputmode-btn" data-input="txt">TXT</button>
+              <button class="toggle-btn inputmode-btn" data-input="md">Markdown</button>
+            </div>
           </div>
-        </div>
 
         <!-- Drop Zone -->
         <div class="csv-drop-zone" id="dropZone">
@@ -190,7 +195,7 @@
 3,Charlie,,charlie@example.com"></textarea>
 
         <!-- Markdown Textarea -->
-        <textarea class="csv-textarea" id="mdInput" placeholder="| user_id | username | age | email |
+        <textarea class="csv-textarea hidden" id="mdInput" placeholder="| user_id | username | age | email |
 |---|---|---|---|
 | 1 | alice | 30 | alice@example.com |
 | 2 | bob | 25 | bob@example.com |"></textarea>
@@ -199,49 +204,70 @@
         <div class="mapping-wrap" id="mappingWrap">
           <div class="drop-text" >아직 매핑이 없습니다. INSERT 생성을 누르면 컬럼 매핑 UI가 나타납니다.</div>
         </div>
-
-        <!-- Table Name -->
-        <div class="options-bar">
-          <span class="options-label">Table</span>
-          <input type="text" id="tableName" class="table-name-input" placeholder="table_name">
         </div>
 
-        <!-- Delimiter -->
-        <div class="options-bar row-tight">
-          <span class="options-label">Delimiter</span>
-          <div class="toggle-group">
-            <button class="toggle-btn delim-btn active" data-delim=",">콤마 (,)</button>
-            <button class="toggle-btn delim-btn" data-delim=";">세미콜론 (;)</button>
-            <button class="toggle-btn delim-btn" data-delim="tab">탭 (↹)</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">SQL Options</div>
+
+        <div class="options-row options-row-2">
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Table</span>
+              <input type="text" id="tableName" class="table-name-input" placeholder="table_name">
+            </div>
           </div>
-        </div>
-
-        <!-- Dialect -->
-        <div class="options-bar row-tight">
-          <span class="options-label">Dialect</span>
-          <div class="dialect-group">
-            <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
-            <button class="dialect-btn" data-dialect="oracle">Oracle</button>
-            <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Delimiter</span>
+              <div class="toggle-group">
+                <button class="toggle-btn delim-btn active" data-delim=",">콤마 (,)</button>
+                <button class="toggle-btn delim-btn" data-delim=";">세미콜론 (;)</button>
+                <button class="toggle-btn delim-btn" data-delim="tab">탭 (↹)</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Mode + NULL -->
-        <div class="options-bar row-tight">
-          <span class="options-label">Mode</span>
-          <div class="toggle-group">
-            <button class="toggle-btn mode-btn active" data-mode="individual">Individual</button>
-            <button class="toggle-btn mode-btn" data-mode="bulk">Bulk</button>
+        <div class="options-row options-row-2">
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Dialect</span>
+              <div class="dialect-group">
+                <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
+                <button class="dialect-btn" data-dialect="oracle">Oracle</button>
+                <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+              </div>
+            </div>
           </div>
-          <span class="options-label">Upsert</span>
-          <div class="toggle-group">
-            <button class="toggle-btn upsert-btn active" data-upsert="off">OFF</button>
-            <button class="toggle-btn upsert-btn" data-upsert="on">ON</button>
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Mode</span>
+              <div class="toggle-group">
+                <button class="toggle-btn mode-btn active" data-mode="individual">Individual</button>
+                <button class="toggle-btn mode-btn" data-mode="bulk">Bulk</button>
+              </div>
+            </div>
           </div>
-          <span class="options-label">Empty값</span>
-          <div class="toggle-group">
-            <button class="toggle-btn null-btn active" data-null="null">NULL</button>
-            <button class="toggle-btn null-btn" data-null="empty">''</button>
+        </div>
+
+        <div class="options-row options-row-2">
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Upsert</span>
+              <div class="toggle-group">
+                <button class="toggle-btn upsert-btn active" data-upsert="off">OFF</button>
+                <button class="toggle-btn upsert-btn" data-upsert="on">ON</button>
+              </div>
+            </div>
+          </div>
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Empty값</span>
+              <div class="toggle-group">
+                <button class="toggle-btn null-btn active" data-null="null">NULL</button>
+                <button class="toggle-btn null-btn" data-null="empty">''</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -250,17 +276,30 @@
           <input type="text" id="conflictKeys" class="table-name-input" placeholder="id 또는 id,email">
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Preview</span>
-          <input type="number" id="previewRows" class="table-name-input input-xs" value="10" min="1" max="100">
-          <span class="options-label">Chunk</span>
-          <input type="number" id="chunkSize" class="table-name-input input-sm" value="1000" min="1">
+        <div class="options-row options-row-2">
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Preview</span>
+              <input type="number" id="previewRows" class="table-name-input input-xs" value="10" min="1" max="100">
+            </div>
+          </div>
+          <div class="options-item">
+            <div class="options-bar row-tight">
+              <span class="options-label">Chunk</span>
+              <input type="number" id="chunkSize" class="table-name-input input-sm" value="1000" min="1">
+            </div>
+          </div>
         </div>
 
-        <button class="generate-btn" id="generateBtn" onclick="generate()">
-          ⚡ INSERT 생성
+        <div class="options-bar row-tight">
+          <span class="options-label">Required Cols</span>
+          <input type="text" id="requiredCols" class="table-name-input" placeholder="예: id,name,email">
+        </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn" data-shortcut="Ctrl + Enter" onclick="generate()">
+          ⚡ 생성
         </button>
-        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -289,6 +328,7 @@ let inputMode = 'csv';
 let columnMappings = [];
 let lastHeaderSignature = '';
 let lastDuplicateRows = [];
+let lastErrorRows = [];
 
 // ─── Toggle handlers ─────────────────────────────────────
 function refreshUpsertUI() {
@@ -299,11 +339,21 @@ function refreshUpsertUI() {
 
 function refreshInputModeUI() {
   const isCSV = inputMode === 'csv';
-  document.getElementById('dropZone').style.display = isCSV ? 'block' : 'none';
-  document.getElementById('csvFileBadge').style.display = isCSV ? '' : 'none';
-  document.querySelector('.csv-divider').textContent = isCSV ? '또는 직접 입력' : 'Markdown 테이블 입력';
-  document.getElementById('csvInput').style.display = isCSV ? 'block' : 'none';
-  document.getElementById('mdInput').style.display = isCSV ? 'none' : 'block';
+  const isTXT = inputMode === 'txt';
+  const isMD = inputMode === 'md';
+
+  document.getElementById('dropZone').classList.toggle('hidden', !isCSV);
+  document.getElementById('csvFileBadge').classList.toggle('hidden', !isCSV);
+
+  const divider = document.querySelector('.csv-divider');
+  divider.textContent = isCSV
+    ? '파일 업로드 전용 (직접입력은 TXT 모드)'
+    : isTXT
+      ? '직접 입력'
+      : 'Markdown 테이블 입력';
+
+  document.getElementById('csvInput').classList.toggle('hidden', !isTXT);
+  document.getElementById('mdInput').classList.toggle('hidden', !isMD);
 }
 
 function renderMappingUI() {
@@ -676,6 +726,24 @@ function detectDuplicateRows(headers, rows, keyHeaders) {
   return dups;
 }
 
+function detectErrorRows(headers, rows, requiredCols) {
+  const reqIdx = requiredCols.map(k => headers.indexOf(k)).filter(i => i >= 0);
+  const numericHint = headers.map((h, i) => ({ i, h, numeric: /(id|age|count|qty|amount|price|score|year)$/i.test(h) }));
+  const out = [];
+  rows.forEach((row, i) => {
+    const reasons = [];
+    reqIdx.forEach(idx => { if (String(row[idx] ?? '').trim() === '') reasons.push(`required:${headers[idx]}`); });
+    numericHint.forEach(({i:idx,h,numeric}) => {
+      if (!numeric) return;
+      const v = String(row[idx] ?? '').trim();
+      if (!v) return;
+      if (isNaN(Number(v.replace(/,/g,'')))) reasons.push(`numeric:${h}`);
+    });
+    if (reasons.length) out.push({ row: i + 1, reasons, values: row });
+  });
+  return out;
+}
+
 function buildOracleMergeStatement(tbl, headers, row, keyHeaders, useNull) {
   const quotedHeaders = headers.map(h => quoteIdent(h, 'oracle'));
   const sourceSelect = headers.map((h, idx) => `${formatValue(row[idx], 'oracle', useNull)} <span class="kw">AS</span> ${quoteIdent(h, 'oracle')}`).join(', ');
@@ -695,15 +763,20 @@ function buildOracleMergeStatement(tbl, headers, row, keyHeaders, useNull) {
 
 // ─── Main Generate ────────────────────────────────────────
 function generate() {
-  const sourceText = (inputMode === 'csv'
-    ? document.getElementById('csvInput').value
-    : document.getElementById('mdInput').value).trim();
+  const sourceText = (inputMode === 'md'
+    ? document.getElementById('mdInput').value
+    : document.getElementById('csvInput').value).trim();
   const tableName = document.getElementById('tableName').value.trim() || 'my_table';
   const output = document.getElementById('outputPanel');
   const btn = document.getElementById('generateBtn');
 
   if (!sourceText) {
-    output.innerHTML = `<div class="error-msg">⚠ ${inputMode === 'csv' ? 'CSV 데이터를 입력하거나 파일을 업로드해주세요.' : '마크다운 테이블을 입력해주세요.'}</div>`;
+    const msg = inputMode === 'md'
+      ? '마크다운 테이블을 입력해주세요.'
+      : inputMode === 'csv'
+        ? 'CSV 파일을 업로드해주세요.'
+        : 'TXT 모드에서 데이터를 직접 입력해주세요.';
+    output.innerHTML = `<div class="error-msg">⚠ ${msg}</div>`;
     return;
   }
 
@@ -712,9 +785,9 @@ function generate() {
 
   setTimeout(() => {
     try {
-      const parsed = inputMode === 'csv'
-        ? parseCSV(sourceText, selectedDelim)
-        : parseMarkdownTable(sourceText);
+      const parsed = inputMode === 'md'
+        ? parseMarkdownTable(sourceText)
+        : parseCSV(sourceText, selectedDelim);
       const { headers, rows } = parsed;
       ensureMappings(headers);
 
@@ -783,8 +856,16 @@ function generate() {
 
       const dupGroups = upsertMode === 'on' ? detectDuplicateRows(mappedHeaders, mappedRows, keyHeaders) : [];
       lastDuplicateRows = dupGroups;
-      const dupWarnHtml = dupGroups.length
-        ? `<div class="dup-warn">⚠ 중복키 ${dupGroups.length}건 감지 (입력 행 기준).<button class="copy-btn" onclick="downloadDuplicateRows()">중복행 다운로드</button></div>`
+      const requiredCols = (document.getElementById('requiredCols').value || '').split(',').map(s=>s.trim()).filter(Boolean);
+      const errRows = detectErrorRows(mappedHeaders, mappedRows, requiredCols);
+      lastErrorRows = errRows;
+      const emptyCellCount = mappedRows.reduce((sum, r) => sum + r.filter(v => String(v ?? '').trim() === '').length, 0);
+      const keyBlankRows = upsertMode === 'on' && keyHeaders.length
+        ? mappedRows.map((r,idx)=>({idx:idx+1, bad:keyHeaders.some(k=>String(r[mappedHeaders.indexOf(k)] ?? '').trim()==='')})).filter(x=>x.bad).map(x=>x.idx)
+        : [];
+      const qualityHtml = `<div class="table-info"><span>QUALITY</span><span class="info-gap">Empty Cells</span> ${emptyCellCount}<span class="info-gap">Dup Keys</span> ${dupGroups.length}<span class="info-gap">Blank Key Rows</span> ${keyBlankRows.length}<span class="info-gap">Error Rows</span> ${errRows.length}</div>`;
+      const dupWarnHtml = dupGroups.length || keyBlankRows.length || errRows.length
+        ? `<div class="dup-warn">⚠ 데이터 품질 경고: 중복키 ${dupGroups.length}건, 키 공백 행 ${keyBlankRows.length}건, 에러 행 ${errRows.length}건 <button class="copy-btn" onclick="downloadDuplicateRows()">중복행 다운로드</button> <button class="copy-btn" onclick="downloadErrorRows()">에러행 다운로드</button></div>`
         : '';
 
       output.innerHTML = `
@@ -804,6 +885,7 @@ function generate() {
             <span class="info-gap">ROWS</span> ${mappedRows.length}
             <span class="info-gap">CHUNK</span> ${chunkSize}
           </div>
+          ${qualityHtml}
           ${dupWarnHtml}
           <div class="preview-wrap">
             <table class="preview-table">
@@ -820,7 +902,7 @@ function generate() {
       output.innerHTML = `<div class="error-msg">❌ 파싱 오류\n${e.message}</div>`;
     }
 
-    btn.textContent = '⚡ INSERT 생성';
+    btn.textContent = '⚡ 생성';
     btn.classList.remove('loading');
   }, 10);
 }
@@ -861,9 +943,27 @@ function downloadDuplicateRows() {
 
 function loadSample() {
   document.getElementById('tableName').value = 'users';
-  document.getElementById('csvInput').value = `id,name,age,email\n1,Alice,30,alice@example.com\n2,Bob,25,bob@example.com\n3,Charlie,,charlie@example.com\n2,Bob,25,bob2@example.com`;
-  inputMode = 'csv';
+  document.getElementById('requiredCols').value = 'id,name,email';
+  document.getElementById('csvInput').value = `id,name,age,email\n1,Alice,30,alice@example.com\n2,Bob,25,bob@example.com\n3,Charlie,,\n2,Bob,xx,bob2@example.com`;
+  inputMode = 'txt';
+  document.querySelectorAll('.inputmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.input===inputMode));
   refreshInputModeUI();
+}
+
+function downloadErrorRows() {
+  if (!lastErrorRows.length) return;
+  const lines = ['row,reasons,values'];
+  lastErrorRows.forEach(r => {
+    const reasons = `"${r.reasons.join('|').replace(/"/g,'""')}"`;
+    const values = `"${r.values.join(',').replace(/"/g,'""')}"`;
+    lines.push(`${r.row},${reasons},${values}`);
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `error_rows_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 // Ctrl/Cmd + Enter to generate

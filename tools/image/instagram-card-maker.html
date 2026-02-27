@@ -1,5 +1,6 @@
-<!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+﻿<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,352 +71,449 @@
 .s-brand-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}.s-brand-row .s-label{margin:0;min-width:44px;white-space:nowrap}.s-brand-row input{flex:1;min-width:0}
 </style>
 </head>
+
 <body>
-<script>renderNav();</script>
-<div class="container">
-  <div class="tool-header">
-    <h1>Instagram <span>Card News Maker</span></h1>
-    <p>// 제목/소제목 + 본문(텍스트·표·이미지) 카드뉴스 제작</p>
-  </div>
+  <script>renderNav();</script>
+  <div class="container">
+    <div class="tool-header">
+      <h1>Instagram <span>Card News Maker</span></h1>
+      <p>// 제목/소제목 + 본문(텍스트·표·이미지) 카드뉴스 제작</p>
+    </div>
 
-  <div class="main-grid">
-    <div>
-      <div class="panel">
-        <!-- MODE TABS -->
-        <div class="mode-tabs">
-          <button class="mode-tab active" id="tabSimple" onclick="switchMode('simple')">⚡ 간편 모드</button>
-          <button class="mode-tab" id="tabAdv" onclick="switchMode('advanced')">⚙ 고급 모드</button>
-        </div>
-
-        <!-- SIMPLE PANEL -->
-        <div id="simplePanel">
-          <div class="panel-header"><div class="panel-title"><div class="dot"></div>TEMPLATE</div></div>
-          <div class="tpl-grid">
-            <div class="tpl-card active" data-tpl="navy" onclick="applyTemplate('navy')">
-              <div class="tpl-card-inner" style="background:#0b122b">
-                <div class="tpl-h1" style="color:#ffffff">📈 제목</div>
-                <div class="tpl-h2" style="color:#d41414">강조 문구</div>
-                <div class="tpl-sep"></div>
-                <div class="tpl-body" style="color:#cccccc">· 본문 항목</div>
-              </div>
-              <div class="tpl-name">Navy</div>
-              <div class="tpl-check">✓</div>
-            </div>
-            <div class="tpl-card" data-tpl="blue" onclick="applyTemplate('blue')">
-              <div class="tpl-card-inner" style="background:#102c6d">
-                <div class="tpl-h1" style="color:#ffffff">📈 제목</div>
-                <div class="tpl-h2" style="color:#6699ff">강조 문구</div>
-                <div class="tpl-sep" style="background:rgba(255,255,255,0.15)"></div>
-                <div class="tpl-body" style="color:#aaccff">· 본문 항목</div>
-              </div>
-              <div class="tpl-name">Blue</div>
-              <div class="tpl-check">✓</div>
-            </div>
-            <div class="tpl-card" data-tpl="dark" onclick="applyTemplate('dark')">
-              <div class="tpl-card-inner" style="background:#1a1a2e">
-                <div class="tpl-h1" style="color:#ffffff">📈 제목</div>
-                <div class="tpl-h2" style="color:#4fffb0">강조 문구</div>
-                <div class="tpl-sep" style="background:rgba(255,255,255,0.15)"></div>
-                <div class="tpl-body" style="color:#cccccc">· 본문 항목</div>
-              </div>
-              <div class="tpl-name">Dark</div>
-              <div class="tpl-check">✓</div>
-            </div>
-            <div class="tpl-card" data-tpl="light" onclick="applyTemplate('light')">
-              <div class="tpl-card-inner" style="background:#f5f6fa">
-                <div class="tpl-h1" style="color:#111111">📈 제목</div>
-                <div class="tpl-h2" style="color:#d41414">강조 문구</div>
-                <div class="tpl-sep" style="background:rgba(0,0,0,0.1)"></div>
-                <div class="tpl-body" style="color:#333333">· 본문 항목</div>
-              </div>
-              <div class="tpl-name">Light</div>
-              <div class="tpl-check">✓</div>
-            </div>
+    <div class="main-grid">
+      <div>
+        <div class="panel">
+          <!-- MODE TABS -->
+          <div class="mode-tabs">
+            <button class="mode-tab active" id="tabSimple" onclick="switchMode('simple')">⚡ 간편 모드</button>
+            <button class="mode-tab" id="tabAdv" onclick="switchMode('advanced')">⚙ 고급 모드</button>
           </div>
 
-          <div class="panel-header"><div class="panel-title"><div class="dot"></div>CONTENT</div></div>
-          <div class="s-field-wrap">
-            <label class="s-label">제목 (H1)</label>
-            <input id="s-title" class="table-name-input" style="width:100%;margin-bottom:10px" placeholder="📈 카드뉴스 제목">
-            <label class="s-label">강조 문구 (H2 · 컬러)</label>
-            <input id="s-title2" class="table-name-input" style="width:100%;margin-bottom:10px" placeholder="강조 문구">
-            <label class="s-label">소제목 (선택)</label>
-            <input id="s-subtitle" class="table-name-input" style="width:100%;margin-bottom:10px" placeholder="소제목/요약">
-            <label class="s-label">본문 (줄바꿈 = 새 항목)</label>
-            <textarea id="s-body" class="simple-textarea" style="min-height:100px" placeholder="항목 1&#10;항목 2&#10;항목 3"></textarea>
-          </div>
-          <div class="options-bar row-tight" style="padding:0 16px 10px;justify-content:flex-end">
-            <button class="toggle-btn" onclick="loadSimpleSample()">예시 불러오기</button>
-          </div>
-
-          <div class="panel-header"><div class="panel-title"><div class="dot"></div>SIZE</div></div>
-          <div class="options-bar" style="padding:12px 16px">
-            <button class="toggle-btn size-btn active" data-size="1:1">1:1</button>
-            <button class="toggle-btn size-btn" data-size="4:5">4:5</button>
-            <button class="toggle-btn size-btn" data-size="9:16">9:16</button>
-          </div>
-
-          <div class="panel-header"><div class="panel-title"><div class="dot"></div>BRANDING</div></div>
-          <div class="s-field-wrap">
-            <div class="s-brand-row">
-              <label class="s-label">출처</label>
-              <input id="s-source" class="table-name-input" placeholder="출처: 관련 언론보도">
-              <div class="toggle-group">
-                <button class="toggle-btn sourcevis-btn active" data-source="on">ON</button>
-                <button class="toggle-btn sourcevis-btn" data-source="off">OFF</button>
+          <!-- SIMPLE PANEL -->
+          <div id="simplePanel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>TEMPLATE
               </div>
             </div>
-            <div class="s-brand-row">
-              <label class="s-label">계정</label>
-              <input id="s-brand" class="table-name-input" placeholder="@instagram">
-              <div class="toggle-group">
-                <button class="toggle-btn brandvis-btn active" data-brand="on">ON</button>
-                <button class="toggle-btn brandvis-btn" data-brand="off">OFF</button>
+            <div class="tpl-grid">
+              <div class="tpl-card active" data-tpl="navy" onclick="applyTemplate('navy')">
+                <div class="tpl-card-inner" style="background:#0b122b">
+                  <div class="tpl-h1" style="color:#ffffff">📈 제목</div>
+                  <div class="tpl-h2" style="color:#d41414">강조 문구</div>
+                  <div class="tpl-sep"></div>
+                  <div class="tpl-body" style="color:#cccccc">· 본문 항목</div>
+                </div>
+                <div class="tpl-name">Navy</div>
+                <div class="tpl-check">✓</div>
+              </div>
+              <div class="tpl-card" data-tpl="blue" onclick="applyTemplate('blue')">
+                <div class="tpl-card-inner" style="background:#102c6d">
+                  <div class="tpl-h1" style="color:#ffffff">📈 제목</div>
+                  <div class="tpl-h2" style="color:#6699ff">강조 문구</div>
+                  <div class="tpl-sep" style="background:rgba(255,255,255,0.15)"></div>
+                  <div class="tpl-body" style="color:#aaccff">· 본문 항목</div>
+                </div>
+                <div class="tpl-name">Blue</div>
+                <div class="tpl-check">✓</div>
+              </div>
+              <div class="tpl-card" data-tpl="dark" onclick="applyTemplate('dark')">
+                <div class="tpl-card-inner" style="background:#1a1a2e">
+                  <div class="tpl-h1" style="color:#ffffff">📈 제목</div>
+                  <div class="tpl-h2" style="color:#4fffb0">강조 문구</div>
+                  <div class="tpl-sep" style="background:rgba(255,255,255,0.15)"></div>
+                  <div class="tpl-body" style="color:#cccccc">· 본문 항목</div>
+                </div>
+                <div class="tpl-name">Dark</div>
+                <div class="tpl-check">✓</div>
+              </div>
+              <div class="tpl-card" data-tpl="light" onclick="applyTemplate('light')">
+                <div class="tpl-card-inner" style="background:#f5f6fa">
+                  <div class="tpl-h1" style="color:#111111">📈 제목</div>
+                  <div class="tpl-h2" style="color:#d41414">강조 문구</div>
+                  <div class="tpl-sep" style="background:rgba(0,0,0,0.1)"></div>
+                  <div class="tpl-body" style="color:#333333">· 본문 항목</div>
+                </div>
+                <div class="tpl-name">Light</div>
+                <div class="tpl-check">✓</div>
               </div>
             </div>
-          </div>
 
-          <div class="panel-header"><div class="panel-title"><div class="dot"></div>EXPORT</div></div>
-          <div class="options-bar" style="padding:12px 16px 0">
-            <div class="toggle-group">
-              <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>CONTENT
+              </div>
             </div>
-          </div>
-          <div style="padding:10px 16px 16px">
-            <button class="export-btn single" style="width:100%" onclick="syncSimpleToPage();downloadCurrent()">⬇ DOWNLOAD</button>
-          </div>
-        </div><!-- end simplePanel -->
+            <div class="s-field-wrap">
+              <label class="s-label">제목 (H1)</label>
+              <input id="s-title" class="table-name-input" style="width:100%;margin-bottom:10px"
+                placeholder="📈 카드뉴스 제목">
+              <label class="s-label">강조 문구 (H2 · 컬러)</label>
+              <input id="s-title2" class="table-name-input" style="width:100%;margin-bottom:10px" placeholder="강조 문구">
+              <label class="s-label">소제목 (선택)</label>
+              <input id="s-subtitle" class="table-name-input" style="width:100%;margin-bottom:10px"
+                placeholder="소제목/요약">
+              <label class="s-label">본문 (줄바꿈 = 새 항목)</label>
+              <textarea id="s-body" class="simple-textarea" style="min-height:100px"
+                placeholder="항목 1&#10;항목 2&#10;항목 3"></textarea>
+            </div>
+            <div class="options-bar row-tight" style="padding:0 16px 10px;justify-content:flex-end">
+              <button class="toggle-btn" onclick="loadSimpleSample()">예시 불러오기</button>
+            </div>
 
-        <!-- ADVANCED PANEL -->
-        <div id="advancedPanel" class="hidden">
-        <div class="panel-header"><div class="panel-title"><div class="dot"></div>SETTINGS</div></div>
-
-        <div class="setting-group">
-          <div class="setting-title">Canvas & Background</div>
-          <div class="options-bar">
-            <span class="options-label">Size</span>
-            <div class="toggle-group">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>SIZE
+              </div>
+            </div>
+            <div class="options-bar" style="padding:12px 16px;border-top:none">
               <button class="toggle-btn size-btn active" data-size="1:1">1:1</button>
               <button class="toggle-btn size-btn" data-size="4:5">4:5</button>
               <button class="toggle-btn size-btn" data-size="9:16">9:16</button>
             </div>
-            <span class="options-label">Theme</span>
-            <div class="toggle-group">
-              <button class="toggle-btn theme-btn active" data-theme="navy">Navy</button>
-              <button class="toggle-btn theme-btn" data-theme="blue">Blue</button>
-              <button class="toggle-btn theme-btn" data-theme="green">Green</button>
+
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>BRANDING
+              </div>
             </div>
-          </div>
-
-        <div class="options-bar row-tight">
-          <span class="options-label">Background</span>
-          <div class="toggle-group">
-            <button class="toggle-btn bgmode-btn active" data-bgmode="color">단색</button>
-            <button class="toggle-btn bgmode-btn" data-bgmode="image">이미지</button>
-          </div>
-          <input id="bgColor" type="color" value="#0b122b" class="table-name-input small color-input">
-          <input id="bgImageInput" type="file" accept="image/*" class="hidden">
-        </div>
-        </div>
-
-        <div class="setting-group">
-          <div class="setting-title">Headline & Subtitle</div>
-
-        <div class="options-bar row-tight"><span class="options-label">Headline Line 1</span>
-          <div class="toggle-group">
-            <button class="toggle-btn headvis-btn active" data-head="on">ON</button>
-            <button class="toggle-btn headvis-btn" data-head="off">OFF</button>
-          </div>
-        </div>
-        <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목 1줄"></textarea>
-
-        <div class="options-bar row-tight"><span class="options-label">Headline Line 2</span></div>
-        <textarea id="titleText2" class="input-area" placeholder="카드뉴스 제목 2줄"></textarea>
-
-        <div class="options-bar row-tight">
-          <span class="options-label">Headline Color</span>
-          <span class="options-label">L1</span><input id="titleColor1" type="color" value="#111111" class="table-name-input small color-input">
-          <span class="options-label">L2</span><input id="titleColor2" type="color" value="#d41414" class="table-name-input small color-input">
-        </div>
-
-        <div class="options-bar row-tight"><span class="options-label">Subtitle</span>
-          <div class="toggle-group">
-            <button class="toggle-btn subvis-btn active" data-sub="on">ON</button>
-            <button class="toggle-btn subvis-btn" data-sub="off">OFF</button>
-          </div>
-        </div>
-        <textarea id="subTitleText" class="input-area" placeholder="소제목/요약"></textarea>
-
-        <div class="options-bar row-tight">
-          <span class="options-label">Label Banner</span>
-          <input id="labelText" class="table-name-input" placeholder="2026년 IPO 예상 주요 기업" value="2026년 IPO 예상 주요 기업">
-        </div>
-
-        <div class="control-grid-4">
-          <input id="h1Scale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="H1 Size%">
-          <input id="h2Scale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="H2 Size%">
-          <input id="subScale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="Sub Size%">
-          <input id="titleY" type="number" value="8" min="2" max="30" class="table-name-input" placeholder="Top Y%">
-        </div>
-        </div>
-
-        <div class="setting-group">
-          <div class="setting-title">Body</div>
-          <div class="options-bar row-tight">
-          <span class="options-label">Body Type</span>
-          <div class="toggle-group">
-            <button class="toggle-btn bodytype-btn active" data-body="text">Text</button>
-            <button class="toggle-btn bodytype-btn" data-body="table">Table</button>
-            <button class="toggle-btn bodytype-btn" data-body="image">Image</button>
-          </div>
-          <span class="options-label hidden" id="inputModeLabel">Input Mode</span>
-          <button class="toggle-btn hidden" id="inputModeToggle" onclick="toggleTableInputMode()">텍스트 입력</button>
-        </div>
-
-        <div id="bodyTextWrap">
-          <div class="options-bar row-tight"><span class="options-label">Body Text</span></div>
-          <textarea id="bodyText" class="input-area" placeholder="본문 텍스트 (줄바꿈 지원)"></textarea>
-        </div>
-
-        <div id="bodyTableWrap" class="hidden">
-          <div class="options-bar row-tight">
-            <span class="options-label" id="tblSepLabel">구분자</span>
-            <div class="toggle-group" id="tblSepGroup">
-              <button class="toggle-btn tblsep-btn active" data-sep="auto">AUTO</button>
-              <button class="toggle-btn tblsep-btn" data-sep="tab">TAB</button>
-              <button class="toggle-btn tblsep-btn" data-sep="comma">CSV</button>
-              <button class="toggle-btn tblsep-btn" data-sep="pipe">|</button>
-            </div>
-          </div>
-
-          <div class="table-dual" id="tableDual">
-            <div id="tableTextWrap">
-              <textarea id="tableText" class="input-area" placeholder="기업명	예상가치	주요사업\n케이뱅크	3조 3,673억	인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |"></textarea>
+            <div class="s-field-wrap">
+              <div class="s-brand-row">
+                <label class="s-label">출처</label>
+                <input id="s-source" class="table-name-input" placeholder="출처: 관련 언론보도">
+                <div class="toggle-group">
+                  <button class="toggle-btn sourcevis-btn active" data-source="on">ON</button>
+                  <button class="toggle-btn sourcevis-btn" data-source="off">OFF</button>
+                </div>
+              </div>
+              <div class="s-brand-row">
+                <label class="s-label">계정</label>
+                <input id="s-brand" class="table-name-input" placeholder="@instagram">
+                <div class="toggle-group">
+                  <button class="toggle-btn brandvis-btn active" data-brand="on">ON</button>
+                  <button class="toggle-btn brandvis-btn" data-brand="off">OFF</button>
+                </div>
+              </div>
             </div>
 
-            <div id="tableGridWrap" class="table-grid-wrap"></div>
-          </div>
-
-          <div class="options-bar row-tight">
-            <span class="options-label">Quick Edit</span>
-            <div class="quick-actions">
-              <button class="toggle-btn" onclick="buildTableTemplate()">템플릿</button>
-              <button class="toggle-btn" onclick="addTableRow()">행 +</button>
-              <button class="toggle-btn" onclick="removeTableRow()">행 -</button>
-              <button class="toggle-btn" onclick="addTableCol()">열 +</button>
-              <button class="toggle-btn" onclick="removeTableCol()">열 -</button>
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>EXPORT
+              </div>
             </div>
-          </div>
-          <div class="control-grid-2">
-            <input id="tblRows" type="number" value="4" min="1" max="30" class="table-name-input" placeholder="Rows">
-            <input id="tblCols" type="number" value="3" min="1" max="10" class="table-name-input" placeholder="Cols">
-          </div>
-        </div>
-
-        <div id="bodyImageWrap" class="hidden">
-          <div class="options-bar row-tight"><span class="options-label">Body Image</span>
-            <input id="bodyImageInput" type="file" accept="image/*"></div>
-          <div class="options-bar row-tight">
-            <span class="options-label">Fit</span>
-            <div class="toggle-group">
-              <button class="toggle-btn imgfit-btn active" data-fit="cover">Cover</button>
-              <button class="toggle-btn imgfit-btn" data-fit="contain">Contain</button>
+            <div class="options-bar" style="padding:12px 16px 0;border-top:none">
+              <div class="toggle-group">
+                <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
+                <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
+                <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+              </div>
             </div>
-            <span class="options-label">Zoom%</span><input id="imgZoom" type="number" value="100" min="50" max="250" class="table-name-input small">
-          </div>
-          <div class="options-bar row-tight">
-            <span class="options-label">X%</span><input id="imgPosX" type="number" value="50" min="0" max="100" class="table-name-input small">
-            <span class="options-label">Y%</span><input id="imgPosY" type="number" value="50" min="0" max="100" class="table-name-input small">
-          </div>
-        </div>
-
-        <div class="options-bar row-tight">
-          <span class="options-label">Body Size%</span><input id="bodyScale" type="number" value="100" min="60" max="180" class="table-name-input small">
-        </div>
-
-        <div class="options-bar row-tight">
-          <span class="options-label">Body BG</span>
-          <div class="toggle-group">
-            <button class="toggle-btn bodybgmode-btn active" data-bgmode="solid">Color</button>
-            <button class="toggle-btn bodybgmode-btn" data-bgmode="image">Image</button>
-          </div>
-          <input id="bodyBgColor" type="color" value="#ffffff" class="table-name-input small input-sm color-input">
-          <span class="options-label">Opacity%</span>
-          <input id="bodyBgOpacity" type="number" value="100" min="0" max="100" class="table-name-input small input-xs">
-          <input id="bodyBgImageInput" type="file" accept="image/*" class="hidden">
-        </div>
-        </div>
-
-        <div class="setting-group">
-          <div class="setting-title">Footer & Paging</div>
-          <div class="options-bar row-tight">
-            <span class="options-label">Footer Source</span>
-            <input id="sourceText" class="table-name-input" value="출처: 관련 자료" placeholder="출처: ...">
-            <div class="toggle-group">
-              <button class="toggle-btn sourcevis-btn active" data-source="on">ON</button>
-              <button class="toggle-btn sourcevis-btn" data-source="off">OFF</button>
+            <div style="padding:10px 16px 16px">
+              <button class="export-btn single" style="width:100%" onclick="syncSimpleToPage();downloadCurrent()">⬇
+                DOWNLOAD</button>
             </div>
-          </div>
-          <div class="options-bar row-tight">
-            <span class="options-label">Watermark</span>
-            <input id="brandText" class="table-name-input" value="@instagram" placeholder="@your_brand">
-            <div class="toggle-group">
-              <button class="toggle-btn brandvis-btn active" data-brand="on">ON</button>
-              <button class="toggle-btn brandvis-btn" data-brand="off">OFF</button>
-            </div>
-            <span class="options-label">Paging</span>
-            <div class="toggle-group">
-              <button class="toggle-btn pagewm-btn active" data-pagewm="on">ON</button>
-              <button class="toggle-btn pagewm-btn" data-pagewm="off">OFF</button>
-            </div>
-          </div>
+          </div><!-- end simplePanel -->
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Pages</span>
-          <input id="pageCount" type="number" value="1" min="1" max="20" class="table-name-input small">
-          <button class="toggle-btn" onclick="prevPage()">◀</button>
-          <span id="pageLabel" class="options-label">1 / 1</span>
-          <button class="toggle-btn" onclick="nextPage()">▶</button>
-        </div>
-        </div>
-
-        <div class="setting-group">
-          <div class="setting-title">Export</div>
-          <div class="options-bar row-tight">
-            <span class="options-label">Format</span>
-            <div class="toggle-group">
-              <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+          <!-- ADVANCED PANEL -->
+          <div id="advancedPanel" class="hidden">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>SETTINGS
+              </div>
             </div>
-            <span class="options-label">Quality</span>
-            <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input small">
-          </div>
-          <div class="options-bar row-tight">
-            <span class="options-label">Preset</span>
-            <input id="presetName" class="table-name-input input-md" placeholder="프리셋 이름">
-            <button class="toggle-btn" onclick="savePreset()">저장</button>
-            <select id="presetSelect" class="table-name-input"></select>
-            <button class="toggle-btn" onclick="loadPreset()">불러오기</button>
-            <button class="toggle-btn" onclick="deletePreset()">삭제</button>
-          </div>
-          <div class="export-actions">
-            <button class="export-btn save" onclick="savePage()">💾 페이지 저장</button>
-            <button class="export-btn single" onclick="downloadCurrent()">⬇ 현재 다운로드</button>
-            <button class="export-btn all" onclick="downloadAll()">⬇ 전체 다운로드</button>
-          </div>
+
+            <div class="setting-group">
+              <div class="setting-title">Canvas & Background</div>
+              <div class="options-bar">
+                <span class="options-label">Size</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn size-btn active" data-size="1:1">1:1</button>
+                  <button class="toggle-btn size-btn" data-size="4:5">4:5</button>
+                  <button class="toggle-btn size-btn" data-size="9:16">9:16</button>
+                </div>
+                <span class="options-label">Theme</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn theme-btn active" data-theme="navy">Navy</button>
+                  <button class="toggle-btn theme-btn" data-theme="blue">Blue</button>
+                  <button class="toggle-btn theme-btn" data-theme="green">Green</button>
+                </div>
+              </div>
+
+              <div class="options-bar row-tight">
+                <span class="options-label">Background</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn bgmode-btn active" data-bgmode="color">단색</button>
+                  <button class="toggle-btn bgmode-btn" data-bgmode="image">이미지</button>
+                </div>
+                <input id="bgColor" type="color" value="#0b122b" class="table-name-input small color-input">
+                <input id="bgImageInput" type="file" accept="image/*" class="hidden">
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <div class="setting-title">Headline & Subtitle</div>
+
+              <div class="options-bar row-tight"><span class="options-label">Headline Line 1</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn headvis-btn active" data-head="on">ON</button>
+                  <button class="toggle-btn headvis-btn" data-head="off">OFF</button>
+                </div>
+              </div>
+              <textarea id="titleText" class="input-area" placeholder="카드뉴스 제목 1줄"></textarea>
+
+              <div class="options-bar row-tight"><span class="options-label">Headline Line 2</span></div>
+              <textarea id="titleText2" class="input-area" placeholder="카드뉴스 제목 2줄"></textarea>
+
+              <div class="options-bar row-tight">
+                <span class="options-label">Headline Color</span>
+                <span class="options-label">L1</span><input id="titleColor1" type="color" value="#111111"
+                  class="table-name-input small color-input">
+                <span class="options-label">L2</span><input id="titleColor2" type="color" value="#d41414"
+                  class="table-name-input small color-input">
+              </div>
+
+              <div class="options-bar row-tight"><span class="options-label">Subtitle</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn subvis-btn active" data-sub="on">ON</button>
+                  <button class="toggle-btn subvis-btn" data-sub="off">OFF</button>
+                </div>
+              </div>
+              <textarea id="subTitleText" class="input-area" placeholder="소제목/요약"></textarea>
+
+              <div class="options-bar row-tight">
+                <span class="options-label">Label Banner</span>
+                <input id="labelText" class="table-name-input" placeholder="라벨 배너 텍스트를 입력하세요" value="">
+              </div>
+
+              <div class="options-bar row-tight json-action-bar">
+                <span class="options-label">Card JSON</span>
+                <button class="toggle-btn" onclick="openCardJsonPopup()">JSON 입력</button>
+                <button class="toggle-btn" onclick="document.getElementById('cardJsonFile').click()">JSON 파일</button>
+                <input id="cardJsonFile" type="file" accept=".json,application/json" class="hidden">
+                <button class="toggle-btn reset-icon-btn" onclick="resetCardInputs()" title="전체 입력값 초기화"
+                  aria-label="전체 입력값 초기화">↻</button>
+              </div>
+              <textarea id="cardJsonInput" class="input-area hidden" placeholder='{
+  "headline": { "headline1": "카드뉴스 제목 1줄", "headline2": "카드뉴스 제목 2줄", "subtitle": "소제목", "label": "라벨" },
+  "body": { "bodyType": "text", "bodyText": "본문 텍스트", "bodyScale": 100 },
+  "footer": { "sourceText": "출처: 관련 자료", "brandText": "@instagram", "showSource": true, "showBrand": true, "showPage": true, "pageCount": 1 }
+}'></textarea>
+              <div id="cardJsonHint" class="text-muted mt-8 hidden">카드 전체(헤드라인/바디/푸터)를 JSON 한 번에 입력할 수 있어요.</div>
+              <textarea id="headlineJsonInput" class="hidden"></textarea>
+              <div id="headlineJsonHint" class="hidden"></div>
+              <textarea id="bodyJsonInput" class="hidden"></textarea>
+              <div id="bodyJsonHint" class="hidden"></div>
+              <textarea id="footerJsonInput" class="hidden"></textarea>
+              <div id="footerJsonHint" class="hidden"></div>
+
+              <div class="control-grid-4">
+                <input id="h1Scale" type="number" value="100" min="60" max="180" class="table-name-input"
+                  placeholder="H1 Size%">
+                <input id="h2Scale" type="number" value="100" min="60" max="180" class="table-name-input"
+                  placeholder="H2 Size%">
+                <input id="subScale" type="number" value="100" min="60" max="180" class="table-name-input"
+                  placeholder="Sub Size%">
+                <input id="titleY" type="number" value="8" min="2" max="30" class="table-name-input"
+                  placeholder="Top Y%">
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <div class="setting-title">Body</div>
+              <div class="options-bar row-tight">
+                <span class="options-label">Body Type</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn bodytype-btn active" data-body="text">Text</button>
+                  <button class="toggle-btn bodytype-btn" data-body="table">Table</button>
+                  <button class="toggle-btn bodytype-btn" data-body="image">Image</button>
+                </div>
+                <span class="options-label hidden" id="inputModeLabel">Input Mode</span>
+                <button class="toggle-btn hidden" id="inputModeToggle" onclick="toggleTableInputMode()">텍스트 입력</button>
+              </div>
+
+              <div id="bodyTextWrap">
+                <div class="options-bar row-tight"><span class="options-label">Body Text</span></div>
+                <textarea id="bodyText" class="input-area" placeholder="본문 텍스트 (줄바꿈 지원)"></textarea>
+              </div>
+
+              <!-- body JSON controls unified into Card JSON -->
+
+              <div id="bodyTableWrap" class="hidden">
+                <div class="options-bar row-tight">
+                  <span class="options-label">Data</span>
+                  <div class="toggle-group" id="tblDataGroup">
+                    <button class="toggle-btn tbldata-btn active" data-tbl-data="text">TEXT</button>
+                    <button class="toggle-btn tbldata-btn" data-tbl-data="json">JSON</button>
+                  </div>
+                  <span class="options-label" id="tblSepLabel">구분자</span>
+                  <div class="toggle-group" id="tblSepGroup">
+                    <button class="toggle-btn tblsep-btn active" data-sep="auto">AUTO</button>
+                    <button class="toggle-btn tblsep-btn" data-sep="tab">TAB</button>
+                    <button class="toggle-btn tblsep-btn" data-sep="comma">CSV</button>
+                    <button class="toggle-btn tblsep-btn" data-sep="pipe">|</button>
+                  </div>
+                </div>
+
+                <div class="table-dual" id="tableDual">
+                  <div id="tableTextWrap">
+                    <textarea id="tableText" class="input-area"
+                      placeholder="기업명	예상가치	주요사업\n케이뱅크	3조 3,673억	인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |"></textarea>
+                  </div>
+
+                  <div id="tableGridWrap" class="table-grid-wrap"></div>
+                </div>
+
+                <div class="options-bar row-tight">
+                  <span class="options-label">Quick Edit</span>
+                  <div class="quick-actions">
+                    <button class="toggle-btn" onclick="buildTableTemplate()">템플릿</button>
+                    <button class="toggle-btn" onclick="addTableRow()">행 +</button>
+                    <button class="toggle-btn" onclick="removeTableRow()">행 -</button>
+                    <button class="toggle-btn" onclick="addTableCol()">열 +</button>
+                    <button class="toggle-btn" onclick="removeTableCol()">열 -</button>
+                  </div>
+                </div>
+                <div class="control-grid-2">
+                  <input id="tblRows" type="number" value="4" min="1" max="30" class="table-name-input"
+                    placeholder="Rows">
+                  <input id="tblCols" type="number" value="3" min="1" max="10" class="table-name-input"
+                    placeholder="Cols">
+                </div>
+              </div>
+
+              <div id="bodyImageWrap" class="hidden">
+                <div class="options-bar row-tight"><span class="options-label">Body Image</span>
+                  <input id="bodyImageInput" type="file" accept="image/*">
+                </div>
+                <div class="options-bar row-tight">
+                  <span class="options-label">Fit</span>
+                  <div class="toggle-group">
+                    <button class="toggle-btn imgfit-btn active" data-fit="cover">Cover</button>
+                    <button class="toggle-btn imgfit-btn" data-fit="contain">Contain</button>
+                  </div>
+                  <span class="options-label">Zoom%</span><input id="imgZoom" type="number" value="100" min="50"
+                    max="250" class="table-name-input small">
+                </div>
+                <div class="options-bar row-tight">
+                  <span class="options-label">X%</span><input id="imgPosX" type="number" value="50" min="0" max="100"
+                    class="table-name-input small">
+                  <span class="options-label">Y%</span><input id="imgPosY" type="number" value="50" min="0" max="100"
+                    class="table-name-input small">
+                </div>
+                <div class="options-bar row-tight">
+                  <span class="options-label">Guide</span>
+                  <div class="toggle-group">
+                    <button class="toggle-btn guide-btn" data-guide="off">OFF</button>
+                    <button class="toggle-btn guide-btn active" data-guide="on">ON</button>
+                  </div>
+                  <span class="options-label">Snap</span>
+                  <div class="toggle-group">
+                    <button class="toggle-btn snap-btn" data-snap="off">OFF</button>
+                    <button class="toggle-btn snap-btn active" data-snap="on">ON</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="options-bar row-tight">
+                <span class="options-label">Body Size%</span><input id="bodyScale" type="number" value="100" min="60"
+                  max="180" class="table-name-input small">
+              </div>
+
+              <div class="options-bar row-tight">
+                <span class="options-label">Body BG</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn bodybgmode-btn active" data-bgmode="solid">Color</button>
+                  <button class="toggle-btn bodybgmode-btn" data-bgmode="image">Image</button>
+                </div>
+                <input id="bodyBgColor" type="color" value="#ffffff"
+                  class="table-name-input small input-sm color-input">
+                <span class="options-label">Opacity%</span>
+                <input id="bodyBgOpacity" type="number" value="100" min="0" max="100"
+                  class="table-name-input small input-xs">
+                <input id="bodyBgImageInput" type="file" accept="image/*" class="hidden">
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <div class="setting-title">Footer & Paging</div>
+              <div class="options-bar row-tight">
+                <span class="options-label">Footer Source</span>
+                <input id="sourceText" class="table-name-input" value="출처: 관련 자료" placeholder="출처: ...">
+                <div class="toggle-group">
+                  <button class="toggle-btn sourcevis-btn active" data-source="on">ON</button>
+                  <button class="toggle-btn sourcevis-btn" data-source="off">OFF</button>
+                </div>
+              </div>
+              <div class="options-bar row-tight">
+                <span class="options-label">Watermark</span>
+                <input id="brandText" class="table-name-input" value="@instagram" placeholder="@your_brand">
+                <div class="toggle-group">
+                  <button class="toggle-btn brandvis-btn active" data-brand="on">ON</button>
+                  <button class="toggle-btn brandvis-btn" data-brand="off">OFF</button>
+                </div>
+                <span class="options-label">Paging</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn pagewm-btn active" data-pagewm="on">ON</button>
+                  <button class="toggle-btn pagewm-btn" data-pagewm="off">OFF</button>
+                </div>
+              </div>
+
+              <div class="options-bar row-tight page-controls">
+                <span class="options-label">Pages</span>
+                <input id="pageCount" type="number" value="1" min="1" max="20" class="table-name-input input-xs">
+                <button class="toggle-btn page-nav-btn" onclick="prevPage()">◀</button>
+                <span id="pageLabel" class="options-label">1 / 1</span>
+                <button class="toggle-btn page-nav-btn" onclick="nextPage()">▶</button>
+              </div>
+
+              <!-- footer JSON controls unified into Card JSON -->
+            </div>
+
+            <div class="setting-group">
+              <div class="setting-title">Export</div>
+              <div class="options-bar row-tight">
+                <span class="options-label">Format</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
+                  <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
+                  <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+                </div>
+                <span class="options-label" id="imgQualityLabel">Quality</span>
+                <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input small">
+              </div>
+              <div class="options-bar row-tight">
+                <span class="options-label">Preset</span>
+                <input id="presetName" class="table-name-input input-md" placeholder="프리셋 이름">
+                <button class="toggle-btn" onclick="savePreset()">저장</button>
+                <select id="presetSelect" class="table-name-input"></select>
+                <button class="toggle-btn" onclick="loadPreset()">불러오기</button>
+                <button class="toggle-btn" onclick="deletePreset()">삭제</button>
+                <button class="toggle-btn" onclick="exportPresets()">내보내기</button>
+                <button class="toggle-btn" onclick="document.getElementById('presetImport').click()">가져오기</button>
+                <input id="presetImport" type="file" accept="application/json" class="hidden">
+                <span class="options-label">적용</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn pscope-btn active" data-scope="current">현재</button>
+                  <button class="toggle-btn pscope-btn" data-scope="all">전체</button>
+                </div>
+              </div>
+              <div class="export-actions">
+                <button class="export-btn save" onclick="savePage()">💾 페이지 저장</button>
+                <button class="export-btn single download-btn" onclick="downloadCurrent()">⬇ 현재 다운로드</button>
+                <button class="export-btn all download-btn" onclick="downloadAll()">⬇ 전체 다운로드</button>
+              </div>
+            </div>
+          </div><!-- end advancedPanel -->
         </div>
-        </div><!-- end advancedPanel -->
+      </div>
+
+      <div class="output-panel">
+        <div class="panel">
+          <div class="canvas-wrap"><canvas id="cardCanvas" width="1080" height="1080"></canvas></div>
+        </div>
       </div>
     </div>
-
-    <div class="output-panel">
-      <div class="panel">
-        <div class="canvas-wrap"><canvas id="cardCanvas" width="1080" height="1080"></canvas></div>
-      </div>
-    </div>
+    <footer>// Instagram Card News Maker</footer>
   </div>
   <footer>// Instagram Card News Maker</footer>
 </div>
@@ -1021,235 +1119,1097 @@ function renderCard(){
         ctx.fillStyle='#fff'; ctx.font=`700 ${Math.floor(rh*0.34*bodyScale)}px sans-serif`; ctx.textAlign='center';
         ctx.fillText((t.head[c]||'').slice(0,14), tableX+c*cw+cw/2, contentY+Math.floor(rh*0.62));
       }
-      // rows
-      for(let r=0;r<rows;r++){
-        for(let c=0;c<cols;c++){
-          const y0=contentY+rh*(r+1), x0=tableX+c*cw;
-          ctx.fillStyle=(r%2===0)?'#f6f8ff':'#ffffff'; ctx.fillRect(x0,y0,cw,rh);
-          ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.strokeRect(x0,y0,cw,rh);
-          ctx.fillStyle='#111'; ctx.font=`600 ${Math.floor(rh*0.33*bodyScale)}px sans-serif`; ctx.textAlign='center';
-          const v=((t.body[r]&&t.body[r][c])||'').slice(0,16);
-          ctx.fillText(v, x0+cw/2, y0+Math.floor(rh*0.6));
+
+      try {
+        const obj = JSON.parse(raw);
+        if (!obj || typeof obj !== 'object') throw new Error('object expected');
+
+        const h1 = obj.headline1 ?? obj.title1 ?? obj.title ?? null;
+        const h2 = obj.headline2 ?? obj.title2 ?? null;
+        const sub = obj.subtitle ?? obj.subTitle ?? null;
+        const label = obj.label ?? obj.banner ?? null;
+
+        if (h1 != null) document.getElementById('titleText').value = String(h1);
+        if (h2 != null) document.getElementById('titleText2').value = String(h2);
+        if (sub != null) document.getElementById('subTitleText').value = String(sub);
+        if (label != null) document.getElementById('labelText').value = String(label);
+
+        if (typeof obj.showHeadline === 'boolean') {
+          const val = obj.showHeadline ? 'on' : 'off';
+          document.querySelectorAll('.headvis-btn').forEach(b => b.classList.toggle('active', b.dataset.head === val));
         }
+        if (typeof obj.showSubtitle === 'boolean') {
+          const val = obj.showSubtitle ? 'on' : 'off';
+          document.querySelectorAll('.subvis-btn').forEach(b => b.classList.toggle('active', b.dataset.sub === val));
+        }
+
+        savePage();
+        renderCard();
+        fillHeadlineJsonFromInputs(false);
+        document.getElementById('headlineJsonHint').textContent = 'JSON 적용 완료';
+      } catch (_) {
+        document.getElementById('headlineJsonHint').textContent = 'JSON 형식이 올바르지 않습니다. 예시 형식을 확인해 주세요.';
       }
     }
-  } else if(p.bodyType==='image'){
-    if(p.bodyImageData){
-      const img=new Image();
-      img.onload=()=>{
-        drawBodyImage(
-          ctx, img,
-          contentX, contentY, contentW, contentH,
-          p.imgFit || 'cover',
-          p.imgZoom ?? 100,
-          p.imgPosX ?? 50,
-          p.imgPosY ?? 50
-        );
-        ctx.strokeStyle='rgba(0,0,0,0.3)';
-        ctx.strokeRect(contentX,contentY,contentW,contentH);
+
+    function fillBodyJsonFromInputs(showMsg = true) {
+      const payload = {
+        bodyType,
+        bodyText: document.getElementById('bodyText').value || '',
+        tableText: document.getElementById('tableText').value || '',
+        bodyScale: parseInt(document.getElementById('bodyScale').value || '100', 10),
+        bodyBgMode: (document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid'),
+        bodyBgColor: document.getElementById('bodyBgColor').value || '#ffffff',
+        bodyBgOpacity: parseInt(document.getElementById('bodyBgOpacity').value || '100', 10),
+        imgFit: (document.querySelector('.imgfit-btn.active')?.dataset.fit || 'cover'),
+        imgZoom: parseInt(document.getElementById('imgZoom').value || '100', 10),
+        imgPosX: parseInt(document.getElementById('imgPosX').value || '50', 10),
+        imgPosY: parseInt(document.getElementById('imgPosY').value || '50', 10),
+        showGuide: (document.querySelector('.guide-btn.active')?.dataset.guide || 'on') === 'on',
+        snapGuide: (document.querySelector('.snap-btn.active')?.dataset.snap || 'on') === 'on'
       };
-      img.src=p.bodyImageData;
-    } else {
-      ctx.fillStyle='rgba(0,0,0,0.06)'; ctx.fillRect(contentX,contentY,contentW,contentH);
-      ctx.fillStyle='#666'; ctx.font=`600 ${Math.floor(h*0.024)}px sans-serif`; ctx.textAlign='center';
-      ctx.fillText('본문 이미지를 업로드하세요',contentX+contentW/2,contentY+contentH/2);
+      document.getElementById('bodyJsonInput').value = JSON.stringify(payload, null, 2);
+      if (showMsg) document.getElementById('bodyJsonHint').textContent = '현재 바디 설정을 JSON으로 채웠습니다.';
     }
-  }
 
-  // footer
-  const source = (p.source || '출처: 관련 자료').trim();
-  const brand = (p.brand || '@instagram').trim();
-  ctx.fillStyle='rgba(5,10,25,0.9)'; ctx.fillRect(panelX,panelY+panelH-fh,panelW,fh);
+    function openBodyJsonPopup() {
+      fillBodyJsonFromInputs(false);
+      const dlg = document.getElementById('bodyJsonDialog');
+      const input = document.getElementById('bodyJsonDialogInput');
+      if (!dlg || !input) return;
+      input.value = document.getElementById('bodyJsonInput').value || '';
+      dlg.showModal();
+    }
+    function closeBodyJsonPopup() { document.getElementById('bodyJsonDialog')?.close(); }
+    function applyBodyJsonFromPopup() {
+      const input = document.getElementById('bodyJsonDialogInput');
+      if (!input) return;
+      document.getElementById('bodyJsonInput').value = input.value;
+      applyBodyJsonToInputs();
+      closeBodyJsonPopup();
+    }
+    function applyBodyJsonToInputs() {
+      const raw = (document.getElementById('bodyJsonInput').value || '').trim();
+      if (!raw) { document.getElementById('bodyJsonHint').textContent = 'JSON 입력값이 비어 있습니다.'; return; }
+      try {
+        const obj = JSON.parse(raw);
+        if (!obj || typeof obj !== 'object') throw new Error('object expected');
+        if (obj.bodyType && ['text', 'table', 'image'].includes(String(obj.bodyType))) {
+          bodyType = String(obj.bodyType);
+          document.querySelectorAll('.bodytype-btn').forEach(b => b.classList.toggle('active', b.dataset.body === bodyType));
+          setBodyUI();
+        }
+        if (obj.bodyText != null) document.getElementById('bodyText').value = String(obj.bodyText);
+        if (obj.tableText != null) document.getElementById('tableText').value = String(obj.tableText);
+        if (obj.bodyScale != null) document.getElementById('bodyScale').value = parseInt(obj.bodyScale, 10);
+        if (obj.bodyBgMode && ['solid', 'image'].includes(String(obj.bodyBgMode))) {
+          document.querySelectorAll('.bodybgmode-btn').forEach(b => b.classList.toggle('active', b.dataset.bgmode === String(obj.bodyBgMode)));
+          setBodyBgUI();
+        }
+        if (obj.bodyBgColor) document.getElementById('bodyBgColor').value = String(obj.bodyBgColor);
+        if (obj.bodyBgOpacity != null) document.getElementById('bodyBgOpacity').value = parseInt(obj.bodyBgOpacity, 10);
+        if (obj.imgFit && ['cover', 'contain'].includes(String(obj.imgFit))) {
+          document.querySelectorAll('.imgfit-btn').forEach(b => b.classList.toggle('active', b.dataset.fit === String(obj.imgFit)));
+        }
+        if (obj.imgZoom != null) document.getElementById('imgZoom').value = parseInt(obj.imgZoom, 10);
+        if (obj.imgPosX != null) document.getElementById('imgPosX').value = parseInt(obj.imgPosX, 10);
+        if (obj.imgPosY != null) document.getElementById('imgPosY').value = parseInt(obj.imgPosY, 10);
+        if (typeof obj.showGuide === 'boolean') {
+          const val = obj.showGuide ? 'on' : 'off';
+          document.querySelectorAll('.guide-btn').forEach(b => b.classList.toggle('active', b.dataset.guide === val));
+        }
+        if (typeof obj.snapGuide === 'boolean') {
+          const val = obj.snapGuide ? 'on' : 'off';
+          document.querySelectorAll('.snap-btn').forEach(b => b.classList.toggle('active', b.dataset.snap === val));
+        }
+        savePage();
+        if (bodyType === 'table' && tableInputMode === 'grid') syncGridFromText();
+        renderCard();
+        fillBodyJsonFromInputs(false);
+        document.getElementById('bodyJsonHint').textContent = 'JSON 적용 완료';
+      } catch (_) {
+        document.getElementById('bodyJsonHint').textContent = 'JSON 형식이 올바르지 않습니다.';
+      }
+    }
+    function resetBodyInputs() {
+      bodyType = 'text';
+      document.querySelectorAll('.bodytype-btn').forEach(b => b.classList.toggle('active', b.dataset.body === 'text'));
+      setBodyUI();
+      document.getElementById('bodyText').value = '';
+      document.getElementById('tableText').value = '';
+      document.getElementById('bodyScale').value = '100';
+      document.querySelectorAll('.bodybgmode-btn').forEach(b => b.classList.toggle('active', b.dataset.bgmode === 'solid'));
+      document.getElementById('bodyBgColor').value = '#ffffff';
+      document.getElementById('bodyBgOpacity').value = '100';
+      setBodyBgUI();
+      document.getElementById('bodyJsonInput').value = '';
+      const dialogInput = document.getElementById('bodyJsonDialogInput');
+      if (dialogInput) dialogInput.value = '';
+      savePage();
+      renderCard();
+    }
 
-  if (p.showSource !== false && source) {
-    ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.font='600 16px Pretendard, sans-serif';
-    ctx.fillText(source, panelX+12,panelY+panelH-11);
-  }
+    function fillFooterJsonFromInputs(showMsg = true) {
+      const payload = {
+        sourceText: document.getElementById('sourceText').value || '',
+        brandText: document.getElementById('brandText').value || '',
+        showSource: (document.querySelector('.sourcevis-btn.active')?.dataset.source || 'on') === 'on',
+        showBrand: (document.querySelector('.brandvis-btn.active')?.dataset.brand || 'on') === 'on',
+        showPage: (document.querySelector('.pagewm-btn.active')?.dataset.pagewm || 'on') === 'on',
+        pageCount: parseInt(document.getElementById('pageCount').value || '1', 10)
+      };
+      document.getElementById('footerJsonInput').value = JSON.stringify(payload, null, 2);
+      if (showMsg) document.getElementById('footerJsonHint').textContent = '현재 푸터 설정을 JSON으로 채웠습니다.';
+    }
+    function openFooterJsonPopup() {
+      fillFooterJsonFromInputs(false);
+      const dlg = document.getElementById('footerJsonDialog');
+      const input = document.getElementById('footerJsonDialogInput');
+      if (!dlg || !input) return;
+      input.value = document.getElementById('footerJsonInput').value || '';
+      dlg.showModal();
+    }
+    function closeFooterJsonPopup() { document.getElementById('footerJsonDialog')?.close(); }
+    function applyFooterJsonFromPopup() {
+      const input = document.getElementById('footerJsonDialogInput');
+      if (!input) return;
+      document.getElementById('footerJsonInput').value = input.value;
+      applyFooterJsonToInputs();
+      closeFooterJsonPopup();
+    }
+    function applyFooterJsonToInputs() {
+      const raw = (document.getElementById('footerJsonInput').value || '').trim();
+      if (!raw) { document.getElementById('footerJsonHint').textContent = 'JSON 입력값이 비어 있습니다.'; return; }
+      try {
+        const obj = JSON.parse(raw);
+        if (!obj || typeof obj !== 'object') throw new Error('object expected');
+        if (obj.sourceText != null) document.getElementById('sourceText').value = String(obj.sourceText);
+        if (obj.brandText != null) document.getElementById('brandText').value = String(obj.brandText);
+        if (typeof obj.showSource === 'boolean') {
+          const val = obj.showSource ? 'on' : 'off';
+          document.querySelectorAll('.sourcevis-btn').forEach(b => b.classList.toggle('active', b.dataset.source === val));
+        }
+        if (typeof obj.showBrand === 'boolean') {
+          const val = obj.showBrand ? 'on' : 'off';
+          document.querySelectorAll('.brandvis-btn').forEach(b => b.classList.toggle('active', b.dataset.brand === val));
+        }
+        if (typeof obj.showPage === 'boolean') {
+          const val = obj.showPage ? 'on' : 'off';
+          document.querySelectorAll('.pagewm-btn').forEach(b => b.classList.toggle('active', b.dataset.pagewm === val));
+        }
+        if (obj.pageCount != null) {
+          document.getElementById('pageCount').value = parseInt(obj.pageCount, 10);
+          syncPages();
+        }
+        savePage();
+        renderCard();
+        fillFooterJsonFromInputs(false);
+        document.getElementById('footerJsonHint').textContent = 'JSON 적용 완료';
+      } catch (_) {
+        document.getElementById('footerJsonHint').textContent = 'JSON 형식이 올바르지 않습니다.';
+      }
+    }
+    function resetFooterInputs() {
+      document.getElementById('sourceText').value = '출처: 관련 자료';
+      document.getElementById('brandText').value = '@instagram';
+      document.querySelectorAll('.sourcevis-btn').forEach(b => b.classList.toggle('active', b.dataset.source === 'on'));
+      document.querySelectorAll('.brandvis-btn').forEach(b => b.classList.toggle('active', b.dataset.brand === 'on'));
+      document.querySelectorAll('.pagewm-btn').forEach(b => b.classList.toggle('active', b.dataset.pagewm === 'on'));
+      document.getElementById('footerJsonInput').value = '';
+      const dialogInput = document.getElementById('footerJsonDialogInput');
+      if (dialogInput) dialogInput.value = '';
+      savePage();
+      renderCard();
+    }
 
-  const rightParts=[];
-  if (p.showBrand !== false && brand) rightParts.push(brand);
-  if (p.showPage !== false) rightParts.push(`${page}/${pages.length}`);
-  const wmText = rightParts.join('  ');
-  if (wmText) {
-    ctx.fillStyle='#fff'; ctx.textAlign='right'; ctx.font='700 18px JetBrains Mono, sans-serif';
-    ctx.fillText(wmText, panelX+panelW-12,panelY+panelH-11);
-  }
-}
+    function fillCardJsonFromInputs(showMsg = true) {
+      fillHeadlineJsonFromInputs(false);
+      fillBodyJsonFromInputs(false);
+      fillFooterJsonFromInputs(false);
+      let h = {}, b = {}, f = {};
+      try { h = JSON.parse(document.getElementById('headlineJsonInput').value || '{}'); } catch (_) { }
+      try { b = JSON.parse(document.getElementById('bodyJsonInput').value || '{}'); } catch (_) { }
+      try { f = JSON.parse(document.getElementById('footerJsonInput').value || '{}'); } catch (_) { }
+      const payload = { headline: h, body: b, footer: f };
+      document.getElementById('cardJsonInput').value = JSON.stringify(payload, null, 2);
+      if (showMsg) document.getElementById('cardJsonHint').textContent = '현재 카드 설정을 JSON으로 채웠습니다.';
+    }
 
-function getExportOptions(){
-  const q = Math.max(1, Math.min(100, parseInt(document.getElementById('imgQuality').value || '92', 10))) / 100;
-  const ext = exportFormat === 'jpeg' ? 'jpg' : exportFormat;
-  return { q, ext };
-}
+    function openCardJsonPopup() {
+      fillCardJsonFromInputs(false);
+      const dlg = document.getElementById('cardJsonDialog');
+      const input = document.getElementById('cardJsonDialogInput');
+      if (!dlg || !input) return;
+      input.value = document.getElementById('cardJsonInput').value || '';
+      dlg.showModal();
+    }
+    function closeCardJsonPopup() { document.getElementById('cardJsonDialog')?.close(); }
+    function applyCardJsonFromPopup() {
+      const input = document.getElementById('cardJsonDialogInput');
+      if (!input) return;
+      document.getElementById('cardJsonInput').value = input.value;
+      const ok = applyCardJsonToInputs();
+      if (ok) closeCardJsonPopup();
+    }
+    function applyCardJsonToInputs() {
+      const raw = (document.getElementById('cardJsonInput').value || '').trim();
+      if (!raw) {
+        document.getElementById('cardJsonHint').textContent = 'JSON 입력값이 비어 있습니다.';
+        alert('JSON 입력값이 비어 있습니다.');
+        return false;
+      }
+      try {
+        const obj = JSON.parse(raw);
+        if (!obj || typeof obj !== 'object') throw new Error('object expected');
 
-function downloadCurrent(){
-  savePage(); renderCard();
-  const { q, ext } = getExportOptions();
-  ImageToolUtils.downloadCanvas(getCanvas(), {
-    format: ext === 'jpg' ? 'jpeg' : ext,
-    quality: q,
-    filename: `card_${page}_${sizeKey.replace(':','x')}`
-  });
-}
+        const h = (obj.headline && typeof obj.headline === 'object') ? obj.headline : obj;
+        const b = (obj.body && typeof obj.body === 'object') ? obj.body : obj;
+        const f = (obj.footer && typeof obj.footer === 'object') ? obj.footer : obj;
 
-async function downloadAll(){
-  savePage();
-  const cur=page;
-  const { q, ext } = getExportOptions();
-  for(let i=1;i<=pages.length;i++){
-    page=i; fillInputsFromPage(); renderCard();
-    ImageToolUtils.downloadCanvas(getCanvas(), {
-      format: ext === 'jpg' ? 'jpeg' : ext,
-      quality: q,
-      filename: `card_${i}_${sizeKey.replace(':','x')}`
+        document.getElementById('headlineJsonInput').value = JSON.stringify(h);
+        document.getElementById('bodyJsonInput').value = JSON.stringify(b);
+        document.getElementById('footerJsonInput').value = JSON.stringify(f);
+
+        applyHeadlineJsonToInputs();
+        applyBodyJsonToInputs();
+        applyFooterJsonToInputs();
+
+        savePage();
+        setPageLabel();
+        renderCard();
+        fillCardJsonFromInputs(false);
+        document.getElementById('cardJsonHint').textContent = '카드 JSON 적용 완료';
+        return true;
+      } catch (e) {
+        document.getElementById('cardJsonHint').textContent = 'JSON 형식이 올바르지 않습니다.';
+        alert(`JSON 형식 오류: ${e?.message || e}`);
+        return false;
+      }
+    }
+
+    function resetCardInputs() {
+      resetHeadlineInputs();
+      resetBodyInputs();
+      resetFooterInputs();
+      document.getElementById('cardJsonInput').value = '';
+      const d = document.getElementById('cardJsonDialogInput');
+      if (d) d.value = '';
+      savePage();
+      renderCard();
+    }
+
+    function snapVal(v, targets = [50], threshold = 3) {
+      const n = Number(v);
+      for (const t of targets) if (Math.abs(n - t) <= threshold) return t;
+      return n;
+    }
+
+    function savePage() {
+      const snapOn = (document.querySelector('.snap-btn.active')?.dataset.snap || 'on') === 'on';
+      const posXRaw = parseInt(document.getElementById('imgPosX').value || '50', 10);
+      const posYRaw = parseInt(document.getElementById('imgPosY').value || '50', 10);
+      const posX = snapOn ? snapVal(posXRaw, [0, 50, 100], 3) : posXRaw;
+      const posY = snapOn ? snapVal(posYRaw, [0, 50, 100], 3) : posYRaw;
+      pages[page - 1] = {
+        ...(pages[page - 1] || newPage()),
+        title: document.getElementById('titleText').value,
+        title2: document.getElementById('titleText2').value,
+        subtitle: document.getElementById('subTitleText').value,
+        label: document.getElementById('labelText').value,
+        bodyType,
+        source: document.getElementById('sourceText').value,
+        brand: document.getElementById('brandText').value,
+        showHeadline: (document.querySelector('.headvis-btn.active')?.dataset.head || 'on') === 'on',
+        showSubtitle: (document.querySelector('.subvis-btn.active')?.dataset.sub || 'on') === 'on',
+        showSource: (document.querySelector('.sourcevis-btn.active')?.dataset.source || 'on') === 'on',
+        showBrand: (document.querySelector('.brandvis-btn.active')?.dataset.brand || 'on') === 'on',
+        showPage: (document.querySelector('.pagewm-btn.active')?.dataset.pagewm || 'on') === 'on',
+        showGuide: (document.querySelector('.guide-btn.active')?.dataset.guide || 'on') === 'on',
+        snapGuide: snapOn,
+        h1Scale: parseInt(document.getElementById('h1Scale').value || '100', 10),
+        h2Scale: parseInt(document.getElementById('h2Scale').value || '100', 10),
+        subScale: parseInt(document.getElementById('subScale').value || '100', 10),
+        titleY: parseInt(document.getElementById('titleY').value || '8', 10),
+        bodyScale: parseInt(document.getElementById('bodyScale').value || '100', 10),
+        imgFit: (document.querySelector('.imgfit-btn.active')?.dataset.fit || 'cover'),
+        bodyBgMode: (document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid'),
+        bodyBgColor: document.getElementById('bodyBgColor').value || '#ffffff',
+        bodyBgOpacity: parseInt(document.getElementById('bodyBgOpacity').value || '100', 10),
+        bodyBgImageData: (pages[page - 1]?.bodyBgImageData || ''),
+        imgZoom: parseInt(document.getElementById('imgZoom').value || '100', 10),
+        imgPosX: posX,
+        imgPosY: posY,
+        bodyText: document.getElementById('bodyText').value,
+        tableText: document.getElementById('tableText').value,
+      };
+    }
+
+    function syncPages() {
+      const n = Math.max(1, Math.min(20, parseInt(document.getElementById('pageCount').value || '1', 10)));
+      while (pages.length < n) pages.push(newPage());
+      while (pages.length > n) pages.pop();
+      if (page > pages.length) page = pages.length;
+      setPageLabel();
+    }
+
+    function prevPage() { savePage(); if (page > 1) page--; fillInputsFromPage(); setPageLabel(); renderCard(); }
+    function nextPage() { savePage(); if (page < pages.length) page++; fillInputsFromPage(); setPageLabel(); renderCard(); }
+
+    const fit = (ctx, text, maxW, start) => ImageToolUtils.fitTextSize(ctx, text, maxW, start, 18, 800);
+
+    function parseDelimitedLine(line, sep = ',') {
+      const out = []; let cur = ''; let q = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (q && line[i + 1] === '"') { cur += '"'; i++; }
+          else q = !q;
+          continue;
+        }
+        if (ch === sep && !q) { out.push(cur.trim()); cur = ''; continue; }
+        cur += ch;
+      }
+      out.push(cur.trim());
+      return out;
+    }
+
+    function parseMarkdownTable(text) {
+      const lines = (text || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const only = lines.filter(l => l.includes('|'));
+      if (only.length < 2) return null;
+      const isSep = l => /^[\s|:\-]+$/.test(l);
+      const row = l => l.replace(/^\s*\||\|\s*$/g, '').split('|').map(c => c.trim());
+      let hi = only.findIndex(l => !isSep(l));
+      if (hi < 0) return null;
+      const head = row(only[hi]).filter(Boolean);
+      const body = only.slice(hi + 1).filter(l => !isSep(l)).map(l => row(l));
+      if (!head.length || !body.length) return null;
+      return { head, body };
+    }
+
+    function parseJsonTable(text) {
+      try {
+        const data = JSON.parse(text || '[]');
+
+        if (Array.isArray(data)) {
+          if (!data.length) return null;
+
+          if (Array.isArray(data[0])) {
+            const maxCols = Math.max(...data.map(r => Array.isArray(r) ? r.length : 0));
+            if (!maxCols) return null;
+            const head = Array.from({ length: maxCols }, (_, i) => `col_${i + 1}`);
+            const body = data.map(r => {
+              const row = Array.isArray(r) ? r : [];
+              const x = row.slice(0, maxCols).map(v => String(v ?? ''));
+              while (x.length < maxCols) x.push('');
+              return x;
+            });
+            return { head, body };
+          }
+
+          if (typeof data[0] === 'object' && data[0] !== null) {
+            const head = [];
+            data.forEach(obj => {
+              if (!obj || typeof obj !== 'object') return;
+              Object.keys(obj).forEach(k => { if (!head.includes(k)) head.push(k); });
+            });
+            if (!head.length) return null;
+            const body = data.map(obj => head.map(k => String((obj && obj[k] != null) ? obj[k] : '')));
+            return { head, body };
+          }
+
+          return null;
+        }
+
+        if (data && typeof data === 'object' && Array.isArray(data.head) && Array.isArray(data.body)) {
+          const head = data.head.map(v => String(v ?? ''));
+          const body = data.body.map(r => {
+            const row = Array.isArray(r) ? r : [];
+            const x = row.slice(0, head.length).map(v => String(v ?? ''));
+            while (x.length < head.length) x.push('');
+            return x;
+          });
+          if (!head.length) return null;
+          return { head, body };
+        }
+
+        return null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function parseCsvTable(text) {
+      if (tableDataMode === 'json') return parseJsonTable(text);
+
+      const lines = (text || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      if (lines.length < 2) return null;
+
+      if (tableSepMode === 'auto') {
+        const md = parseMarkdownTable(text);
+        if (md) return md;
+      }
+
+      let sep = ',';
+      if (tableSepMode === 'tab') sep = '\t';
+      else if (tableSepMode === 'pipe') sep = '|';
+      else if (tableSepMode === 'comma') sep = ',';
+      else {
+        const first = lines[0] || '';
+        const cTab = (first.match(/\t/g) || []).length;
+        const cPipe = (first.match(/\|/g) || []).length;
+        const cComma = (first.match(/,/g) || []).length;
+        if (cTab >= cPipe && cTab >= cComma) sep = '\t';
+        else if (cPipe >= cComma) sep = '|';
+        else sep = ',';
+      }
+
+      const rows = lines.map(l => parseDelimitedLine(l, sep));
+      const cols = rows[0].length;
+      const normalized = rows.map(r => {
+        const x = r.slice(0, cols);
+        while (x.length < cols) x.push('');
+        return x;
+      });
+      return { head: normalized[0], body: normalized.slice(1) };
+    }
+
+    function setTableInputUI() {
+      const textWrap = document.getElementById('tableTextWrap');
+      const gridWrap = document.getElementById('tableGridWrap');
+      const dual = document.getElementById('tableDual');
+      const sepLabel = document.getElementById('tblSepLabel');
+      const sepGroup = document.getElementById('tblSepGroup');
+      const textArea = document.getElementById('tableText');
+
+      const isJson = tableDataMode === 'json';
+      if (textArea) {
+        textArea.placeholder = isJson
+          ? '[\n  {"기업명":"케이뱅크","예상가치":"3조 3,673억","주요사업":"인터넷전문은행"},\n  {"기업명":"한화에너지","예상가치":"5조원 이상","주요사업":"에너지 발전·공급"}\n]'
+          : '기업명\t예상가치\t주요사업\n케이뱅크\t3조 3,673억\t인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |';
+      }
+
+      if (tableInputMode === 'grid') {
+        textWrap.classList.add('hidden');
+        gridWrap.classList.remove('hidden');
+        if (sepLabel) sepLabel.classList.add('hidden');
+        if (sepGroup) sepGroup.classList.add('hidden');
+      } else {
+        textWrap.classList.remove('hidden');
+        gridWrap.classList.add('hidden');
+        if (sepLabel) sepLabel.classList.toggle('hidden', isJson);
+        if (sepGroup) sepGroup.classList.toggle('hidden', isJson);
+      }
+    }
+
+    function renderTableGrid(head, body) {
+      const wrap = document.getElementById('tableGridWrap');
+      const cols = Math.max(1, head.length);
+      const rows = Math.max(1, body.length);
+
+      const headerCells = head.map((h, i) =>
+        `<div class="matrix-cell matrix-head"><input data-r="0" data-c="${i}" value="${String(h || '').replace(/"/g, '&quot;')}" class="table-name-input"></div>`
+      ).join('');
+
+      const bodyCells = Array.from({ length: rows }, (_, ri) =>
+        Array.from({ length: cols }, (_, ci) =>
+          `<div class="matrix-cell"><input data-r="${ri + 1}" data-c="${ci}" value="${String(((body[ri] && body[ri][ci]) || '')).replace(/"/g, '&quot;')}" class="table-name-input"></div>`
+        ).join('')
+      ).join('');
+
+      const colClass = `cols-${Math.min(Math.max(cols, 1), 10)}`;
+      wrap.innerHTML = `<div class="matrix-grid ${colClass}">${headerCells}${bodyCells}</div>`;
+
+      wrap.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => syncTextFromGrid(false)));
+      document.getElementById('tblCols').value = cols;
+      document.getElementById('tblRows').value = rows;
+    }
+
+    function syncGridFromText(doRender = true) {
+      const t = parseCsvTable(document.getElementById('tableText').value || '');
+      if (!t) return;
+      renderTableGrid(t.head, t.body);
+      if (doRender) renderCard();
+    }
+
+    function syncTextFromGrid(doRender = true) {
+      const wrap = document.getElementById('tableGridWrap');
+      const inputs = [...wrap.querySelectorAll('input[data-r]')];
+      if (!inputs.length) return;
+
+      const head = [];
+      const bodyMap = new Map();
+      for (const el of inputs) {
+        const r = parseInt(el.dataset.r, 10);
+        const c = parseInt(el.dataset.c, 10);
+        if (r === 0) head[c] = el.value;
+        else {
+          if (!bodyMap.has(r)) bodyMap.set(r, []);
+          bodyMap.get(r)[c] = el.value;
+        }
+      }
+      const body = [...bodyMap.keys()].sort((a, b) => a - b).map(k => {
+        const row = bodyMap.get(k);
+        while (row.length < head.length) row.push('');
+        return row;
+      });
+
+      document.getElementById('tableText').value = serializeTableData(head, body);
+      if (doRender) renderCard();
+    }
+
+    function serializeTableData(head, body) {
+      if (tableDataMode === 'json') {
+        const rows = body.map(r => {
+          const obj = {};
+          head.forEach((h, i) => { obj[String(h || `col_${i + 1}`)] = String((r && r[i]) ?? ''); });
+          return obj;
+        });
+        return JSON.stringify(rows, null, 2);
+      }
+
+      const mode = tableSepMode === 'auto' ? 'tab' : tableSepMode;
+      if (mode === 'pipe') {
+        const h = `| ${head.join(' | ')} |`;
+        const s = `| ${head.map(() => '---').join(' | ')} |`;
+        const b = body.map(r => `| ${r.map(v => String(v || '')).join(' | ')} |`);
+        return [h, s, ...b].join('\n');
+      }
+      const sep = mode === 'comma' ? ',' : '\t';
+      const line = arr => arr.map(v => {
+        const t = String(v ?? '');
+        if (sep === ',' && /[",\n]/.test(t)) return `"${t.replace(/"/g, '""')}"`;
+        return t;
+      }).join(sep);
+      return [line(head), ...body.map(line)].join('\n');
+    }
+
+    function getGridMatrix() {
+      const wrap = document.getElementById('tableGridWrap');
+      const inputs = [...wrap.querySelectorAll('input[data-r]')];
+      if (!inputs.length) return null;
+      const head = [];
+      const bodyMap = new Map();
+      for (const el of inputs) {
+        const r = parseInt(el.dataset.r, 10), c = parseInt(el.dataset.c, 10);
+        if (r === 0) head[c] = el.value;
+        else {
+          if (!bodyMap.has(r)) bodyMap.set(r, []);
+          bodyMap.get(r)[c] = el.value;
+        }
+      }
+      const body = [...bodyMap.keys()].sort((a, b) => a - b).map(k => {
+        const row = bodyMap.get(k);
+        while (row.length < head.length) row.push('');
+        return row;
+      });
+      return { head, body };
+    }
+
+    function tableToMatrix() {
+      const m = tableInputMode === 'grid' ? getGridMatrix() : null;
+      if (m) {
+        document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+        return m;
+      }
+      const t = parseCsvTable(document.getElementById('tableText').value || '');
+      if (!t) return null;
+      return { head: [...t.head], body: t.body.map(r => [...r]) };
+    }
+
+    function buildTableTemplate() {
+      const cols = Math.max(1, Math.min(10, parseInt(document.getElementById('tblCols').value || '3', 10)));
+      const rows = Math.max(1, Math.min(30, parseInt(document.getElementById('tblRows').value || '4', 10)));
+      const head = Array.from({ length: cols }, (_, i) => `컬럼${i + 1}`);
+      const body = Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => `${r + 1}-${c + 1}`));
+      document.getElementById('tableText').value = serializeTableData(head, body);
+      if (tableInputMode === 'grid') syncGridFromText();
+      renderCard();
+    }
+
+    function addTableRow() {
+      const m = tableToMatrix();
+      if (!m) return buildTableTemplate();
+      m.body.push(Array.from({ length: m.head.length }, () => ''));
+      document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+      if (tableInputMode === 'grid') syncGridFromText();
+      renderCard();
+    }
+
+    function addTableCol() {
+      const m = tableToMatrix();
+      if (!m) return buildTableTemplate();
+      m.head.push(`컬럼${m.head.length + 1}`);
+      m.body = m.body.map(r => [...r, '']);
+      document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+      if (tableInputMode === 'grid') syncGridFromText();
+      renderCard();
+    }
+
+    function removeTableRow() {
+      const m = tableToMatrix();
+      if (!m || m.body.length <= 1) return;
+      m.body.pop();
+      document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+      if (tableInputMode === 'grid') syncGridFromText();
+      renderCard();
+    }
+
+    function removeTableCol() {
+      const m = tableToMatrix();
+      if (!m || m.head.length <= 1) return;
+      m.head.pop();
+      m.body = m.body.map(r => r.slice(0, m.head.length));
+      document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+      if (tableInputMode === 'grid') syncGridFromText();
+      renderCard();
+    }
+
+    function drawCoverImage(ctx, w, h, img) {
+      ImageToolUtils.drawImageCover(ctx, img, 0, 0, w, h);
+    }
+
+    function drawBodyImage(ctx, img, x, y, w, h, fit = 'cover', zoom = 100, posX = 50, posY = 50) {
+      const ir = img.width / img.height;
+      const cr = w / h;
+      let baseW, baseH;
+      if (fit === 'contain') {
+        if (ir > cr) { baseW = w; baseH = w / ir; }
+        else { baseH = h; baseW = h * ir; }
+      } else {
+        if (ir > cr) { baseH = h; baseW = h * ir; }
+        else { baseW = w; baseH = w / ir; }
+      }
+
+      const z = Math.max(50, Math.min(250, zoom)) / 100;
+      const dw = baseW * z;
+      const dh = baseH * z;
+
+      const px = Math.max(0, Math.min(100, posX)) / 100;
+      const py = Math.max(0, Math.min(100, posY)) / 100;
+      const dx = x + (w - dw) * px;
+      const dy = y + (h - dh) * py;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+      ctx.clip();
+      ctx.drawImage(img, dx, dy, dw, dh);
+      ctx.restore();
+    }
+
+    const imageCache = new Map();
+    function drawGuides(ctx, x, y, w, h) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(45,212,191,.55)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w / 2, y + h);
+      ctx.moveTo(x, y + h / 2); ctx.lineTo(x + w, y + h / 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function getCachedImage(dataUrl) {
+      if (!dataUrl) return null;
+      let img = imageCache.get(dataUrl);
+      if (!img) {
+        img = new Image();
+        img.onload = () => renderCard();
+        img.src = dataUrl;
+        imageCache.set(dataUrl, img);
+      }
+      return img.complete ? img : null;
+    }
+
+    function drawBg(ctx, w, h) {
+      const th = themes[themeKey];
+      if (bgMode === 'image' && bgImage) {
+        drawCoverImage(ctx, w, h, bgImage);
+        ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(0, 0, w, h);
+      } else {
+        ctx.fillStyle = document.getElementById('bgColor').value || th.bg; ctx.fillRect(0, 0, w, h);
+      }
+    }
+
+    function renderCard() {
+      savePage();
+      const cv = getCanvas(); const [w, h] = sizes[sizeKey]; cv.width = w; cv.height = h; const ctx = cv.getContext('2d');
+      const th = themes[themeKey]; const p = current();
+
+      drawBg(ctx, w, h);
+
+      // white board panel
+      const margin = Math.floor(w * 0.04); const panelX = margin, panelY = Math.floor(h * 0.06), panelW = w - margin * 2, panelH = h - panelY - Math.floor(h * 0.06);
+      ctx.fillStyle = th.box; ctx.fillRect(panelX, panelY, panelW, panelH);
+      ctx.strokeStyle = 'rgba(0,0,0,0.16)'; ctx.lineWidth = 2; ctx.strokeRect(panelX, panelY, panelW, panelH);
+
+      // title lines + subtitle + label banner
+      const t1 = (p.title || '').trim();
+      const t2 = (p.title2 || '').trim();
+      const subLines = (p.subtitle || '').split('\n').filter(Boolean);
+      const titleColor1 = document.getElementById('titleColor1').value;
+      const titleColor2 = document.getElementById('titleColor2').value;
+
+      const h1Scale = Math.max(60, Math.min(180, p.h1Scale || 100)) / 100;
+      const h2Scale = Math.max(60, Math.min(180, p.h2Scale || 100)) / 100;
+      const subScale = Math.max(60, Math.min(180, p.subScale || 100)) / 100;
+      const titleY = Math.max(2, Math.min(30, p.titleY || 8)) / 100;
+      const bodyScale = Math.max(60, Math.min(180, p.bodyScale || 100)) / 100;
+
+      let y = panelY + Math.floor(panelH * titleY);
+      if (p.showHeadline !== false) {
+        if (t1) {
+          const fs1 = fit(ctx, t1, panelW - 60, Math.floor(h * 0.055 * h1Scale));
+          ctx.font = `900 ${fs1}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+          ctx.fillStyle = titleColor1;
+          ctx.textAlign = 'center';
+          ctx.fillText(t1, panelX + panelW / 2, y);
+          y += Math.floor(fs1 * 1.08);
+        }
+        if (t2) {
+          const fs2 = fit(ctx, t2, panelW - 60, Math.floor(h * 0.06 * h2Scale));
+          ctx.font = `900 ${fs2}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+          ctx.fillStyle = titleColor2;
+          ctx.fillText(t2, panelX + panelW / 2, y);
+          y += Math.floor(fs2 * 1.1);
+        }
+      }
+
+      if (p.showSubtitle !== false) {
+        subLines.slice(0, 2).forEach(line => {
+          const fs = fit(ctx, line, panelW - 100, Math.floor(h * 0.03 * subScale));
+          ctx.font = `700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+          ctx.fillStyle = th.sub;
+          ctx.fillText(line, panelX + panelW / 2, y);
+          y += Math.floor(fs * 1.2);
+        });
+      }
+
+      const label = (p.label || '').trim();
+      if (label) {
+        const lw = Math.min(panelW * 0.72, Math.max(panelW * 0.34, ctx.measureText(label).width + 40));
+        const lh = Math.floor(h * 0.05);
+        const lx = panelX + (panelW - lw) / 2;
+        const ly = y;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(lx, ly, lw, lh);
+        ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+        ctx.setLineDash([6, 4]);
+        ctx.strokeRect(lx, ly, lw, lh);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#222';
+        ctx.font = `700 ${Math.floor(lh * 0.44)}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(label, lx + lw / 2, ly + Math.floor(lh * 0.67));
+        y += lh + Math.floor(h * 0.016);
+      } else {
+        y += Math.floor(h * 0.02);
+      }
+      const fh = 34; // footer height reserved
+      const contentX = panelX + 24, contentY = y;
+      const contentBottom = panelY + panelH - fh - 10;
+      const rawContentW = panelW - 48;
+      const contentH = Math.max(120, contentBottom - contentY);
+
+
+      const contentW = rawContentW;
+
+      // body background (color / image + opacity)
+      const bodyBgMode = p.bodyBgMode || 'solid';
+      const bodyBgOpacity = Math.max(0, Math.min(100, p.bodyBgOpacity ?? 100)) / 100;
+      ctx.save();
+      ctx.globalAlpha = bodyBgOpacity;
+      if (bodyBgMode === 'image' && p.bodyBgImageData) {
+        const bgImg = getCachedImage(p.bodyBgImageData);
+        if (bgImg) drawBodyImage(ctx, bgImg, contentX, contentY, contentW, contentH, 'cover', 100, 50, 50);
+        else { ctx.fillStyle = p.bodyBgColor || '#ffffff'; ctx.fillRect(contentX, contentY, contentW, contentH); }
+      } else {
+        ctx.fillStyle = p.bodyBgColor || '#ffffff';
+        ctx.fillRect(contentX, contentY, contentW, contentH);
+      }
+      ctx.restore();
+
+      // body by type
+      if (p.bodyType === 'text') {
+        const lines = (p.bodyText || '').split('\n').filter(Boolean);
+        let ty = contentY + 36;
+        lines.forEach(line => {
+          const fs = fit(ctx, line, contentW - 30, Math.floor(h * 0.03 * bodyScale));
+          ctx.font = `700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+          ctx.fillStyle = '#1b1f2a';
+          ctx.textAlign = 'left';
+          ctx.fillText(line, contentX + 14, ty);
+          ty += Math.floor(fs * 1.45);
+        });
+      } else if (p.bodyType === 'table') {
+        const t = parseCsvTable(p.tableText || '');
+        if (!t) {
+          ctx.fillStyle = '#777'; ctx.font = `600 ${Math.floor(h * 0.024)}px sans-serif`; ctx.fillText('표 데이터(CSV)를 입력하세요', contentX + 8, contentY + 40);
+        } else {
+          const cols = t.head.length;
+          const maxRowsByHeight = Math.max(1, Math.floor(contentH / 46) - 1);
+          const rows = Math.min(t.body.length, maxRowsByHeight, 12);
+          const tableW = cols <= 3 ? Math.min(contentW, cols * 280) : contentW;
+          const tableX = contentX + Math.floor((contentW - tableW) / 2);
+          const rh = Math.floor(contentH / (rows + 1)); const cw = Math.floor(tableW / cols);
+          // header
+          for (let c = 0; c < cols; c++) {
+            ctx.fillStyle = '#0f2f7d'; ctx.fillRect(tableX + c * cw, contentY, cw, rh);
+            ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.floor(rh * 0.34 * bodyScale)}px sans-serif`; ctx.textAlign = 'center';
+            ctx.fillText((t.head[c] || '').slice(0, 14), tableX + c * cw + cw / 2, contentY + Math.floor(rh * 0.62));
+          }
+          // rows
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              const y0 = contentY + rh * (r + 1), x0 = tableX + c * cw;
+              ctx.fillStyle = (r % 2 === 0) ? '#f6f8ff' : '#ffffff'; ctx.fillRect(x0, y0, cw, rh);
+              ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.strokeRect(x0, y0, cw, rh);
+              ctx.fillStyle = '#111'; ctx.font = `600 ${Math.floor(rh * 0.33 * bodyScale)}px sans-serif`; ctx.textAlign = 'center';
+              const v = ((t.body[r] && t.body[r][c]) || '').slice(0, 16);
+              ctx.fillText(v, x0 + cw / 2, y0 + Math.floor(rh * 0.6));
+            }
+          }
+        }
+      } else if (p.bodyType === 'image') {
+        if (p.bodyImageData) {
+          const img = new Image();
+          img.onload = () => {
+            drawBodyImage(
+              ctx, img,
+              contentX, contentY, contentW, contentH,
+              p.imgFit || 'cover',
+              p.imgZoom ?? 100,
+              p.imgPosX ?? 50,
+              p.imgPosY ?? 50
+            );
+            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+            ctx.strokeRect(contentX, contentY, contentW, contentH);
+            if (p.showGuide !== false) drawGuides(ctx, contentX, contentY, contentW, contentH);
+          };
+          img.src = p.bodyImageData;
+        } else {
+          ctx.fillStyle = 'rgba(0,0,0,0.06)'; ctx.fillRect(contentX, contentY, contentW, contentH);
+          ctx.fillStyle = '#666'; ctx.font = `600 ${Math.floor(h * 0.024)}px sans-serif`; ctx.textAlign = 'center';
+          ctx.fillText('본문 이미지를 업로드하세요', contentX + contentW / 2, contentY + contentH / 2);
+        }
+      }
+
+      if (p.showGuide !== false && p.bodyType !== 'image') {
+        drawGuides(ctx, contentX, contentY, contentW, contentH);
+      }
+
+      // footer
+      const source = (p.source || '출처: 관련 자료').trim();
+      const brand = (p.brand || '@instagram').trim();
+      ctx.fillStyle = 'rgba(5,10,25,0.9)'; ctx.fillRect(panelX, panelY + panelH - fh, panelW, fh);
+
+      if (p.showSource !== false && source) {
+        ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.font = '600 16px Pretendard, sans-serif';
+        ctx.fillText(source, panelX + 12, panelY + panelH - 11);
+      }
+
+      const rightParts = [];
+      if (p.showBrand !== false && brand) rightParts.push(brand);
+      if (p.showPage !== false) rightParts.push(`${page}/${pages.length}`);
+      const wmText = rightParts.join('  ');
+      if (wmText) {
+        ctx.fillStyle = '#fff'; ctx.textAlign = 'right'; ctx.font = '700 18px JetBrains Mono, sans-serif';
+        ctx.fillText(wmText, panelX + panelW - 12, panelY + panelH - 11);
+      }
+    }
+
+    function getExportOptions() {
+      const q = Math.max(1, Math.min(100, parseInt(document.getElementById('imgQuality').value || '92', 10))) / 100;
+      const ext = exportFormat === 'jpeg' ? 'jpg' : exportFormat;
+      return { q, ext };
+    }
+
+    function downloadCurrent() {
+      savePage(); renderCard();
+      const { q, ext } = getExportOptions();
+      ImageToolUtils.downloadCanvas(getCanvas(), {
+        format: ext === 'jpg' ? 'jpeg' : ext,
+        quality: q,
+        filename: `card_${page}_${sizeKey.replace(':', 'x')}`
+      });
+    }
+
+    async function downloadAll() {
+      savePage();
+      const cur = page;
+      const { q, ext } = getExportOptions();
+      for (let i = 1; i <= pages.length; i++) {
+        page = i; fillInputsFromPage(); renderCard();
+        ImageToolUtils.downloadCanvas(getCanvas(), {
+          format: ext === 'jpg' ? 'jpeg' : ext,
+          quality: q,
+          filename: `card_${i}_${sizeKey.replace(':', 'x')}`
+        });
+        await new Promise(r => setTimeout(r, 120));
+      }
+      page = cur; fillInputsFromPage(); renderCard(); setPageLabel();
+    }
+
+    // ── Simple Mode ──────────────────────────────────────────
+    themes.dark = { bg: '#1a1a2e', box: '#16162a', accent: '#4fffb0', text: '#eeeeee', sub: '#9d8dff' };
+    themes.light = { bg: '#f5f6fa', box: '#ffffff', accent: '#d41414', text: '#111111', sub: '#888888' };
+
+    const TEMPLATES = {
+      navy: { bg: '#0b122b', h1: '#111111', h2: '#d41414' },
+      blue: { bg: '#102c6d', h1: '#111111', h2: '#0a52cc' },
+      dark: { bg: '#1a1a2e', h1: '#ffffff', h2: '#4fffb0' },
+      light: { bg: '#f5f6fa', h1: '#111111', h2: '#d41414' },
+    };
+    let activeTpl = 'navy';
+
+    function applyTemplate(id) {
+      activeTpl = id;
+      const tpl = TEMPLATES[id];
+      bgMode = 'color';
+      document.getElementById('bgColor').value = tpl.bg;
+      document.getElementById('titleColor1').value = tpl.h1;
+      document.getElementById('titleColor2').value = tpl.h2;
+      document.querySelectorAll('.bgmode-btn').forEach(b => b.classList.toggle('active', b.dataset.bgmode === 'color'));
+      document.getElementById('bgImageInput').classList.add('hidden');
+      themeKey = (id in themes) ? id : 'navy';
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === themeKey));
+      document.querySelectorAll('.tpl-card').forEach(c => c.classList.toggle('active', c.dataset.tpl === id));
+      syncSimpleToPage();
+      renderCard();
+    }
+
+    function syncSimpleToPage() {
+      const title = document.getElementById('s-title').value;
+      const title2 = document.getElementById('s-title2').value;
+      const subtitle = document.getElementById('s-subtitle').value;
+      const body = document.getElementById('s-body').value;
+      const source = document.getElementById('s-source').value;
+      const brand = document.getElementById('s-brand').value;
+      // Mirror to advanced fields so savePage() reads correct values
+      document.getElementById('titleText').value = title;
+      document.getElementById('titleText2').value = title2;
+      document.getElementById('subTitleText').value = subtitle;
+      document.getElementById('bodyText').value = body;
+      document.getElementById('sourceText').value = source;
+      document.getElementById('brandText').value = brand;
+      bodyType = 'text';
+      document.querySelectorAll('.bodytype-btn').forEach(b => b.classList.toggle('active', b.dataset.body === 'text'));
+      setBodyUI();
+    }
+
+    function syncPageToSimple() {
+      const p = current();
+      document.getElementById('s-title').value = p.title || '';
+      document.getElementById('s-title2').value = p.title2 || '';
+      document.getElementById('s-subtitle').value = p.subtitle || '';
+      document.getElementById('s-body').value = p.bodyText || '';
+      document.getElementById('s-source').value = p.source || '출처: 관련 자료';
+      document.getElementById('s-brand').value = p.brand || '@instagram';
+    }
+
+    function switchMode(mode) {
+      const isSimple = mode === 'simple';
+      if (isSimple) {
+        savePage();
+        syncPageToSimple();
+      } else {
+        syncSimpleToPage();
+        fillInputsFromPage();
+      }
+      document.getElementById('simplePanel').classList.toggle('hidden', !isSimple);
+      document.getElementById('advancedPanel').classList.toggle('hidden', isSimple);
+      document.getElementById('tabSimple').classList.toggle('active', isSimple);
+      document.getElementById('tabAdv').classList.toggle('active', !isSimple);
+      renderCard();
+    }
+
+    function loadSimpleSample() {
+      document.getElementById('s-title').value = '📈 새해 코스피는 내가 이끈다!';
+      document.getElementById('s-title2').value = '케이뱅크 상장, 공모가 확정';
+      document.getElementById('s-subtitle').value = '신규 상장 시장 전망 2026';
+      document.getElementById('s-body').value = '무신사 8조원 이상\n한화에너지 5조원 이상\n케이뱅크 3조 3,673억';
+      document.getElementById('s-source').value = '출처: 관련 언론보도';
+      document.getElementById('s-brand').value = '@instagram';
+      syncSimpleToPage();
+      renderCard();
+    }
+
+    ['s-title', 's-title2', 's-subtitle', 's-body', 's-source', 's-brand'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => { syncSimpleToPage(); renderCard(); });
     });
-    await new Promise(r=>setTimeout(r,120));
-  }
-  page=cur; fillInputsFromPage(); renderCard(); setPageLabel();
-}
 
-// ── Simple Mode ──────────────────────────────────────────
-themes.dark  = { bg:'#1a1a2e', box:'#16162a', accent:'#4fffb0', text:'#eeeeee', sub:'#9d8dff' };
-themes.light = { bg:'#f5f6fa', box:'#ffffff',  accent:'#d41414', text:'#111111', sub:'#888888' };
+    // UI bindings
+    document.querySelectorAll('.size-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.size-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); sizeKey = b.dataset.size; renderCard(); });
+    document.querySelectorAll('.theme-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.theme-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); themeKey = b.dataset.theme; document.getElementById('bgColor').value = themes[themeKey].bg; renderCard(); });
+    document.querySelectorAll('.bgmode-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.bgmode-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); bgMode = b.dataset.bgmode; document.getElementById('bgImageInput').classList.toggle('hidden', bgMode !== 'image'); renderCard(); });
+    document.querySelectorAll('.bodytype-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.bodytype-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); bodyType = b.dataset.body; setBodyUI(); savePage(); renderCard(); });
+    document.querySelectorAll('.tblsep-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.tblsep-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); tableSepMode = b.dataset.sep; if (tableInputMode === 'grid') syncGridFromText(); renderCard(); });
+    document.querySelectorAll('.tbldata-btn').forEach(b => b.onclick = () => {
+      document.querySelectorAll('.tbldata-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      tableDataMode = b.dataset.tblData;
+      setTableInputUI();
+      if (tableInputMode === 'grid') syncGridFromText();
+      renderCard();
+    });
+    /* table input mode is controlled by single toggle button */
+    document.querySelectorAll('.imgfit-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.imgfit-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); savePage(); renderCard(); });
+    document.querySelectorAll('.bodybgmode-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.bodybgmode-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); setBodyBgUI(); savePage(); renderCard(); });
+    document.querySelectorAll('.headvis-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.headvis-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); savePage(); renderCard(); });
+    document.querySelectorAll('.subvis-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.subvis-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); savePage(); renderCard(); });
+    document.querySelectorAll('.guide-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.guide-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); savePage(); renderCard(); });
+    document.querySelectorAll('.snap-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.snap-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); savePage(); renderCard(); });
+    document.querySelectorAll('.sourcevis-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.sourcevis-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); savePage(); renderCard(); });
+    document.querySelectorAll('.brandvis-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.brandvis-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); savePage(); renderCard(); });
+    document.querySelectorAll('.pagewm-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.pagewm-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); savePage(); renderCard(); });
+    document.querySelectorAll('.pscope-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.pscope-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); presetScope = b.dataset.scope; });
+    document.querySelectorAll('.exfmt-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.exfmt-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); exportFormat = b.dataset.fmt; syncExportQualityUI(); });
 
-const TEMPLATES = {
-  navy:  { bg:'#0b122b', h1:'#111111', h2:'#d41414' },
-  blue:  { bg:'#102c6d', h1:'#111111', h2:'#0a52cc' },
-  dark:  { bg:'#1a1a2e', h1:'#ffffff', h2:'#4fffb0' },
-  light: { bg:'#f5f6fa', h1:'#111111', h2:'#d41414' },
-};
-let activeTpl = 'navy';
+    ['bgColor', 'titleText', 'titleText2', 'titleColor1', 'titleColor2', 'subTitleText', 'labelText', 'h1Scale', 'h2Scale', 'subScale', 'titleY', 'bodyScale', 'bodyBgColor', 'bodyBgOpacity', 'imgZoom', 'imgPosX', 'imgPosY', 'sourceText', 'brandText', 'bodyText', 'tableText', 'pageCount', 'imgQuality'].forEach(id => document.getElementById(id).addEventListener('input', () => {
+      if (id === 'pageCount') syncPages();
 
-function applyTemplate(id) {
-  activeTpl = id;
-  const tpl = TEMPLATES[id];
-  bgMode = 'color';
-  document.getElementById('bgColor').value      = tpl.bg;
-  document.getElementById('titleColor1').value  = tpl.h1;
-  document.getElementById('titleColor2').value  = tpl.h2;
-  document.querySelectorAll('.bgmode-btn').forEach(b => b.classList.toggle('active', b.dataset.bgmode === 'color'));
-  document.getElementById('bgImageInput').classList.add('hidden');
-  themeKey = (id in themes) ? id : 'navy';
-  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === themeKey));
-  document.querySelectorAll('.tpl-card').forEach(c => c.classList.toggle('active', c.dataset.tpl === id));
-  syncSimpleToPage();
-  renderCard();
-}
+      renderCard();
+    }));
 
-function syncSimpleToPage() {
-  const title    = document.getElementById('s-title').value;
-  const title2   = document.getElementById('s-title2').value;
-  const subtitle = document.getElementById('s-subtitle').value;
-  const body     = document.getElementById('s-body').value;
-  const source   = document.getElementById('s-source').value;
-  const brand    = document.getElementById('s-brand').value;
-  // Mirror to advanced fields so savePage() reads correct values
-  document.getElementById('titleText').value    = title;
-  document.getElementById('titleText2').value   = title2;
-  document.getElementById('subTitleText').value = subtitle;
-  document.getElementById('bodyText').value     = body;
-  document.getElementById('sourceText').value   = source;
-  document.getElementById('brandText').value    = brand;
-  bodyType = 'text';
-  document.querySelectorAll('.bodytype-btn').forEach(b => b.classList.toggle('active', b.dataset.body === 'text'));
-  setBodyUI();
-}
+    document.getElementById('bgImageInput').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { const i = new Image(); i.onload = () => { bgImage = i; renderCard(); }; i.src = ev.target.result; }; r.readAsDataURL(f); });
+    document.getElementById('bodyImageInput').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { pages[page - 1].bodyImageData = ev.target.result; renderCard(); }; r.readAsDataURL(f); });
+    document.getElementById('bodyBgImageInput').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { pages[page - 1].bodyBgImageData = ev.target.result; savePage(); renderCard(); }; r.readAsDataURL(f); });
+    document.getElementById('presetImport').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { try { const data = JSON.parse(ev.target.result || '{}'); if (!data || typeof data !== 'object') return; const presets = getPresets(); setPresets({ ...presets, ...data }); refreshPresetSelect(); } catch (_) { } }; r.readAsText(f, 'utf-8'); });
+    document.getElementById('cardJsonFile').addEventListener('change', e => { const f = e.target.files?.[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { try { const txt = String(ev.target?.result || ''); document.getElementById('cardJsonInput').value = txt; applyCardJsonToInputs(); } catch (_) { document.getElementById('cardJsonHint').textContent = 'JSON 파일을 읽는 중 오류가 발생했습니다.'; } }; r.readAsText(f, 'utf-8'); });
 
-function syncPageToSimple() {
-  const p = current();
-  document.getElementById('s-title').value    = p.title    || '';
-  document.getElementById('s-title2').value   = p.title2   || '';
-  document.getElementById('s-subtitle').value = p.subtitle || '';
-  document.getElementById('s-body').value     = p.bodyText || '';
-  document.getElementById('s-source').value   = p.source   || '출처: 관련 자료';
-  document.getElementById('s-brand').value    = p.brand    || '@instagram';
-}
-
-function switchMode(mode) {
-  const isSimple = mode === 'simple';
-  if (isSimple) {
-    savePage();
-    syncPageToSimple();
-  } else {
-    syncSimpleToPage();
-    fillInputsFromPage();
-  }
-  document.getElementById('simplePanel').classList.toggle('hidden', !isSimple);
-  document.getElementById('advancedPanel').classList.toggle('hidden', isSimple);
-  document.getElementById('tabSimple').classList.toggle('active', isSimple);
-  document.getElementById('tabAdv').classList.toggle('active', !isSimple);
-  renderCard();
-}
-
-function loadSimpleSample() {
-  document.getElementById('s-title').value    = '📈 새해 코스피는 내가 이끈다!';
-  document.getElementById('s-title2').value   = '케이뱅크 상장, 공모가 확정';
-  document.getElementById('s-subtitle').value = '신규 상장 시장 전망 2026';
-  document.getElementById('s-body').value     = '무신사 8조원 이상\n한화에너지 5조원 이상\n케이뱅크 3조 3,673억';
-  document.getElementById('s-source').value   = '출처: 관련 언론보도';
-  document.getElementById('s-brand').value    = '@instagram';
-  syncSimpleToPage();
-  renderCard();
-}
-
-['s-title','s-title2','s-subtitle','s-body','s-source','s-brand'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => { syncSimpleToPage(); renderCard(); });
-});
-
-// UI bindings
-document.querySelectorAll('.size-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.size-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');sizeKey=b.dataset.size;renderCard();});
-document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.theme-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');themeKey=b.dataset.theme;document.getElementById('bgColor').value=themes[themeKey].bg;renderCard();});
-document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').classList.toggle('hidden', bgMode!=='image');renderCard();});
-document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
-document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;if(tableInputMode==='grid') syncGridFromText();renderCard();});
-/* table input mode is controlled by single toggle button */
-document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
-document.querySelectorAll('.bodybgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodybgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');setBodyBgUI();savePage();renderCard();});
-document.querySelectorAll('.headvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.headvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
-document.querySelectorAll('.subvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.subvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
-document.querySelectorAll('.sourcevis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sourcevis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
-document.querySelectorAll('.brandvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.brandvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
-document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
-document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
-
-['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','bodyBgColor','bodyBgOpacity','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
-  if(id==='pageCount') syncPages();
-  
-  renderCard();
-}));
-
-document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
-document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
-document.getElementById('bodyBgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyBgImageData=ev.target.result;savePage();renderCard();};r.readAsDataURL(f);});
-
-// init
-pages[0]={
-  title:'📈 새해 코스피는 내가 이끈다!',
-  title2:'케이뱅크 상장, 공모가 확정',
-  subtitle:'신규 상장 시장 전망 2026',
-  label:'2026년 IPO 예상 주요 기업',
-  source:'출처: 관련 언론보도',
-  brand:'@instagram',
-  showHeadline:true,
-  showSubtitle:true,
-  showSource:true,
-  showBrand:true,
-  showPage:true,
-  h1Scale:100,
-  h2Scale:100,
-  subScale:100,
-  titleY:8,
-  bodyScale:100,
-  bodyType:'table',
-  bodyText:'',
-  tableText:'기업명,예상기업가치,주요 사업\n무신사,8조원 이상,패션 플랫폼\n한화에너지,5조원 이상,에너지 발전·공급\n케이뱅크,3조 3,673억,인터넷전문은행',
-  bodyImageData:'',
-  bodyBgMode:'solid',
-  bodyBgColor:'#ffffff',
-  bodyBgOpacity:100,
-  bodyBgImageData:''
-};
-fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncGridFromText(false); syncPageToSimple(); renderCard();
-</script>
+    // init
+    pages[0] = {
+      title: '📈 새해 코스피는 내가 이끈다!',
+      title2: '케이뱅크 상장, 공모가 확정',
+      subtitle: '신규 상장 시장 전망 2026',
+      label: '2026년 IPO 예상 주요 기업',
+      source: '출처: 관련 언론보도',
+      brand: '@instagram',
+      showHeadline: true,
+      showSubtitle: true,
+      showSource: true,
+      showBrand: true,
+      showPage: true,
+      h1Scale: 100,
+      h2Scale: 100,
+      subScale: 100,
+      titleY: 8,
+      bodyScale: 100,
+      bodyType: 'table',
+      bodyText: '',
+      tableText: '기업명,예상기업가치,주요 사업\n무신사,8조원 이상,패션 플랫폼\n한화에너지,5조원 이상,에너지 발전·공급\n케이뱅크,3조 3,673억,인터넷전문은행',
+      bodyImageData: '',
+      bodyBgMode: 'solid',
+      bodyBgColor: '#ffffff',
+      bodyBgOpacity: 100,
+      bodyBgImageData: '',
+      showGuide: true,
+      snapGuide: true
+    };
+    fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncGridFromText(false); syncPageToSimple(); renderCard();
+  </script>
 </body>
+
 </html>
