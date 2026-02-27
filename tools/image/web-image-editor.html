@@ -465,31 +465,99 @@
                 </button>
                 <!-- Flyout Shape Menu -->
                 <div id="shapeMenu" class="hidden"
-                    style="position:absolute; left:72px; top:-10px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px; display:grid; grid-template-columns:1fr 1fr; gap:4px; z-index:200; box-shadow:0 4px 12px rgba(0,0,0,0.15); width: max-content;">
-                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                    style="position:absolute; left:72px; top:-10px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px; display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; z-index:200; box-shadow:0 10px 30px rgba(0,0,0,0.3); width: max-content;">
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
                         onclick="addShape('rect'); toggleShapeMenu()" title="사각형"><span class="tool-icon"
-                            style="margin:0">⬛</span></button>
-                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                            style="margin:0;font-size:16px;">⬛</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
                         onclick="addShape('circle'); toggleShapeMenu()" title="원"><span class="tool-icon"
-                            style="margin:0">⚫</span></button>
-                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                            style="margin:0;font-size:16px;">⚫</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('ellipse'); toggleShapeMenu()" title="타원"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">🏈</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
                         onclick="addShape('triangle'); toggleShapeMenu()" title="삼각형"><span class="tool-icon"
-                            style="margin:0">▲</span></button>
-                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
-                        onclick="addShape('line'); toggleShapeMenu()" title="선/화살표"><span class="tool-icon"
-                            style="margin:0">➖</span></button>
-                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                            style="margin:0;font-size:16px;">▲</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('line'); toggleShapeMenu()" title="선"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">➖</span></button>
+
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('pentagon'); toggleShapeMenu()" title="오각형"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">⬟</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('hexagon'); toggleShapeMenu()" title="육각형"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">⬢</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('octagon'); toggleShapeMenu()" title="팔각형"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">🛑</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('rhombus'); toggleShapeMenu()" title="마름모"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">◆</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('parallelogram'); toggleShapeMenu()" title="평행사변형"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">▱</span></button>
+
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('arrow-right'); toggleShapeMenu()" title="오른쪽 화살표"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">➡</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('arrow-left'); toggleShapeMenu()" title="왼쪽 화살표"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">⬅</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('arrow-up'); toggleShapeMenu()" title="위 화살표"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">⬆</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('arrow-down'); toggleShapeMenu()" title="아래 화살표"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">⬇</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('check'); toggleShapeMenu()" title="체크"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">✔</span></button>
+
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('plus'); toggleShapeMenu()" title="더하기"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">➕</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('minus'); toggleShapeMenu()" title="빼기"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">〰️</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('cross'); toggleShapeMenu()" title="엑스"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">❌</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('home'); toggleShapeMenu()" title="집"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">🏠</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('message'); toggleShapeMenu()" title="말풍선"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">💬</span></button>
+
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('bookmark'); toggleShapeMenu()" title="북마크"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">🔖</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('tag'); toggleShapeMenu()" title="태그"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">🏷️</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
                         onclick="addShape('heart'); toggleShapeMenu()" title="하트"><span class="tool-icon"
-                            style="margin:0">❤️</span></button>
-                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                            style="margin:0;font-size:16px;">❤️</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
                         onclick="addShape('star'); toggleShapeMenu()" title="별"><span class="tool-icon"
-                            style="margin:0">⭐</span></button>
-                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                            style="margin:0;font-size:16px;">⭐</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('sun'); toggleShapeMenu()" title="태양/빛"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">☀️</span></button>
+
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('moon'); toggleShapeMenu()" title="달"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">🌙</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
+                        onclick="addShape('cloud'); toggleShapeMenu()" title="구름"><span class="tool-icon"
+                            style="margin:0;font-size:16px;">☁️</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
                         onclick="addShape('bolt'); toggleShapeMenu()" title="번개"><span class="tool-icon"
-                            style="margin:0">⚡</span></button>
-                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                            style="margin:0;font-size:16px;">⚡</span></button>
+                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
                         onclick="addShape('smile'); toggleShapeMenu()" title="스마일"><span class="tool-icon"
-                            style="margin:0">🙂</span></button>
+                            style="margin:0;font-size:16px;">🙂</span></button>
                 </div>
             </div>
         </div>
@@ -1274,46 +1342,90 @@
             canvas.setActiveObject(t);
         }
 
+        function getPolygonPoints(type, baseDim) {
+            const createRegularPolygon = (sides) => {
+                const points = [];
+                for (let i = 0; i < sides; i++) {
+                    const angle = (i * 2 * Math.PI / sides) - (Math.PI / 2);
+                    points.push({ x: 50 * Math.cos(angle), y: 50 * Math.sin(angle) });
+                }
+                return points;
+            };
+
+            const mapToDim = (pts) => pts.map(p => ({ x: (p.x / 100 - 0.5) * baseDim, y: (p.y / 100 - 0.5) * baseDim }));
+
+            if (type === 'pentagon') return createRegularPolygon(5).map(p => ({ x: p.x / 100 * baseDim, y: p.y / 100 * baseDim }));
+            if (type === 'hexagon') return createRegularPolygon(6).map(p => ({ x: p.x / 100 * baseDim, y: p.y / 100 * baseDim }));
+            if (type === 'octagon') return createRegularPolygon(8).map(p => ({ x: p.x / 100 * baseDim, y: p.y / 100 * baseDim }));
+            if (type === 'rhombus') return mapToDim([{ x: 50, y: 0 }, { x: 100, y: 50 }, { x: 50, y: 100 }, { x: 0, y: 50 }]);
+            if (type === 'parallelogram') return mapToDim([{ x: 25, y: 0 }, { x: 100, y: 0 }, { x: 75, y: 100 }, { x: 0, y: 100 }]);
+            if (type === 'arrow-right') return mapToDim([{ x: 0, y: 25 }, { x: 50, y: 25 }, { x: 50, y: 0 }, { x: 100, y: 50 }, { x: 50, y: 100 }, { x: 50, y: 75 }, { x: 0, y: 75 }]);
+            if (type === 'arrow-left') return mapToDim([{ x: 100, y: 25 }, { x: 50, y: 25 }, { x: 50, y: 0 }, { x: 0, y: 50 }, { x: 50, y: 100 }, { x: 50, y: 75 }, { x: 100, y: 75 }]);
+            if (type === 'arrow-up') return mapToDim([{ x: 25, y: 100 }, { x: 25, y: 50 }, { x: 0, y: 50 }, { x: 50, y: 0 }, { x: 100, y: 50 }, { x: 75, y: 50 }, { x: 75, y: 100 }]);
+            if (type === 'arrow-down') return mapToDim([{ x: 25, y: 0 }, { x: 75, y: 0 }, { x: 75, y: 50 }, { x: 100, y: 50 }, { x: 50, y: 100 }, { x: 0, y: 50 }, { x: 25, y: 50 }]);
+            if (type === 'plus') return mapToDim([{ x: 35, y: 0 }, { x: 65, y: 0 }, { x: 65, y: 35 }, { x: 100, y: 35 }, { x: 100, y: 65 }, { x: 65, y: 65 }, { x: 65, y: 100 }, { x: 35, y: 100 }, { x: 35, y: 65 }, { x: 0, y: 65 }, { x: 0, y: 35 }, { x: 35, y: 35 }]);
+            if (type === 'cross') return mapToDim([{ x: 15, y: 0 }, { x: 50, y: 35 }, { x: 85, y: 0 }, { x: 100, y: 15 }, { x: 65, y: 50 }, { x: 100, y: 85 }, { x: 85, y: 100 }, { x: 50, y: 65 }, { x: 15, y: 100 }, { x: 0, y: 85 }, { x: 35, y: 50 }, { x: 0, y: 15 }]);
+            if (type === 'check') return mapToDim([{ x: 15, y: 45 }, { x: 40, y: 70 }, { x: 85, y: 5 }, { x: 100, y: 20 }, { x: 40, y: 100 }, { x: 0, y: 60 }]);
+            if (type === 'home') return mapToDim([{ x: 50, y: 0 }, { x: 100, y: 40 }, { x: 85, y: 40 }, { x: 85, y: 100 }, { x: 15, y: 100 }, { x: 15, y: 40 }, { x: 0, y: 40 }]);
+            if (type === 'message') return mapToDim([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 70 }, { x: 30, y: 70 }, { x: 0, y: 100 }, { x: 0, y: 0 }]);
+            if (type === 'bookmark') return mapToDim([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 50, y: 70 }, { x: 0, y: 100 }]);
+            if (type === 'tag') return mapToDim([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 50 }, { x: 50, y: 100 }, { x: 0, y: 50 }]);
+
+            return null;
+        }
+
         function addShape(type) {
             const center = getCenter();
             let obj;
             const baseDim = Math.min(canvas.width, canvas.height) * 0.3;
+            const defaultColor = '#ffbd2e';
 
+            // Basic built-in Fabric geometries
             if (type === 'rect') {
                 obj = new fabric.Rect({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim * 1.5, height: baseDim, fill: '#cfd4de', rx: 8, ry: 8 });
             } else if (type === 'circle') {
                 obj = new fabric.Circle({ left: center.x, top: center.y, originX: 'center', originY: 'center', radius: baseDim / 2, fill: '#5f6fdd' });
+            } else if (type === 'ellipse') {
+                obj = new fabric.Ellipse({ left: center.x, top: center.y, originX: 'center', originY: 'center', rx: baseDim * 0.75, ry: baseDim / 2, fill: '#5f6fdd' });
             } else if (type === 'triangle') {
-                obj = new fabric.Triangle({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim, height: baseDim, fill: '#ffbd2e' });
+                obj = new fabric.Triangle({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim, height: baseDim, fill: defaultColor });
             } else if (type === 'line') {
                 obj = new fabric.Line([center.x - baseDim, center.y, center.x + baseDim, center.y], {
-                    stroke: '#1d1d1f',
-                    strokeWidth: 8,
-                    originX: 'center',
-                    originY: 'center'
+                    stroke: '#1d1d1f', strokeWidth: 8, originX: 'center', originY: 'center'
                 });
-            } else if (type === 'heart') {
-                const path = "M 272.70141,238.71731 C 206.46141,238.71731 152.70146,292.4773 152.70146,358.71731 C 152.70146,493.47282 288.63461,528.80461 381.26391,662.02535 C 468.83815,529.62199 609.82641,489.17075 609.82641,358.71731 C 609.82641,292.4773 556.06651,238.71731 489.82641,238.71731 C 441.77681,238.71731 400.42481,266.90222 381.26391,309.51385 C 362.10311,266.90222 320.75111,238.71731 272.70141,238.71731 z";
-                obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: '#ff5f57' });
-                // Scale path to fit baseDim
-                const bound = obj.getBoundingRect();
-                obj.scale(baseDim / Math.max(bound.width, bound.height));
-            } else if (type === 'star') {
-                const path = "M 119.349 27.601 L 140.404 90.963 L 206.848 91.56 L 153.305 131.25 L 173.238 194.88 L 119.349 156.4 L 65.461 194.88 L 85.393 131.25 L 31.851 91.56 L 98.295 90.963 Z";
-                obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: '#ffbd2e' });
-                const bound = obj.getBoundingRect();
-                obj.scale(baseDim / Math.max(bound.width, bound.height));
-            } else if (type === 'bolt') {
-                const path = "M 152.33 13.92 L 63.85 158.42 L 129.23 158.42 L 102.34 290.79 L 210.89 126.96 L 142.14 126.96 Z";
-                obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: '#ffbd2e' });
-                const bound = obj.getBoundingRect();
-                obj.scale(baseDim / Math.max(bound.width, bound.height));
-            } else if (type === 'smile') {
-                // simple face svg path
-                const path = "M 100 0 A 100 100 0 1 0 100 200 A 100 100 0 1 0 100 0 Z M 65 65 A 15 15 0 1 1 65 95 A 15 15 0 1 1 65 65 Z M 135 65 A 15 15 0 1 1 135 95 A 15 15 0 1 1 135 65 Z M 100 150 C 70 150 50 120 50 120 L 65 110 C 65 110 80 135 100 135 C 120 135 135 110 135 110 L 150 120 C 150 120 130 150 100 150 Z";
-                obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: '#ffbd2e' });
-                const bound = obj.getBoundingRect();
-                obj.scale(baseDim / Math.max(bound.width, bound.height));
+            } else if (type === 'minus') {
+                obj = new fabric.Rect({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim, height: baseDim * 0.2, fill: defaultColor, rx: 4, ry: 4 });
+            } else {
+                // Polygon geometries
+                const points = getPolygonPoints(type, baseDim);
+                if (points) {
+                    obj = new fabric.Polygon(points, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: defaultColor, objectCaching: false });
+                } else {
+                    // SVG Paths fallback
+                    let path = "";
+                    if (type === 'heart') {
+                        path = "M 272.70141,238.71731 C 206.46141,238.71731 152.70146,292.4773 152.70146,358.71731 C 152.70146,493.47282 288.63461,528.80461 381.26391,662.02535 C 468.83815,529.62199 609.82641,489.17075 609.82641,358.71731 C 609.82641,292.4773 556.06651,238.71731 489.82641,238.71731 C 441.77681,238.71731 400.42481,266.90222 381.26391,309.51385 C 362.10311,266.90222 320.75111,238.71731 272.70141,238.71731 z";
+                    } else if (type === 'star') {
+                        path = "M 119.349 27.601 L 140.404 90.963 L 206.848 91.56 L 153.305 131.25 L 173.238 194.88 L 119.349 156.4 L 65.461 194.88 L 85.393 131.25 L 31.851 91.56 L 98.295 90.963 Z";
+                    } else if (type === 'bolt') {
+                        path = "M 152.33 13.92 L 63.85 158.42 L 129.23 158.42 L 102.34 290.79 L 210.89 126.96 L 142.14 126.96 Z";
+                    } else if (type === 'smile') {
+                        path = "M 100 0 A 100 100 0 1 0 100 200 A 100 100 0 1 0 100 0 Z M 65 65 A 15 15 0 1 1 65 95 A 15 15 0 1 1 65 65 Z M 135 65 A 15 15 0 1 1 135 95 A 15 15 0 1 1 135 65 Z M 100 150 C 70 150 50 120 50 120 L 65 110 C 65 110 80 135 100 135 C 120 135 135 110 135 110 L 150 120 C 150 120 130 150 100 150 Z";
+                    } else if (type === 'cloud') {
+                        path = "M 30,70 A 20,20 0 0,1 30,30 A 25,25 0 0,1 70,25 A 20,20 0 0,1 70,70 Z";
+                    } else if (type === 'moon') {
+                        path = "M 50,10 A 40,40 0 1,0 90,50 A 30,30 0 0,1 50,10 Z";
+                    } else if (type === 'sun') {
+                        path = "M 50 10 L 60 25 L 75 25 L 75 40 L 90 50 L 75 60 L 75 75 L 60 75 L 50 90 L 40 75 L 25 75 L 25 60 L 10 50 L 25 40 L 25 25 L 40 25 Z";
+                    }
+
+                    if (path) {
+                        obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: defaultColor, objectCaching: false });
+                        // Scale path to fit baseDim
+                        const bound = obj.getBoundingRect();
+                        obj.scale(baseDim / Math.max(bound.width, bound.height));
+                    }
+                }
             }
 
             if (obj) {
