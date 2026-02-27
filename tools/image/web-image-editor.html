@@ -555,6 +555,36 @@
                         </select>
                     </div>
                     <div class="prop-row">
+                        <span class="prop-label">Size</span>
+                        <input type="number" id="fontSize" class="prop-input size-input-box" min="10" max="500"
+                            value="40" onchange="updateTextSize(this.value)">
+                        <span style="font-size:10px; color:var(--text-muted)">px</span>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Outline</span>
+                        <div class="prop-input-group" style="gap:8px;">
+                            <label class="color-wrap" style="flex:0 0 auto;">
+                                <input type="color" id="textStrokeColor" class="color-picker" value="#ffffff"
+                                    onchange="updateTextOutline()">
+                            </label>
+                            <input type="number" id="textStrokeWidth" class="prop-input size-input-box" min="0" max="30"
+                                value="0" style="width:48px;" title="외곽선 두께" onchange="updateTextOutline()">
+                            <span style="font-size:10px; color:var(--text-muted)">px</span>
+                        </div>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Bg Color</span>
+                        <div class="prop-input-group" style="gap:8px;">
+                            <label class="color-wrap" style="flex:1;">
+                                <input type="color" id="textBgColor" class="color-picker"
+                                    onchange="updateTextBg(this.value)">
+                                <span class="color-hex" id="textBgColorHex" style="font-size:10px;">None</span>
+                            </label>
+                            <button class="action-btn" onclick="updateTextBg('')"
+                                style="padding:4px 8px; font-size:10px; flex:unset;">X</button>
+                        </div>
+                    </div>
+                    <div class="prop-row">
                         <span class="prop-label">Style</span>
                         <div class="btn-group">
                             <button class="action-btn" id="btnBold" onclick="toggleStyle('bold')">B</button>
@@ -940,6 +970,20 @@
                 document.getElementById('fontFamily').value = obj.fontFamily || 'Pretendard Variable';
                 document.getElementById('btnBold').classList.toggle('active', obj.fontWeight === 'bold');
                 document.getElementById('btnItalic').classList.toggle('active', obj.fontStyle === 'italic');
+
+                // 텍스트 추가 속성 반영
+                // 사용자가 캔버스에서 코너를 당겨 scale을 바꿀수 있으므로 시각적 최종 폰트 크기를 보여줌
+                document.getElementById('fontSize').value = Math.round((obj.fontSize || 40) * (obj.scaleX || 1));
+
+                document.getElementById('textStrokeColor').value = obj.stroke || '#ffffff';
+                document.getElementById('textStrokeWidth').value = obj.strokeWidth || 0;
+
+                if (obj.textBackgroundColor) {
+                    document.getElementById('textBgColor').value = obj.textBackgroundColor;
+                    document.getElementById('textBgColorHex').textContent = obj.textBackgroundColor.toUpperCase();
+                } else {
+                    document.getElementById('textBgColorHex').textContent = 'None';
+                }
             }
 
             // 이미지 필터 속성창 표시 토글
@@ -982,10 +1026,49 @@
             const val = e.target.value;
             document.getElementById('objColorHex').textContent = val.toUpperCase();
             if (!obj) return;
+            // 텍스트는 stroke가 외곽선으로 쓰이므로 fill만 변경
             if (obj.type === 'path' || obj.type === 'line') obj.set('stroke', val);
             else obj.set('fill', val);
             canvas.renderAll();
         });
+
+        // 텍스트 크기 직접 입력 시 크기 조절
+        function updateTextSize(val) {
+            const obj = canvas.getActiveObject();
+            if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
+            const size = parseInt(val, 10);
+            if (isNaN(size)) return;
+            // scaleX, scaleY를 시각적으로 초기화하고 실제 fontSize를 반영
+            obj.set({ fontSize: size, scaleX: 1, scaleY: 1 });
+            canvas.renderAll();
+        }
+
+        // 텍스트 외곽선 (Stroke)
+        function updateTextOutline() {
+            const obj = canvas.getActiveObject();
+            if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
+            const color = document.getElementById('textStrokeColor').value;
+            const width = parseInt(document.getElementById('textStrokeWidth').value, 10);
+            obj.set({ stroke: color, strokeWidth: width });
+            canvas.renderAll();
+        }
+
+        // 텍스트 배경 (Highlight)
+        function updateTextBg(val) {
+            const obj = canvas.getActiveObject();
+            const hexLbl = document.getElementById('textBgColorHex');
+
+            if (!val) {
+                hexLbl.textContent = 'None';
+                if (!obj) return;
+                obj.set('textBackgroundColor', null);
+            } else {
+                hexLbl.textContent = val.toUpperCase();
+                if (!obj) return;
+                obj.set('textBackgroundColor', val);
+            }
+            canvas.renderAll();
+        }
 
         function toggleStyle(type) {
             const obj = canvas.getActiveObject();
