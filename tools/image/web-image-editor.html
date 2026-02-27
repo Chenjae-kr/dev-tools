@@ -466,98 +466,181 @@
                 <!-- Flyout Shape Menu -->
                 <div id="shapeMenu" class="hidden"
                     style="position:absolute; left:72px; top:-10px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px; display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; z-index:200; box-shadow:0 10px 30px rgba(0,0,0,0.3); width: max-content;">
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('rect'); toggleShapeMenu()" title="사각형"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">⬛</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('circle'); toggleShapeMenu()" title="원"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">⚫</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('ellipse'); toggleShapeMenu()" title="타원"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">🏈</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('triangle'); toggleShapeMenu()" title="삼각형"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">▲</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('line'); toggleShapeMenu()" title="선"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">➖</span></button>
+                    <style>
+                        #shapeMenu .tool-btn svg {
+                            width: 20px;
+                            height: 20px;
+                            fill: currentColor;
+                        }
 
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('pentagon'); toggleShapeMenu()" title="오각형"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">⬟</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('hexagon'); toggleShapeMenu()" title="육각형"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">⬢</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('octagon'); toggleShapeMenu()" title="팔각형"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">🛑</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('rhombus'); toggleShapeMenu()" title="마름모"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">◆</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('parallelogram'); toggleShapeMenu()" title="평행사변형"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">▱</span></button>
+                        #shapeMenu .tool-btn {
+                            width: 36px;
+                            height: 36px;
+                            border: none;
+                            color: var(--text);
+                        }
+                    </style>
+                    <button class="tool-btn" onclick="addShape('rect'); toggleShapeMenu()" title="사각형">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('circle'); toggleShapeMenu()" title="원">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('ellipse'); toggleShapeMenu()" title="타원">
+                        <svg viewBox="0 0 24 24">
+                            <ellipse cx="12" cy="12" rx="11" ry="6" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('triangle'); toggleShapeMenu()" title="삼각형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="12,3 22,21 2,21" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('line'); toggleShapeMenu()" title="선">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="3" />
+                        </svg>
+                    </button>
 
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('arrow-right'); toggleShapeMenu()" title="오른쪽 화살표"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">➡</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('arrow-left'); toggleShapeMenu()" title="왼쪽 화살표"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">⬅</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('arrow-up'); toggleShapeMenu()" title="위 화살표"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">⬆</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('arrow-down'); toggleShapeMenu()" title="아래 화살표"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">⬇</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('check'); toggleShapeMenu()" title="체크"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">✔</span></button>
+                    <button class="tool-btn" onclick="addShape('pentagon'); toggleShapeMenu()" title="오각형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="12,2 22,9.5 18,21 6,21 2,9.5" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('hexagon'); toggleShapeMenu()" title="육각형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="12,2 21,7 21,17 12,22 3,17 3,7" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('octagon'); toggleShapeMenu()" title="팔각형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="8,2 16,2 22,8 22,16 16,22 8,22 2,16 2,8" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('rhombus'); toggleShapeMenu()" title="마름모">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="12,2 22,12 12,22 2,12" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('parallelogram'); toggleShapeMenu()" title="평행사변형">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="6,4 22,4 18,20 2,20" />
+                        </svg>
+                    </button>
 
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('plus'); toggleShapeMenu()" title="더하기"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">➕</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('minus'); toggleShapeMenu()" title="빼기"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">〰️</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('cross'); toggleShapeMenu()" title="엑스"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">❌</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('home'); toggleShapeMenu()" title="집"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">🏠</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('message'); toggleShapeMenu()" title="말풍선"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">💬</span></button>
+                    <button class="tool-btn" onclick="addShape('arrow-right'); toggleShapeMenu()" title="오른쪽 화살표">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="2,8 12,8 12,3 22,12 12,21 12,16 2,16" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('arrow-left'); toggleShapeMenu()" title="왼쪽 화살표">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="22,16 12,16 12,21 2,12 12,3 12,8 22,8" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('arrow-up'); toggleShapeMenu()" title="위 화살표">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="8,22 8,12 3,12 12,2 21,12 16,12 16,22" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('arrow-down'); toggleShapeMenu()" title="아래 화살표">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="16,2 16,12 21,12 12,22 3,12 8,12 8,2" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('check'); toggleShapeMenu()" title="체크">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="9,16.2 4.8,12 3.4,13.4 9,19 21,7 19.6,5.6" />
+                        </svg>
+                    </button>
 
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('bookmark'); toggleShapeMenu()" title="북마크"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">🔖</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('tag'); toggleShapeMenu()" title="태그"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">🏷️</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('heart'); toggleShapeMenu()" title="하트"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">❤️</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('star'); toggleShapeMenu()" title="별"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">⭐</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('sun'); toggleShapeMenu()" title="태양/빛"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">☀️</span></button>
+                    <button class="tool-btn" onclick="addShape('plus'); toggleShapeMenu()" title="더하기">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="19,10 14,10 14,5 10,5 10,10 5,10 5,14 10,14 10,19 14,19 14,14 19,14" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('minus'); toggleShapeMenu()" title="빼기">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="4" y="10" width="16" height="4" rx="1" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('cross'); toggleShapeMenu()" title="엑스">
+                        <svg viewBox="0 0 24 24">
+                            <polygon
+                                points="19,6.4 17.6,5 12,10.6 6.4,5 5,6.4 10.6,12 5,17.6 6.4,19 12,13.4 17.6,19 19,17.6 13.4,12" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('home'); toggleShapeMenu()" title="집">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('message'); toggleShapeMenu()" title="말풍선">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                        </svg>
+                    </button>
 
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('moon'); toggleShapeMenu()" title="달"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">🌙</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('cloud'); toggleShapeMenu()" title="구름"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">☁️</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('bolt'); toggleShapeMenu()" title="번개"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">⚡</span></button>
-                    <button class="tool-btn" style="width:36px;height:36px;border:none;"
-                        onclick="addShape('smile'); toggleShapeMenu()" title="스마일"><span class="tool-icon"
-                            style="margin:0;font-size:16px;">🙂</span></button>
+                    <button class="tool-btn" onclick="addShape('bookmark'); toggleShapeMenu()" title="북마크">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('tag'); toggleShapeMenu()" title="태그">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.41l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.41zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('heart'); toggleShapeMenu()" title="하트">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('star'); toggleShapeMenu()" title="별">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('sun'); toggleShapeMenu()" title="태양/빛">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 14c-1.06 0-2.06-.23-2.98-.63l.71-1.72c.7.23 1.46.35 2.27.35 4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8c0 .81.12 1.57.35 2.27l-1.72.71A9.957 9.957 0 012 12C2 6.48 6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z\nM10.74 18.06l-.5-1.93 1.76-.46.5 1.93-1.76.46zm4.84-2l-1.42-1.41 1.28-1.28 1.41 1.42-1.27 1.27zm1.19-4.82l-1.93.5-.46-1.76 1.93-.5.46 1.76zm-2-4.84l-1.41 1.42-1.28-1.27 1.42-1.41 1.27 1.26z" />
+                        </svg>
+                    </button>
+
+                    <button class="tool-btn" onclick="addShape('moon'); toggleShapeMenu()" title="달">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M11 3.03v2.09A7.994 7.994 0 0014.28 21 8.995 8.995 0 013 12c0-3.66 2.18-6.79 5.37-8.19A8.994 8.994 0 0011 3.03zm1 1.05A6.002 6.002 0 0121 12c0 3.31-2.69 6-6 6-1.99 0-3.76-.98-4.86-2.48A7 7 0 0012 4.08z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('cloud'); toggleShapeMenu()" title="구름">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('bolt'); toggleShapeMenu()" title="번개">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="11,21 11,13 6,13 14,3 14,11 19,11" />
+                        </svg>
+                    </button>
+                    <button class="tool-btn" onclick="addShape('smile'); toggleShapeMenu()" title="스마일">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+                            <circle cx="8" cy="9" r="1.5" />
+                            <circle cx="16" cy="9" r="1.5" />
+                            <path d="M7.5 14c1.5 2 4.5 3 7.5 0" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>
