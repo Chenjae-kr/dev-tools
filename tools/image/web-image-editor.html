@@ -546,7 +546,7 @@
                 <div id="textPropsBar" class="hidden" style="margin-top:16px;">
                     <div class="prop-row">
                         <span class="prop-label">Font</span>
-                        <select id="fontFamily" class="prop-input" onchange="updateObj('fontFamily', this.value)">
+                        <select id="fontFamily" class="prop-input" onchange="updateFont(this.value)">
                             <option value="Pretendard Variable">Pretendard (고딕)</option>
                             <option value="Noto Sans KR">Noto Sans KR (고딕)</option>
                             <option value="Noto Serif KR">Noto Serif KR (명조)</option>
@@ -1033,6 +1033,30 @@
             else obj.set('fill', val);
             canvas.renderAll();
         });
+
+        // 웹 폰트를 캔버스에 그리기 전에 명시적으로 브라우저에 로드 (캔버스 미적용 버그 픽스)
+        function updateFont(fontName) {
+            const obj = canvas.getActiveObject();
+            if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
+
+            // 시스템 기본 폰트는 그냥 바로 적용
+            if (fontName === 'sans-serif') {
+                obj.set('fontFamily', fontName);
+                canvas.renderAll();
+                return;
+            }
+
+            // 웹 폰트는 document.fonts.load를 통해 확실히 로드된 후 적용해야 캔버스에 그려짐
+            document.fonts.load(`16px "${fontName}"`).then(() => {
+                obj.set('fontFamily', fontName);
+                canvas.renderAll();
+            }).catch(err => {
+                // 로드 실패 시에도 일단 적용 시도
+                console.warn('Font load error:', err);
+                obj.set('fontFamily', fontName);
+                canvas.renderAll();
+            });
+        }
 
         // 텍스트 크기 직접 입력 시 크기 조절
         function updateTextSize(val) {
