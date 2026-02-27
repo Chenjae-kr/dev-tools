@@ -2,414 +2,74 @@
 <html lang="ko" data-theme="light">
 
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" type="image/svg+xml" href="/dev-tools/favicon.svg">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Instagram Card News Maker | Dev Tools</title>
-  <script src="../../tools.js"></script>
-  <script src="../../nav.js"></script>
-  <script src="../../ui-utils.js"></script>
-  <script src="../../image-tools-utils.js"></script>
-  <link rel="stylesheet" href="../../styles.css">
-  <style>
-    .canvas-wrap {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 14px;
-      background: var(--surface2);
-      border-radius: 10px;
-      border: 1px solid var(--border)
-    }
-
-    #cardCanvas {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      background: #fff
-    }
-
-    .input-area {
-      width: 100%;
-      background: transparent;
-      border: 1px solid var(--border);
-      outline: none;
-      color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      line-height: 1.6;
-      padding: 10px 12px;
-      resize: vertical;
-      min-height: 72px;
-      border-radius: 8px
-    }
-
-    .small {
-      max-width: 90px
-    }
-
-    .hidden {
-      display: none
-    }
-
-    .main-grid>.output-panel {
-      position: sticky;
-      top: 84px;
-      align-self: start
-    }
-
-    .main-grid>.output-panel .panel {
-      max-height: calc(100vh - 110px);
-      overflow: auto
-    }
-
-    @media (max-width: 980px) {
-      .main-grid>.output-panel {
-        position: static
-      }
-
-      .main-grid>.output-panel .panel {
-        max-height: none;
-        overflow: visible
-      }
-    }
-
-    .control-grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-      width: 100%
-    }
-
-    .control-grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      width: 100%
-    }
-
-    .quick-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap
-    }
-
-    .quick-actions .toggle-btn {
-      padding: 8px 10px
-    }
-
-    .table-dual {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px
-    }
-
-    .matrix-grid {
-      display: grid;
-      gap: 8px;
-      width: 100%
-    }
-
-    .matrix-grid.cols-1 {
-      grid-template-columns: repeat(1, minmax(0, 1fr))
-    }
-
-    .matrix-grid.cols-2 {
-      grid-template-columns: repeat(2, minmax(0, 1fr))
-    }
-
-    .matrix-grid.cols-3 {
-      grid-template-columns: repeat(3, minmax(0, 1fr))
-    }
-
-    .matrix-grid.cols-4 {
-      grid-template-columns: repeat(4, minmax(0, 1fr))
-    }
-
-    .matrix-grid.cols-5 {
-      grid-template-columns: repeat(5, minmax(0, 1fr))
-    }
-
-    .matrix-grid.cols-6 {
-      grid-template-columns: repeat(6, minmax(0, 1fr))
-    }
-
-    .matrix-grid.cols-7 {
-      grid-template-columns: repeat(7, minmax(0, 1fr))
-    }
-
-    .matrix-grid.cols-8 {
-      grid-template-columns: repeat(8, minmax(0, 1fr))
-    }
-
-    .matrix-grid.cols-9 {
-      grid-template-columns: repeat(9, minmax(0, 1fr))
-    }
-
-    .matrix-grid.cols-10 {
-      grid-template-columns: repeat(10, minmax(0, 1fr))
-    }
-
-    .matrix-grid .matrix-cell input {
-      width: 100%;
-      min-width: 0
-    }
-
-    .matrix-grid .matrix-head input {
-      font-weight: 700
-    }
-
-    .table-grid-wrap {
-      overflow: auto;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
-      background: var(--surface)
-    }
-
-    #presetSelect {
-      max-width: 220px
-    }
-
-    @media (max-width: 980px) {
-      .table-dual {
-        grid-template-columns: 1fr
-      }
-
-      .control-grid-4 {
-        grid-template-columns: 1fr 1fr
-      }
-    }
-
-    @media (max-width: 640px) {
-
-      .control-grid-4,
-      .control-grid-2 {
-        grid-template-columns: 1fr
-      }
-    }
-
-    .export-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 8px
-    }
-
-    .export-btn {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 14px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .15s
-    }
-
-    .export-btn.save {
-      background: linear-gradient(135deg, #1d7a4c, #1fbf75);
-      color: #fff;
-      border-color: rgba(31, 191, 117, .45)
-    }
-
-    .export-btn.single {
-      background: linear-gradient(135deg, #0f4db8, #2a77ff);
-      color: #fff;
-      border-color: rgba(66, 135, 255, .45)
-    }
-
-    .export-btn.all {
-      background: linear-gradient(135deg, #5a3bb2, #7a5cff);
-      color: #fff;
-      border-color: rgba(122, 92, 255, .45)
-    }
-
-    .export-btn:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.03)
-    }
-
-    .export-btn:active {
-      transform: translateY(0)
-    }
-
-    @media (max-width: 768px) {
-      .export-actions {
-        grid-template-columns: 1fr
-      }
-    }
-
-    /* ── Mode tabs ── */
-    .mode-tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      padding: 0 16px
-    }
-
-    .mode-tab {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .5px;
-      padding: 10px 14px;
-      border: none;
-      background: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: color .15s, border-color .15s
-    }
-
-    .mode-tab.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent)
-    }
-
-    .mode-tab:hover:not(.active) {
-      color: var(--text)
-    }
-
-    /* ── Template cards ── */
-    .tpl-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      padding: 12px 16px
-    }
-
-    .tpl-card {
-      border-radius: 8px;
-      border: 2px solid var(--border);
-      cursor: pointer;
-      overflow: hidden;
-      transition: border-color .15s, transform .1s;
-      position: relative
-    }
-
-    .tpl-card.active {
-      border-color: var(--accent)
-    }
-
-    .tpl-card:hover {
-      transform: translateY(-2px)
-    }
-
-    .tpl-card-inner {
-      width: 100%;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      min-height: 80px
-    }
-
-    .tpl-h1 {
-      font-size: 9px;
-      font-weight: 900;
-      line-height: 1.2
-    }
-
-    .tpl-h2 {
-      font-size: 8px;
-      font-weight: 700
-    }
-
-    .tpl-sep {
-      height: 1px;
-      background: rgba(255, 255, 255, 0.2);
-      margin: 2px 0
-    }
-
-    .tpl-body {
-      font-size: 7px;
-      line-height: 1.4;
-      opacity: .8
-    }
-
-    .tpl-name {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      font-weight: 700;
-      text-align: center;
-      padding: 4px 0;
-      color: var(--text-muted);
-      border-top: 1px solid var(--border)
-    }
-
-    .tpl-check {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #000;
-      font-size: 10px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900
-    }
-
-    .tpl-card.active .tpl-check {
-      display: flex
-    }
-
-    /* ── Simple mode fields ── */
-    .s-label {
-      display: block;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      letter-spacing: .5px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-bottom: 5px
-    }
-
-    .simple-textarea {
-      width: 100%;
-      background: transparent;
-      border: 1px solid var(--border);
-      outline: none;
-      color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      line-height: 1.6;
-      padding: 10px 12px;
-      resize: vertical;
-      border-radius: 8px
-    }
-
-    .s-field-wrap {
-      padding: 12px 16px
-    }
-
-    .s-brand-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 10px
-    }
-
-    .s-brand-row .s-label {
-      margin: 0;
-      min-width: 44px;
-      white-space: nowrap
-    }
-
-    .s-brand-row input {
-      flex: 1;
-      min-width: 80px
-    }
-
-    .s-brand-row .toggle-group {
-      flex-shrink: 0
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Card News Maker | Dev Tools</title>
+<script src="../../tools.js"></script>
+<script src="../../nav.js"></script>
+<script src="../../ui-utils.js"></script>
+<script src="../../image-tools-utils.js"></script>
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@6.2.2/dist/handsontable.min.css">
+<script src="https://cdn.jsdelivr.net/npm/handsontable@6.2.2/dist/handsontable.full.min.js"></script>
+<style>
+/* ── Handsontable dark theme overrides ── */
+.handsontable td,.handsontable th{background:var(--surface)!important;color:var(--text)!important;border-color:var(--border)!important}
+.handsontable thead th,.handsontable .ht_clone_top th{background:var(--surface2)!important;color:var(--text)!important;border-color:var(--border)!important}
+.handsontable .htCore thead{background:var(--surface2)!important}
+.handsontable .htContextMenu table.htCore td{background:var(--surface2)!important;color:var(--text)!important}
+.handsontable .htContextMenu table.htCore tr:first-child td{background:var(--surface2)!important}
+.handsontable .htContextMenu .htItemWrapper{color:var(--text)!important}
+.handsontable .current.highlight,.handsontable .area.highlight{background:rgba(79,255,176,0.10)!important}
+.handsontable .htBorders .wtBorder.current{background:var(--accent)!important}
+.handsontable .htBorders .wtBorder.area{background:var(--accent2)!important}
+.handsontable .changeType{background:var(--surface2)!important}
+.table-grid-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;padding:0;background:var(--surface)}
+.canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
+#cardCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
+.input-area{width:100%;background:transparent;border:1px solid var(--border);outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:72px;border-radius:8px}
+.small{max-width:90px}
+.hidden{display:none}
+.main-grid > .output-panel{position:sticky;top:84px;align-self:start}
+.main-grid > .output-panel .panel{max-height:calc(100vh - 110px);overflow:auto}
+@media (max-width: 980px){.main-grid > .output-panel{position:static}.main-grid > .output-panel .panel{max-height:none;overflow:visible}}
+.control-grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%}
+.control-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+.quick-actions{display:flex;gap:8px;flex-wrap:wrap}
+.quick-actions .toggle-btn{padding:8px 10px}
+.table-dual{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#presetSelect{max-width:220px}
+@media (max-width: 980px){.table-dual{grid-template-columns:1fr}.control-grid-4{grid-template-columns:1fr 1fr}}
+@media (max-width: 640px){.control-grid-4,.control-grid-2{grid-template-columns:1fr}}
+.export-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.export-btn{border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.export-btn.save{background:linear-gradient(135deg,#1d7a4c,#1fbf75);color:#fff;border-color:rgba(31,191,117,.45)}
+.export-btn.single{background:linear-gradient(135deg,#0f4db8,#2a77ff);color:#fff;border-color:rgba(66,135,255,.45)}
+.export-btn.all{background:linear-gradient(135deg,#5a3bb2,#7a5cff);color:#fff;border-color:rgba(122,92,255,.45)}
+.export-btn:hover{transform:translateY(-1px);filter:brightness(1.03)}
+.export-btn:active{transform:translateY(0)}
+@media (max-width: 768px){.export-actions{grid-template-columns:1fr}}
+/* ── Mode tabs ── */
+.mode-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 16px}
+.mode-tab{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;padding:10px 14px;border:none;background:none;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.mode-tab.active{color:var(--accent);border-bottom-color:var(--accent)}.mode-tab:hover:not(.active){color:var(--text)}
+/* ── Template cards ── */
+.tpl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px}
+.tpl-card{border-radius:8px;border:2px solid var(--border);cursor:pointer;overflow:hidden;transition:border-color .15s,transform .1s;position:relative}
+.tpl-card.active{border-color:var(--accent)}.tpl-card:hover{transform:translateY(-2px)}
+.tpl-card-inner{width:100%;padding:8px;display:flex;flex-direction:column;gap:3px;min-height:80px}
+.tpl-h1{font-size:9px;font-weight:900;line-height:1.2}.tpl-h2{font-size:8px;font-weight:700}
+.tpl-sep{height:1px;background:rgba(255,255,255,0.2);margin:2px 0}
+.tpl-body{font-size:7px;line-height:1.4;opacity:.8}
+.tpl-name{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;text-align:center;padding:4px 0;color:var(--text-muted);border-top:1px solid var(--border)}
+.tpl-check{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#000;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:900}
+.tpl-card.active .tpl-check{display:flex}
+/* ── Simple mode fields ── */
+.s-label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:5px}
+.simple-textarea{width:100%;background:transparent;border:1px solid var(--border);outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;border-radius:8px}
+.s-field-wrap{padding:0 16px 12px}
+.s-brand-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}.s-brand-row .s-label{margin:0;min-width:44px;white-space:nowrap}.s-brand-row input{flex:1;min-width:0}
+</style>
 </head>
 
 <body>
@@ -855,266 +515,609 @@
     </div>
     <footer>// Instagram Card News Maker</footer>
   </div>
+  <footer>// Instagram Card News Maker</footer>
+</div>
 
-  <dialog id="cardJsonDialog" class="json-dialog">
-    <div class="json-dialog-head">카드 전체 JSON 입력</div>
-    <textarea id="cardJsonDialogInput" class="input-area json-dialog-input"></textarea>
-    <div class="json-dialog-actions">
-      <button class="toggle-btn" onclick="closeCardJsonPopup()">취소</button>
-      <button class="download-btn single" onclick="applyCardJsonFromPopup()">적용</button>
-    </div>
-  </dialog>
+<script>
+const sizes = { '1:1':[1080,1080], '4:5':[1080,1350], '9:16':[1080,1920] };
+const themes = {
+  navy:{bg:'#0b122b',box:'#ffffff',accent:'#d41414',text:'#0b122b',sub:'#1a2b5f'},
+  blue:{bg:'#102c6d',box:'#ffffff',accent:'#0a52cc',text:'#111',sub:'#1f376e'},
+  green:{bg:'#0f2f24',box:'#ffffff',accent:'#0a7a4f',text:'#111',sub:'#24443a'}
+};
+let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
+let page=1, pages=[{}], bodyType='text';
+let exportFormat='png';
+let tableSepMode='auto';
+let tableInputMode='text';
+const PRESET_KEY='insta-card-presets-v1';
 
-  <script>
-    const sizes = { '1:1': [1080, 1080], '4:5': [1080, 1350], '9:16': [1080, 1920] };
-    const themes = {
-      navy: { bg: '#0b122b', box: '#ffffff', accent: '#d41414', text: '#0b122b', sub: '#1a2b5f' },
-      blue: { bg: '#102c6d', box: '#ffffff', accent: '#0a52cc', text: '#111', sub: '#1f376e' },
-      green: { bg: '#0f2f24', box: '#ffffff', accent: '#0a7a4f', text: '#111', sub: '#24443a' }
-    };
-    let sizeKey = '1:1', themeKey = 'navy', bgMode = 'color', bgImage = null;
-    let page = 1, pages = [{}], bodyType = 'text';
-    let exportFormat = 'png';
-    let tableSepMode = 'auto';
-    let tableDataMode = 'text';
-    let tableInputMode = 'text';
-    let presetScope = 'current';
-    const PRESET_KEY = 'insta-card-presets-v1';
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',bodyBgMode:'solid',bodyBgColor:'#ffffff',bodyBgOpacity:100,bodyBgImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
+function getCanvas(){return document.getElementById('cardCanvas');}
+function current(){return pages[page-1] || newPage();}
+function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
 
-    function newPage() { return { title: '', title2: '', subtitle: '', label: '', source: '출처: 관련 자료', brand: '@instagram', showHeadline: true, showSubtitle: true, showSource: true, showBrand: true, showPage: true, h1Scale: 100, h2Scale: 100, subScale: 100, titleY: 8, bodyScale: 100, bodyType: 'text', bodyText: '', tableText: '', bodyImageData: '', bodyBgMode: 'solid', bodyBgColor: '#ffffff', bodyBgOpacity: 100, bodyBgImageData: '', imgFit: 'cover', imgZoom: 100, imgPosX: 50, imgPosY: 50, showGuide: true, snapGuide: true }; }
-    function getCanvas() { return document.getElementById('cardCanvas'); }
-    function current() { return pages[page - 1] || newPage(); }
-    function setPageLabel() { document.getElementById('pageLabel').textContent = `${page} / ${pages.length}`; document.getElementById('pageCount').value = pages.length; }
+function getPresets(){
+  try { return JSON.parse(localStorage.getItem(PRESET_KEY) || '{}'); }
+  catch { return {}; }
+}
+function setPresets(obj){ localStorage.setItem(PRESET_KEY, JSON.stringify(obj)); }
+function refreshPresetSelect(){
+  const sel=document.getElementById('presetSelect');
+  const presets=getPresets();
+  const names=Object.keys(presets).sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML = `<option value="">프리셋 선택</option>` + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+}
+function collectPreset(){
+  return {
+    sizeKey, themeKey, bgMode, exportFormat,
+    bgColor:document.getElementById('bgColor').value,
+    titleColor1:document.getElementById('titleColor1').value,
+    titleColor2:document.getElementById('titleColor2').value,
+    imgQuality:parseInt(document.getElementById('imgQuality').value||'92',10),
+  };
+}
+function applyPreset(v){
+  if(!v) return;
+  sizeKey=v.sizeKey||sizeKey; themeKey=v.themeKey||themeKey; bgMode=v.bgMode||bgMode; exportFormat=v.exportFormat||exportFormat;
+  if(v.bgColor) document.getElementById('bgColor').value=v.bgColor;
+  if(v.titleColor1) document.getElementById('titleColor1').value=v.titleColor1;
+  if(v.titleColor2) document.getElementById('titleColor2').value=v.titleColor2;
+  if(v.imgQuality!=null) document.getElementById('imgQuality').value=v.imgQuality;
+  document.querySelectorAll('.size-btn').forEach(b=>b.classList.toggle('active', b.dataset.size===sizeKey));
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active', b.dataset.theme===themeKey));
+  document.querySelectorAll('.bgmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.bgmode===bgMode));
+  document.querySelectorAll('.exfmt-btn').forEach(b=>b.classList.toggle('active', b.dataset.fmt===exportFormat));
+  document.getElementById('bgImageInput').classList.toggle('hidden', bgMode!=='image');
+  renderCard();
+}
+function savePreset(){
+  const name=(document.getElementById('presetName').value||'').trim();
+  if(!name) return;
+  const presets=getPresets();
+  presets[name]=collectPreset();
+  setPresets(presets); refreshPresetSelect();
+  document.getElementById('presetSelect').value=name;
+}
+function loadPreset(){
+  const name=document.getElementById('presetSelect').value;
+  if(!name) return;
+  const presets=getPresets();
+  applyPreset(presets[name]);
+}
+function deletePreset(){
+  const name=document.getElementById('presetSelect').value;
+  if(!name) return;
+  const presets=getPresets();
+  delete presets[name];
+  setPresets(presets); refreshPresetSelect();
+}
 
-    function getPresets() {
-      try { return JSON.parse(localStorage.getItem(PRESET_KEY) || '{}'); }
-      catch { return {}; }
-    }
-    function setPresets(obj) { localStorage.setItem(PRESET_KEY, JSON.stringify(obj)); }
-    function refreshPresetSelect() {
-      const sel = document.getElementById('presetSelect');
-      const presets = getPresets();
-      const names = Object.keys(presets).sort((a, b) => a.localeCompare(b));
-      sel.innerHTML = `<option value="">프리셋 선택</option>` + names.map(n => `<option value="${n}">${n}</option>`).join('');
-    }
-    function collectPreset() {
-      const p = current();
-      return {
-        sizeKey, themeKey, bgMode, exportFormat,
-        bgColor: document.getElementById('bgColor').value,
-        titleColor1: document.getElementById('titleColor1').value,
-        titleColor2: document.getElementById('titleColor2').value,
-        imgQuality: parseInt(document.getElementById('imgQuality').value || '92', 10),
-        pageStyle: {
-          showHeadline: p.showHeadline !== false,
-          showSubtitle: p.showSubtitle !== false,
-          showSource: p.showSource !== false,
-          showBrand: p.showBrand !== false,
-          showPage: p.showPage !== false,
-          showGuide: p.showGuide !== false,
-          snapGuide: p.snapGuide !== false,
-          h1Scale: p.h1Scale ?? 100,
-          h2Scale: p.h2Scale ?? 100,
-          subScale: p.subScale ?? 100,
-          titleY: p.titleY ?? 8,
-          bodyScale: p.bodyScale ?? 100,
-          bodyBgMode: p.bodyBgMode || 'solid',
-          bodyBgColor: p.bodyBgColor || '#ffffff',
-          bodyBgOpacity: p.bodyBgOpacity ?? 100,
-          imgFit: p.imgFit || 'cover',
-          imgZoom: p.imgZoom ?? 100,
-          imgPosX: p.imgPosX ?? 50,
-          imgPosY: p.imgPosY ?? 50,
-        }
-      };
-    }
-    function applyPresetToPage(target, style) {
-      if (!style) return target;
-      return { ...target, ...style };
-    }
-    function applyPreset(v) {
-      if (!v) return;
-      sizeKey = v.sizeKey || sizeKey; themeKey = v.themeKey || themeKey; bgMode = v.bgMode || bgMode; exportFormat = v.exportFormat || exportFormat;
-      if (v.bgColor) document.getElementById('bgColor').value = v.bgColor;
-      if (v.titleColor1) document.getElementById('titleColor1').value = v.titleColor1;
-      if (v.titleColor2) document.getElementById('titleColor2').value = v.titleColor2;
-      if (v.imgQuality != null) document.getElementById('imgQuality').value = v.imgQuality;
-      document.querySelectorAll('.size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === sizeKey));
-      document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === themeKey));
-      document.querySelectorAll('.bgmode-btn').forEach(b => b.classList.toggle('active', b.dataset.bgmode === bgMode));
-      document.querySelectorAll('.exfmt-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === exportFormat));
-      syncExportQualityUI();
-      document.getElementById('bgImageInput').classList.toggle('hidden', bgMode !== 'image');
+function setBodyUI(){
+  document.getElementById('bodyTextWrap').classList.toggle('hidden', bodyType!=='text');
+  document.getElementById('bodyTableWrap').classList.toggle('hidden', bodyType!=='table');
+  document.getElementById('bodyImageWrap').classList.toggle('hidden', bodyType!=='image');
+  updateInputModeToggle();
+}
 
-      if (presetScope === 'all') pages = pages.map(pg => applyPresetToPage(pg, v.pageStyle));
-      else pages[page - 1] = applyPresetToPage(pages[page - 1], v.pageStyle);
+function setBodyBgUI(){
+  const mode = document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid';
+  document.getElementById('bodyBgImageInput').classList.toggle('hidden', mode !== 'image');
+}
 
-      fillInputsFromPage();
-      renderCard();
-    }
-    function savePreset() {
-      const name = (document.getElementById('presetName').value || '').trim();
-      if (!name) return;
-      const presets = getPresets();
-      presets[name] = collectPreset();
-      setPresets(presets); refreshPresetSelect();
-      document.getElementById('presetSelect').value = name;
-    }
-    function loadPreset() {
-      const name = document.getElementById('presetSelect').value;
-      if (!name) return;
-      const presets = getPresets();
-      applyPreset(presets[name]);
-    }
-    function deletePreset() {
-      const name = document.getElementById('presetSelect').value;
-      if (!name) return;
-      const presets = getPresets();
-      delete presets[name];
-      setPresets(presets); refreshPresetSelect();
-    }
-    function exportPresets() {
-      const presets = getPresets();
-      const blob = new Blob([JSON.stringify(presets, null, 2)], { type: 'application/json;charset=utf-8' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `insta_presets_${Date.now()}.json`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
+function updateInputModeToggle(){
+  const label = document.getElementById('inputModeLabel');
+  const btn = document.getElementById('inputModeToggle');
+  const visible = bodyType === 'table';
+  label.classList.toggle('hidden', !visible);
+  btn.classList.toggle('hidden', !visible);
+  btn.textContent = tableInputMode === 'grid' ? '테이블 입력' : '텍스트 입력';
+}
 
-    function setBodyUI() {
-      document.getElementById('bodyTextWrap').classList.toggle('hidden', bodyType !== 'text');
-      document.getElementById('bodyTableWrap').classList.toggle('hidden', bodyType !== 'table');
-      document.getElementById('bodyImageWrap').classList.toggle('hidden', bodyType !== 'image');
-      updateInputModeToggle();
-    }
+function toggleTableInputMode(){
+  tableInputMode = tableInputMode === 'grid' ? 'text' : 'grid';
+  setTableInputUI();
+  updateInputModeToggle();
+  if(tableInputMode==='grid') syncGridFromText();
+  else syncTextFromGrid(false);
+  renderCard();
+}
 
-    function setBodyBgUI() {
-      const mode = document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid';
-      document.getElementById('bodyBgImageInput').classList.toggle('hidden', mode !== 'image');
-    }
+function fillInputsFromPage(){
+  const p=current();
+  document.getElementById('titleText').value=p.title||'';
+  document.getElementById('titleText2').value=p.title2||'';
+  document.getElementById('subTitleText').value=p.subtitle||'';
+  document.getElementById('labelText').value=p.label||'';
+  document.getElementById('bodyText').value=p.bodyText||'';
+  document.getElementById('tableText').value=p.tableText||'';
+  document.getElementById('h1Scale').value=p.h1Scale ?? 100;
+  document.getElementById('h2Scale').value=p.h2Scale ?? 100;
+  document.getElementById('subScale').value=p.subScale ?? 100;
+  document.getElementById('titleY').value=p.titleY ?? 8;
+  document.getElementById('bodyScale').value=p.bodyScale ?? 100;
+  document.getElementById('sourceText').value=p.source||'출처: 관련 자료';
+  document.getElementById('brandText').value=p.brand||'@instagram';
+  const pagewm = p.showPage === false ? 'off' : 'on';
+  const sourceVis = p.showSource === false ? 'off' : 'on';
+  const brandVis = p.showBrand === false ? 'off' : 'on';
+  const headVis = p.showHeadline === false ? 'off' : 'on';
+  const subVis = p.showSubtitle === false ? 'off' : 'on';
+  document.querySelectorAll('.pagewm-btn').forEach(b=>b.classList.toggle('active', b.dataset.pagewm===pagewm));
+  document.querySelectorAll('.sourcevis-btn').forEach(b=>b.classList.toggle('active', b.dataset.source===sourceVis));
+  document.querySelectorAll('.brandvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brandVis));
+  document.querySelectorAll('.headvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.head===headVis));
+  document.querySelectorAll('.subvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===subVis));
+  document.getElementById('imgZoom').value=p.imgZoom ?? 100;
+  document.getElementById('imgPosX').value=p.imgPosX ?? 50;
+  document.getElementById('imgPosY').value=p.imgPosY ?? 50;
+  document.getElementById('bodyBgColor').value=p.bodyBgColor || '#ffffff';
+  document.getElementById('bodyBgOpacity').value=p.bodyBgOpacity ?? 100;
+  const fit = p.imgFit || 'cover';
+  const bgMode = p.bodyBgMode || 'solid';
+  document.querySelectorAll('.imgfit-btn').forEach(b=>b.classList.toggle('active', b.dataset.fit===fit));
+  document.querySelectorAll('.bodybgmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.bgmode===bgMode));
+  setBodyBgUI();
+  bodyType=p.bodyType||'text';
+  document.querySelectorAll('.bodytype-btn').forEach(b=>b.classList.toggle('active', b.dataset.body===bodyType));
+  setBodyUI();
+}
 
-    function syncExportQualityUI() {
-      const hide = exportFormat === 'png';
-      document.getElementById('imgQualityLabel')?.classList.toggle('hidden', hide);
-      document.getElementById('imgQuality')?.classList.toggle('hidden', hide);
-    }
+function savePage(){
+  pages[page-1]={
+    ...(pages[page-1]||newPage()),
+    title:document.getElementById('titleText').value,
+    title2:document.getElementById('titleText2').value,
+    subtitle:document.getElementById('subTitleText').value,
+    label:document.getElementById('labelText').value,
+    bodyType,
+    source:document.getElementById('sourceText').value,
+    brand:document.getElementById('brandText').value,
+    showHeadline:(document.querySelector('.headvis-btn.active')?.dataset.head || 'on') === 'on',
+    showSubtitle:(document.querySelector('.subvis-btn.active')?.dataset.sub || 'on') === 'on',
+    showSource:(document.querySelector('.sourcevis-btn.active')?.dataset.source || 'on') === 'on',
+    showBrand:(document.querySelector('.brandvis-btn.active')?.dataset.brand || 'on') === 'on',
+    showPage:(document.querySelector('.pagewm-btn.active')?.dataset.pagewm || 'on') === 'on',
+    h1Scale:parseInt(document.getElementById('h1Scale').value || '100',10),
+    h2Scale:parseInt(document.getElementById('h2Scale').value || '100',10),
+    subScale:parseInt(document.getElementById('subScale').value || '100',10),
+    titleY:parseInt(document.getElementById('titleY').value || '8',10),
+    bodyScale:parseInt(document.getElementById('bodyScale').value || '100',10),
+    imgFit:(document.querySelector('.imgfit-btn.active')?.dataset.fit || 'cover'),
+    bodyBgMode:(document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid'),
+    bodyBgColor:document.getElementById('bodyBgColor').value || '#ffffff',
+    bodyBgOpacity:parseInt(document.getElementById('bodyBgOpacity').value || '100',10),
+    bodyBgImageData:(pages[page-1]?.bodyBgImageData || ''),
+    imgZoom:parseInt(document.getElementById('imgZoom').value || '100',10),
+    imgPosX:parseInt(document.getElementById('imgPosX').value || '50',10),
+    imgPosY:parseInt(document.getElementById('imgPosY').value || '50',10),
+    bodyText:document.getElementById('bodyText').value,
+    tableText:document.getElementById('tableText').value,
+  };
+}
 
-    function updateInputModeToggle() {
-      const label = document.getElementById('inputModeLabel');
-      const btn = document.getElementById('inputModeToggle');
-      const visible = bodyType === 'table';
-      label.classList.toggle('hidden', !visible);
-      btn.classList.toggle('hidden', !visible);
-      btn.textContent = tableInputMode === 'grid' ? '테이블 입력' : '텍스트 입력';
-    }
+function syncPages(){
+  const n=Math.max(1,Math.min(20,parseInt(document.getElementById('pageCount').value||'1',10)));
+  while(pages.length<n) pages.push(newPage());
+  while(pages.length>n) pages.pop();
+  if(page>pages.length) page=pages.length;
+  setPageLabel();
+}
 
-    function toggleTableInputMode() {
-      tableInputMode = tableInputMode === 'grid' ? 'text' : 'grid';
-      setTableInputUI();
-      updateInputModeToggle();
-      if (tableInputMode === 'grid') syncGridFromText();
-      else syncTextFromGrid(false);
-      renderCard();
-    }
+function prevPage(){savePage();if(page>1) page--;fillInputsFromPage();setPageLabel();renderCard();}
+function nextPage(){savePage();if(page<pages.length) page++;fillInputsFromPage();setPageLabel();renderCard();}
 
-    function fillInputsFromPage() {
-      const p = current();
-      document.getElementById('titleText').value = p.title || '';
-      document.getElementById('titleText2').value = p.title2 || '';
-      document.getElementById('subTitleText').value = p.subtitle || '';
-      document.getElementById('labelText').value = p.label || '';
-      document.getElementById('bodyText').value = p.bodyText || '';
-      document.getElementById('tableText').value = p.tableText || '';
-      fillCardJsonFromInputs(false);
-      document.getElementById('h1Scale').value = p.h1Scale ?? 100;
-      document.getElementById('h2Scale').value = p.h2Scale ?? 100;
-      document.getElementById('subScale').value = p.subScale ?? 100;
-      document.getElementById('titleY').value = p.titleY ?? 8;
-      document.getElementById('bodyScale').value = p.bodyScale ?? 100;
-      document.getElementById('sourceText').value = p.source || '출처: 관련 자료';
-      document.getElementById('brandText').value = p.brand || '@instagram';
-      const pagewm = p.showPage === false ? 'off' : 'on';
-      const sourceVis = p.showSource === false ? 'off' : 'on';
-      const brandVis = p.showBrand === false ? 'off' : 'on';
-      const headVis = p.showHeadline === false ? 'off' : 'on';
-      const subVis = p.showSubtitle === false ? 'off' : 'on';
-      const guideVis = p.showGuide === false ? 'off' : 'on';
-      const snapVis = p.snapGuide === false ? 'off' : 'on';
-      document.querySelectorAll('.pagewm-btn').forEach(b => b.classList.toggle('active', b.dataset.pagewm === pagewm));
-      document.querySelectorAll('.sourcevis-btn').forEach(b => b.classList.toggle('active', b.dataset.source === sourceVis));
-      document.querySelectorAll('.brandvis-btn').forEach(b => b.classList.toggle('active', b.dataset.brand === brandVis));
-      document.querySelectorAll('.headvis-btn').forEach(b => b.classList.toggle('active', b.dataset.head === headVis));
-      document.querySelectorAll('.subvis-btn').forEach(b => b.classList.toggle('active', b.dataset.sub === subVis));
-      document.querySelectorAll('.guide-btn').forEach(b => b.classList.toggle('active', b.dataset.guide === guideVis));
-      document.querySelectorAll('.snap-btn').forEach(b => b.classList.toggle('active', b.dataset.snap === snapVis));
-      document.getElementById('imgZoom').value = p.imgZoom ?? 100;
-      document.getElementById('imgPosX').value = p.imgPosX ?? 50;
-      document.getElementById('imgPosY').value = p.imgPosY ?? 50;
-      document.getElementById('bodyBgColor').value = p.bodyBgColor || '#ffffff';
-      document.getElementById('bodyBgOpacity').value = p.bodyBgOpacity ?? 100;
-      const fit = p.imgFit || 'cover';
-      const bgMode = p.bodyBgMode || 'solid';
-      document.querySelectorAll('.imgfit-btn').forEach(b => b.classList.toggle('active', b.dataset.fit === fit));
-      document.querySelectorAll('.bodybgmode-btn').forEach(b => b.classList.toggle('active', b.dataset.bgmode === bgMode));
-      setBodyBgUI();
-      bodyType = p.bodyType || 'text';
-      document.querySelectorAll('.bodytype-btn').forEach(b => b.classList.toggle('active', b.dataset.body === bodyType));
-      setBodyUI();
-    }
+const fit = (ctx,text,maxW,start) => ImageToolUtils.fitTextSize(ctx, text, maxW, start, 18, 800);
 
-    function fillHeadlineJsonFromInputs(showMsg = true) {
-      const payload = {
-        headline1: document.getElementById('titleText').value || '',
-        headline2: document.getElementById('titleText2').value || '',
-        subtitle: document.getElementById('subTitleText').value || '',
-        label: document.getElementById('labelText').value || '',
-        showHeadline: (document.querySelector('.headvis-btn.active')?.dataset.head || 'on') === 'on',
-        showSubtitle: (document.querySelector('.subvis-btn.active')?.dataset.sub || 'on') === 'on'
-      };
-      document.getElementById('headlineJsonInput').value = JSON.stringify(payload, null, 2);
-      if (showMsg) document.getElementById('headlineJsonHint').textContent = '현재 화면 값을 JSON으로 채웠습니다.';
+function parseDelimitedLine(line, sep=','){
+  const out=[]; let cur=''; let q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){
+      if(q && line[i+1]==='"'){ cur+='"'; i++; }
+      else q=!q;
+      continue;
     }
+    if(ch===sep && !q){ out.push(cur.trim()); cur=''; continue; }
+    cur+=ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
 
-    function openHeadlineJsonPopup() {
-      fillHeadlineJsonFromInputs(false);
-      const dlg = document.getElementById('headlineJsonDialog');
-      const input = document.getElementById('headlineJsonDialogInput');
-      if (!dlg || !input) return;
-      input.value = document.getElementById('headlineJsonInput').value || '';
-      dlg.showModal();
+function parseMarkdownTable(text){
+  const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const only=lines.filter(l=>l.includes('|'));
+  if(only.length<2) return null;
+  const isSep = l => /^[\s|:\-]+$/.test(l);
+  const row = l => l.replace(/^\s*\||\|\s*$/g,'').split('|').map(c=>c.trim());
+  let hi=only.findIndex(l=>!isSep(l));
+  if(hi<0) return null;
+  const head=row(only[hi]).filter(Boolean);
+  const body=only.slice(hi+1).filter(l=>!isSep(l)).map(l=>row(l));
+  if(!head.length || !body.length) return null;
+  return {head, body};
+}
+
+function parseCsvTable(text){
+  const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  if(lines.length<2) return null;
+
+  if (tableSepMode === 'auto') {
+    const md = parseMarkdownTable(text);
+    if (md) return md;
+  }
+
+  let sep = ',';
+  if (tableSepMode === 'tab') sep='\t';
+  else if (tableSepMode === 'pipe') sep='|';
+  else if (tableSepMode === 'comma') sep=',';
+  else {
+    const first = lines[0] || '';
+    const cTab=(first.match(/\t/g)||[]).length;
+    const cPipe=(first.match(/\|/g)||[]).length;
+    const cComma=(first.match(/,/g)||[]).length;
+    if (cTab>=cPipe && cTab>=cComma) sep='\t';
+    else if (cPipe>=cComma) sep='|';
+    else sep=',';
+  }
+
+  const rows=lines.map(l=>parseDelimitedLine(l, sep));
+  const cols=rows[0].length;
+  const normalized=rows.map(r=>{
+    const x=r.slice(0,cols);
+    while(x.length<cols) x.push('');
+    return x;
+  });
+  return {head:normalized[0], body:normalized.slice(1)};
+}
+
+function setTableInputUI(){
+  const textWrap = document.getElementById('tableTextWrap');
+  const gridWrap = document.getElementById('tableGridWrap');
+  const dual = document.getElementById('tableDual');
+  const sepLabel = document.getElementById('tblSepLabel');
+  const sepGroup = document.getElementById('tblSepGroup');
+  dual.style.gridTemplateColumns = '1fr';
+
+  if (tableInputMode === 'grid') {
+    textWrap.classList.add('hidden');
+    gridWrap.classList.remove('hidden');
+    if (sepLabel) sepLabel.classList.add('hidden');
+    if (sepGroup) sepGroup.classList.add('hidden');
+  } else {
+    textWrap.classList.remove('hidden');
+    gridWrap.classList.add('hidden');
+    if (sepLabel) sepLabel.classList.remove('hidden');
+    if (sepGroup) sepGroup.classList.remove('hidden');
+  }
+}
+
+
+let hotInstance = null;
+function syncGridFromText(doRender=true){
+  const t = parseCsvTable(document.getElementById('tableText').value || '');
+  if(!t) return;
+  const allRows = [t.head, ...t.body];
+  if (hotInstance) {
+    hotInstance.loadData(allRows);
+  } else {
+    hotInstance = new Handsontable(document.getElementById('tableGridWrap'), {
+      data: allRows,
+      rowHeaders: true,
+      colHeaders: false,
+      contextMenu: true,
+      width: '100%',
+      height: 240,
+      licenseKey: 'non-commercial-and-evaluation',
+      afterChange: (changes, src) => {
+        if (src !== 'loadData') syncTextFromGrid(true);
+      },
+      afterCreateRow: () => syncTextFromGrid(true),
+      afterRemoveRow: () => syncTextFromGrid(true),
+      afterCreateCol: () => syncTextFromGrid(true),
+      afterRemoveCol: () => syncTextFromGrid(true),
+    });
+  }
+  document.getElementById('tblCols').value = t.head.length;
+  document.getElementById('tblRows').value = t.body.length;
+  if (doRender) renderCard();
+}
+
+function syncTextFromGrid(doRender=true){
+  if (!hotInstance) return;
+  const allRows = hotInstance.getData();
+  if (!allRows || allRows.length < 1) return;
+  const head = allRows[0].map(v => String(v ?? ''));
+  const body = allRows.slice(1).map(r => r.map(v => String(v ?? '')));
+  document.getElementById('tableText').value = serializeTableData(head, body);
+  if (doRender) renderCard();
+}
+
+function serializeTableData(head, body){
+  const mode = tableSepMode === 'auto' ? 'tab' : tableSepMode;
+  if (mode === 'pipe') {
+    const sep = '|';
+    const h = `| ${head.join(' | ')} |`;
+    const s = `| ${head.map(()=> '---').join(' | ')} |`;
+    const b = body.map(r => `| ${r.map(v=>String(v||'')).join(' | ')} |`);
+    return [h, s, ...b].join('\n');
+  }
+  const sep = mode === 'comma' ? ',' : '\t';
+  const line = arr => arr.map(v => {
+    const t = String(v ?? '');
+    if (sep === ',' && /[",\n]/.test(t)) return `"${t.replace(/"/g, '""')}"`;
+    return t;
+  }).join(sep);
+  return [line(head), ...body.map(line)].join('\n');
+}
+
+function getGridMatrix(){
+  if (!hotInstance) return null;
+  const allRows = hotInstance.getData();
+  if (!allRows || allRows.length < 1) return null;
+  const head = allRows[0].map(v => String(v ?? ''));
+  const body = allRows.slice(1).map(r => r.map(v => String(v ?? '')));
+  return {head, body};
+}
+
+function tableToMatrix(){
+  const m = tableInputMode === 'grid' ? getGridMatrix() : null;
+  if (m) {
+    document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+    return m;
+  }
+  const t = parseCsvTable(document.getElementById('tableText').value || '');
+  if (!t) return null;
+  return { head:[...t.head], body:t.body.map(r=>[...r]) };
+}
+
+function buildTableTemplate(){
+  const cols = Math.max(1, Math.min(10, parseInt(document.getElementById('tblCols').value || '3', 10)));
+  const rows = Math.max(1, Math.min(30, parseInt(document.getElementById('tblRows').value || '4', 10)));
+  const head = Array.from({length: cols}, (_,i)=>`컬럼${i+1}`);
+  const body = Array.from({length: rows}, (_,r)=>Array.from({length: cols}, (_,c)=>`${r+1}-${c+1}`));
+  document.getElementById('tableText').value = serializeTableData(head, body);
+  if (tableInputMode === 'grid') syncGridFromText();
+  renderCard();
+}
+
+function addTableRow(){
+  if (tableInputMode === 'grid') {
+    if (!hotInstance) return buildTableTemplate();
+    hotInstance.alter('insert_row', hotInstance.countRows());
+    return;
+  }
+  const m = tableToMatrix();
+  if (!m) return buildTableTemplate();
+  m.body.push(Array.from({length:m.head.length}, ()=>''));
+  document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  renderCard();
+}
+
+function addTableCol(){
+  if (tableInputMode === 'grid') {
+    if (!hotInstance) return buildTableTemplate();
+    hotInstance.alter('insert_col', hotInstance.countCols());
+    return;
+  }
+  const m = tableToMatrix();
+  if (!m) return buildTableTemplate();
+  m.head.push(`컬럼${m.head.length+1}`);
+  m.body = m.body.map(r => [...r, '']);
+  document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  renderCard();
+}
+
+function removeTableRow(){
+  if (tableInputMode === 'grid') {
+    if (!hotInstance || hotInstance.countRows() <= 2) return;
+    hotInstance.alter('remove_row', hotInstance.countRows() - 1);
+    return;
+  }
+  const m = tableToMatrix();
+  if (!m || m.body.length <= 1) return;
+  m.body.pop();
+  document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  renderCard();
+}
+
+function removeTableCol(){
+  if (tableInputMode === 'grid') {
+    if (!hotInstance || hotInstance.countCols() <= 1) return;
+    hotInstance.alter('remove_col', hotInstance.countCols() - 1);
+    return;
+  }
+  const m = tableToMatrix();
+  if (!m || m.head.length <= 1) return;
+  m.head.pop();
+  m.body = m.body.map(r => r.slice(0, m.head.length));
+  document.getElementById('tableText').value = serializeTableData(m.head, m.body);
+  renderCard();
+}
+
+function drawCoverImage(ctx,w,h,img){
+  ImageToolUtils.drawImageCover(ctx, img, 0, 0, w, h);
+}
+
+function drawBodyImage(ctx, img, x, y, w, h, fit='cover', zoom=100, posX=50, posY=50){
+  const ir = img.width / img.height;
+  const cr = w / h;
+  let baseW, baseH;
+  if (fit === 'contain') {
+    if (ir > cr) { baseW = w; baseH = w / ir; }
+    else { baseH = h; baseW = h * ir; }
+  } else {
+    if (ir > cr) { baseH = h; baseW = h * ir; }
+    else { baseW = w; baseH = w / ir; }
+  }
+
+  const z = Math.max(50, Math.min(250, zoom)) / 100;
+  const dw = baseW * z;
+  const dh = baseH * z;
+
+  const px = Math.max(0, Math.min(100, posX)) / 100;
+  const py = Math.max(0, Math.min(100, posY)) / 100;
+  const dx = x + (w - dw) * px;
+  const dy = y + (h - dh) * py;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.drawImage(img, dx, dy, dw, dh);
+  ctx.restore();
+}
+
+const imageCache = new Map();
+function getCachedImage(dataUrl){
+  if(!dataUrl) return null;
+  let img = imageCache.get(dataUrl);
+  if(!img){
+    img = new Image();
+    img.onload = ()=>renderCard();
+    img.src = dataUrl;
+    imageCache.set(dataUrl, img);
+  }
+  return img.complete ? img : null;
+}
+
+function drawBg(ctx,w,h){
+  const th=themes[themeKey];
+  if(bgMode==='image' && bgImage){
+    drawCoverImage(ctx,w,h,bgImage);
+    ctx.fillStyle='rgba(0,0,0,0.28)'; ctx.fillRect(0,0,w,h);
+  } else {
+    ctx.fillStyle=document.getElementById('bgColor').value||th.bg; ctx.fillRect(0,0,w,h);
+  }
+}
+
+function renderCard(){
+  savePage();
+  const cv=getCanvas(); const [w,h]=sizes[sizeKey]; cv.width=w; cv.height=h; const ctx=cv.getContext('2d');
+  const th=themes[themeKey]; const p=current();
+
+  drawBg(ctx,w,h);
+
+  // white board panel
+  const margin=Math.floor(w*0.04); const panelX=margin, panelY=Math.floor(h*0.06), panelW=w-margin*2, panelH=h-panelY-Math.floor(h*0.06);
+  ctx.fillStyle=th.box; ctx.fillRect(panelX,panelY,panelW,panelH);
+  ctx.strokeStyle='rgba(0,0,0,0.16)'; ctx.lineWidth=2; ctx.strokeRect(panelX,panelY,panelW,panelH);
+
+  // title lines + subtitle + label banner
+  const t1=(p.title||'').trim();
+  const t2=(p.title2||'').trim();
+  const subLines=(p.subtitle||'').split('\n').filter(Boolean);
+  const titleColor1=document.getElementById('titleColor1').value;
+  const titleColor2=document.getElementById('titleColor2').value;
+
+  const h1Scale=Math.max(60,Math.min(180,p.h1Scale||100))/100;
+  const h2Scale=Math.max(60,Math.min(180,p.h2Scale||100))/100;
+  const subScale=Math.max(60,Math.min(180,p.subScale||100))/100;
+  const titleY=Math.max(2,Math.min(30,p.titleY||8))/100;
+  const bodyScale=Math.max(60,Math.min(180,p.bodyScale||100))/100;
+
+  let y=panelY+Math.floor(panelH*titleY);
+  if (p.showHeadline !== false) {
+    if (t1) {
+      const fs1=fit(ctx,t1,panelW-60,Math.floor(h*0.055*h1Scale));
+      ctx.font=`900 ${fs1}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+      ctx.fillStyle=titleColor1;
+      ctx.textAlign='center';
+      ctx.fillText(t1,panelX+panelW/2,y);
+      y += Math.floor(fs1*1.08);
     }
-
-    function closeHeadlineJsonPopup() {
-      document.getElementById('headlineJsonDialog')?.close();
+    if (t2) {
+      const fs2=fit(ctx,t2,panelW-60,Math.floor(h*0.06*h2Scale));
+      ctx.font=`900 ${fs2}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+      ctx.fillStyle=titleColor2;
+      ctx.fillText(t2,panelX+panelW/2,y);
+      y += Math.floor(fs2*1.1);
     }
+  }
 
-    function applyHeadlineJsonFromPopup() {
-      const input = document.getElementById('headlineJsonDialogInput');
-      if (!input) return;
-      document.getElementById('headlineJsonInput').value = input.value;
-      applyHeadlineJsonToInputs();
-      closeHeadlineJsonPopup();
-    }
+  if (p.showSubtitle !== false) {
+    subLines.slice(0,2).forEach(line=>{
+      const fs=fit(ctx,line,panelW-100,Math.floor(h*0.03*subScale));
+      ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+      ctx.fillStyle=th.sub;
+      ctx.fillText(line,panelX+panelW/2,y);
+      y += Math.floor(fs*1.2);
+    });
+  }
 
-    function resetHeadlineInputs() {
-      document.getElementById('titleText').value = '';
-      document.getElementById('titleText2').value = '';
-      document.getElementById('subTitleText').value = '';
-      document.getElementById('labelText').value = '';
-      document.getElementById('headlineJsonInput').value = '';
-      const dialogInput = document.getElementById('headlineJsonDialogInput');
-      if (dialogInput) dialogInput.value = '';
-      savePage();
-      renderCard();
-    }
+  const label=(p.label||'').trim();
+  if (label) {
+    const lw=Math.min(panelW*0.72, Math.max(panelW*0.34, ctx.measureText(label).width + 40));
+    const lh=Math.floor(h*0.05);
+    const lx=panelX + (panelW-lw)/2;
+    const ly=y;
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(lx,ly,lw,lh);
+    ctx.strokeStyle='rgba(0,0,0,0.35)';
+    ctx.setLineDash([6,4]);
+    ctx.strokeRect(lx,ly,lw,lh);
+    ctx.setLineDash([]);
+    ctx.fillStyle='#222';
+    ctx.font=`700 ${Math.floor(lh*0.44)}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+    ctx.textAlign='center';
+    ctx.fillText(label, lx+lw/2, ly+Math.floor(lh*0.67));
+    y += lh + Math.floor(h*0.016);
+  } else {
+    y += Math.floor(h*0.02);
+  }
+  const fh = 34; // footer height reserved
+  const contentX=panelX+24, contentY=y;
+  const contentBottom = panelY + panelH - fh - 10;
+  const rawContentW = panelW-48;
+  const contentH = Math.max(120, contentBottom - contentY);
 
-    function applyHeadlineJsonToInputs() {
-      const raw = (document.getElementById('headlineJsonInput').value || '').trim();
-      if (!raw) {
-        document.getElementById('headlineJsonHint').textContent = 'JSON 입력값이 비어 있습니다.';
-        return;
+
+  const contentW = rawContentW;
+
+  // body background (color / image + opacity)
+  const bodyBgMode = p.bodyBgMode || 'solid';
+  const bodyBgOpacity = Math.max(0, Math.min(100, p.bodyBgOpacity ?? 100)) / 100;
+  ctx.save();
+  ctx.globalAlpha = bodyBgOpacity;
+  if (bodyBgMode === 'image' && p.bodyBgImageData) {
+    const bgImg = getCachedImage(p.bodyBgImageData);
+    if (bgImg) drawBodyImage(ctx, bgImg, contentX, contentY, contentW, contentH, 'cover', 100, 50, 50);
+    else { ctx.fillStyle = p.bodyBgColor || '#ffffff'; ctx.fillRect(contentX,contentY,contentW,contentH); }
+  } else {
+    ctx.fillStyle = p.bodyBgColor || '#ffffff';
+    ctx.fillRect(contentX,contentY,contentW,contentH);
+  }
+  ctx.restore();
+
+  // body by type
+  if(p.bodyType==='text'){
+    const lines=(p.bodyText||'').split('\n').filter(Boolean);
+    let ty=contentY+36;
+    lines.forEach(line=>{
+      const fs=fit(ctx,line,contentW-30,Math.floor(h*0.03*bodyScale));
+      ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+      ctx.fillStyle='#1b1f2a';
+      ctx.textAlign='left';
+      ctx.fillText(line,contentX+14,ty);
+      ty += Math.floor(fs*1.45);
+    });
+  } else if(p.bodyType==='table'){
+    const t=parseCsvTable(p.tableText||'');
+    if(!t){
+      ctx.fillStyle='#777'; ctx.font=`600 ${Math.floor(h*0.024)}px sans-serif`; ctx.fillText('표 데이터(CSV)를 입력하세요', contentX+8, contentY+40);
+    } else {
+      const cols=t.head.length;
+      const maxRowsByHeight = Math.max(1, Math.floor(contentH / 46) - 1);
+      const rows=Math.min(t.body.length, maxRowsByHeight, 12);
+      const tableW = cols <= 3 ? Math.min(contentW, cols * 280) : contentW;
+      const tableX = contentX + Math.floor((contentW - tableW) / 2);
+      const rh=Math.floor(contentH/(rows+1)); const cw=Math.floor(tableW/cols);
+      // header
+      for(let c=0;c<cols;c++){
+        ctx.fillStyle='#0f2f7d'; ctx.fillRect(tableX+c*cw,contentY,cw,rh);
+        ctx.fillStyle='#fff'; ctx.font=`700 ${Math.floor(rh*0.34*bodyScale)}px sans-serif`; ctx.textAlign='center';
+        ctx.fillText((t.head[c]||'').slice(0,14), tableX+c*cw+cw/2, contentY+Math.floor(rh*0.62));
       }
 
       try {
