@@ -566,15 +566,17 @@
         <div class="editor-workspace" id="workspace">
             <!-- Region Action Bar (Hidden by default) -->
             <div id="regionActionBar" class="hidden"
-                style="position:absolute; top:20px; left:50%; transform:translateX(-50%); z-index:100; background:var(--surface); padding:8px 16px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:flex; gap:8px; align-items:center;">
+                style="position:absolute; top:20px; left:50%; transform:translateX(-50%); z-index:100; background:var(--surface); padding:8px 16px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:flex; flex-wrap:nowrap; white-space:nowrap; gap:8px; align-items:center;">
                 <span style="font-size:12px; font-weight:700; color:var(--text); margin-right:8px;">🔲 영역 옵션</span>
                 <button class="action-btn" onclick="cropByRegion()"
                     style="background:#ffbd2e; color:#000; border:none; font-weight:800;">✂️ 자르기</button>
+                <button class="action-btn" style="flex:auto; padding:8px 12px; white-space:nowrap;"
+                    onclick="filterByRegion('pixelate')">모자이크</button>
+                <button class="action-btn" style="flex:auto; padding:8px 12px; white-space:nowrap;"
+                    onclick="filterByRegion('blur')">블러</button>
                 <div style="width:1px; height:16px; background:var(--border); margin:0 4px;"></div>
-                <button class="action-btn" onclick="filterByRegion('pixelate')">모자이크</button>
-                <button class="action-btn" onclick="filterByRegion('blur')">블러</button>
-                <div style="width:1px; height:16px; background:var(--border); margin:0 4px;"></div>
-                <button class="action-btn" onclick="cancelSelection()">✖ 닫기</button>
+                <button class="action-btn" style="flex:auto; padding:8px 12px; white-space:nowrap;"
+                    onclick="cancelSelection()">✖ 닫기</button>
             </div>
 
             <div class="canvas-zoom-wrapper" id="zoomWrapper">
