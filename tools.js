@@ -111,11 +111,11 @@ const TOOLS = [
     footer: 'Image → Hex Dump · C Array · Python · Base64',
   },
   {
-    category: 'Data/Format', href: 'data-format/url-encoder.html', label: 'URL Encode', icon: 'URL',
-    title: '🔗 URL Encoder / Decoder',
-    desc: 'URL 인코딩·디코딩과 쿼리 파라미터 분석을 지원합니다. encodeURIComponent / encodeURI 모드 선택, 파라미터 파싱 및 JSON 복사 지원.',
-    tags: ['Encode', 'Decode', 'Query Params', 'Parse'],
-    footer: 'URL → Encode · Decode · Parse',
+    category: 'Data/Format', href: 'data-format/url-encoder.html', label: 'URL & Query', icon: 'URL',
+    title: '🔗 URL & Query Builder',
+    desc: 'URL 인코딩·디코딩/파싱뿐 아니라 표·JSON·CSV 기반 Query Params 입력으로 쿼리스트링과 완성 URL 생성을 지원합니다.',
+    tags: ['Encode', 'Decode', 'Query Builder', 'JSON/CSV'],
+    footer: 'URL → Encode · Decode · Parse · Build',
   },
   {
     category: 'Image', href: 'image/thumbnail-maker.html', label: 'Thumbnail', icon: 'THMB',
@@ -151,6 +151,13 @@ const TOOLS = [
     desc: 'PDF 파일을 업로드하면 페이지별로 PNG/JPG/WEBP 이미지로 렌더링하고 다운로드할 수 있습니다.',
     tags: ['PDF', 'Image', 'PNG', 'JPG', 'WEBP'],
     footer: 'PDF Page → Image File',
+  },
+  {
+    category: 'Image', href: 'image/image-optimizer.html', label: 'Image Optimizer', icon: 'OPT',
+    title: '🗜️ Image Optimizer Toolkit',
+    desc: '이미지를 일괄 최적화합니다. 포맷 변환(JPG/WEBP/PNG), 품질/최대해상도 조절, 절감률 비교와 ZIP 다운로드를 지원합니다.',
+    tags: ['Compress', 'Resize', 'JPG', 'WEBP', 'PNG', 'ZIP'],
+    footer: 'Batch Image Optimize → Download',
   },
 
   {

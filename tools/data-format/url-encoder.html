@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>URL Encoder / Decoder | Dev Tools</title>
+<title>URL & Query Builder | Dev Tools</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="../../tools.js"></script>
 <script src="../../nav.js"></script>
@@ -15,8 +15,8 @@
 
 <div class="container">
   <div class="tool-header">
-    <h1>URL <span>Encoder / Decoder</span></h1>
-    <p>// URL 인코딩·디코딩, 쿼리 파라미터 분석 및 재조합을 지원합니다</p>
+    <h1>URL <span>& Query Builder</span></h1>
+    <p>// URL 인코딩·디코딩, 쿼리 파라미터 분석/생성을 한 번에 처리합니다</p>
   </div>
 
   <div class="main-grid">
@@ -30,28 +30,50 @@
           </div>
         </div>
 
-        <textarea class="ddl-textarea" id="urlInput" placeholder="https://example.com/search?q=hello world&lang=한국어"></textarea>
+        <div class="setting-group" data-level="basic" id="sourceGroup">
+          <div class="setting-title">Source</div>
+          <textarea class="ddl-textarea" id="urlInput" placeholder="https://example.com/search?q=hello world&lang=한국어"></textarea>
+        </div>
 
-        <!-- Mode -->
-        <div class="options-bar">
-          <span class="options-label">Mode</span>
-          <div class="toggle-group">
-            <button class="toggle-btn active" data-mode="encode">Encode</button>
-            <button class="toggle-btn" data-mode="decode">Decode</button>
-            <button class="toggle-btn" data-mode="parse">Parse</button>
+        <div class="setting-group hidden" data-level="basic" id="buildGroup">
+          <div class="setting-title">Query Params Builder</div>
+          <div class="options-bar">
+            <span class="options-label">Base URL</span>
+            <input id="baseUrlInput" class="table-name-input" placeholder="https://example.com/search">
+          </div>
+          <div class="options-bar">
+            <span class="options-label">Input</span>
+            <div class="toggle-group">
+              <button class="toggle-btn buildfmt-btn active" data-buildfmt="table">Table</button>
+              <button class="toggle-btn buildfmt-btn" data-buildfmt="json">JSON</button>
+              <button class="toggle-btn buildfmt-btn" data-buildfmt="csv">CSV</button>
+            </div>
+          </div>
+          <textarea class="ddl-textarea" id="buildInput" placeholder="key\tvalue\nq\thello world\nlang\tko"></textarea>
+        </div>
+
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Options</div>
+          <div class="options-bar">
+            <span class="options-label">Mode</span>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-mode="encode">Encode</button>
+              <button class="toggle-btn" data-mode="decode">Decode</button>
+              <button class="toggle-btn" data-mode="parse">Parse</button>
+              <button class="toggle-btn" data-mode="build">Build</button>
+            </div>
+          </div>
+
+          <div class="options-bar" id="scopeBar">
+            <span class="options-label">Scope</span>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-scope="component">Component</button>
+              <button class="toggle-btn" data-scope="full">Full URI</button>
+            </div>
           </div>
         </div>
 
-        <!-- Scope (only for encode/decode) -->
-        <div class="options-bar" id="scopeBar">
-          <span class="options-label">Scope</span>
-          <div class="toggle-group">
-            <button class="toggle-btn active" data-scope="component">Component</button>
-            <button class="toggle-btn" data-scope="full">Full URI</button>
-          </div>
-        </div>
-
-        <button class="generate-btn" id="runBtn" onclick="run()">
+        <button class="generate-btn" id="runBtn" onclick="run()" data-shortcut="Ctrl + Enter">
           ⚡ 변환하기
         </button>
       </div>
@@ -68,13 +90,14 @@
     </div>
   </div>
 
-  <footer>// URL Encoder — Encode · Decode · Parse Query Params</footer>
+  <footer>// URL & Query Builder — Encode · Decode · Parse · Build Query Params</footer>
 </div>
 
 <script>
 // ─── State ───────────────────────────────────────────────
 let mode  = 'encode';
 let scope = 'component';
+let buildFormat = 'table';
 
 // ─── Mode toggle ─────────────────────────────────────────
 document.querySelectorAll('[data-mode]').forEach(btn => {
@@ -82,7 +105,10 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
     document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     mode = btn.dataset.mode;
-    document.getElementById('scopeBar').style.display = mode === 'parse' ? 'none' : '';
+    const isBuild = mode === 'build';
+    document.getElementById('scopeBar').classList.toggle('hidden', mode === 'parse' || isBuild);
+    document.getElementById('sourceGroup').classList.toggle('hidden', isBuild);
+    document.getElementById('buildGroup').classList.toggle('hidden', !isBuild);
   });
 });
 
@@ -95,6 +121,20 @@ document.querySelectorAll('[data-scope]').forEach(btn => {
   });
 });
 
+document.querySelectorAll('.buildfmt-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.buildfmt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    buildFormat = btn.dataset.buildfmt;
+    const ph = buildFormat === 'json'
+      ? '[{"key":"q","value":"hello world"},{"key":"lang","value":"ko"}]'
+      : buildFormat === 'csv'
+        ? 'key,value\nq,hello world\nlang,ko'
+        : 'key\tvalue\nq\thello world\nlang\tko';
+    document.getElementById('buildInput').placeholder = ph;
+  });
+});
+
 // ─── Escape HTML ─────────────────────────────────────────
 function escHtml(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -102,12 +142,14 @@ function escHtml(s) {
 
 // ─── Main ─────────────────────────────────────────────────
 function run() {
-  const raw    = document.getElementById('urlInput').value;
+  const raw = mode === 'build'
+    ? document.getElementById('buildInput').value
+    : document.getElementById('urlInput').value;
   const output = document.getElementById('outputPanel');
-  const btn    = document.getElementById('runBtn');
+  const btn = document.getElementById('runBtn');
 
   if (!raw.trim()) {
-    output.innerHTML = `<div class="error-msg">⚠ 텍스트를 입력해주세요.</div>`;
+    output.innerHTML = `<div class="error-msg">⚠ ${mode==='build' ? '쿼리 파라미터 데이터를 입력해주세요.' : '텍스트를 입력해주세요.'}</div>`;
     return;
   }
 
@@ -129,8 +171,10 @@ function run() {
         modeLabel = scope === 'component' ? 'decodeURIComponent' : 'decodeURI';
         renderResult(result, modeLabel);
 
-      } else {
+      } else if (mode === 'parse') {
         renderParsed(raw);
+      } else {
+        renderBuilt(raw);
       }
     } catch (e) {
       output.innerHTML = `
@@ -209,6 +253,74 @@ function renderParsed(raw) {
         ${baseHtml}
         ${baseHtml ? '<div class="url-parse-divider">Query Params</div>' : ''}
         <div class="url-parse-params">${paramRows}</div>
+      </div>
+    </div>`;
+}
+
+function parseBuildEntries(text) {
+  const raw = (text || '').trim();
+  if (!raw) return [];
+
+  if (buildFormat === 'json') {
+    const j = JSON.parse(raw);
+    if (Array.isArray(j)) {
+      return j.map(x => {
+        if (Array.isArray(x)) return [String(x[0] ?? ''), String(x[1] ?? '')];
+        if (x && typeof x === 'object') return [String(x.key ?? x.name ?? ''), String(x.value ?? '')];
+        return ['', ''];
+      }).filter(([k]) => k.trim());
+    }
+    if (j && typeof j === 'object') {
+      return Object.entries(j).map(([k, v]) => [String(k), String(v ?? '')]);
+    }
+    throw new Error('JSON은 객체 또는 배열 형태여야 합니다.');
+  }
+
+  const lines = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  if (!lines.length) return [];
+  let sep = buildFormat === 'csv' ? ',' : '\t';
+  if (buildFormat === 'table') {
+    const first = lines[0] || '';
+    const cTab = (first.match(/\t/g)||[]).length;
+    const cPipe = (first.match(/\|/g)||[]).length;
+    const cComma = (first.match(/,/g)||[]).length;
+    if (cTab >= cPipe && cTab >= cComma) sep = '\t';
+    else if (cPipe >= cComma) sep = '|';
+    else sep = ',';
+  }
+  const rows = lines.map(l => parseDelimitedLine(l, sep));
+  const header = (rows[0][0] || '').toLowerCase();
+  const hasHeader = ['key', 'name', 'param'].includes(header);
+  const body = hasHeader ? rows.slice(1) : rows;
+  return body.map(r => [String(r[0] || '').trim(), String(r[1] || '').trim()]).filter(([k]) => k);
+}
+
+function renderBuilt(raw) {
+  const output = document.getElementById('outputPanel');
+  const base = (document.getElementById('baseUrlInput').value || '').trim();
+  const entries = parseBuildEntries(raw);
+  if (!entries.length) throw new Error('생성할 파라미터가 없습니다. key/value 데이터를 확인해주세요.');
+
+  const sp = new URLSearchParams();
+  entries.forEach(([k, v]) => sp.append(k, v));
+  const qs = sp.toString();
+  const full = base ? `${base}${base.includes('?') ? '&' : '?'}${qs}` : `?${qs}`;
+
+  const queryId = `query_${Date.now()}`;
+  const fullId = `${queryId}_full`;
+  output.innerHTML = `
+    <div class="panel sql-block">
+      <div class="sql-block-header">
+        <span class="sql-type-badge badge-select">BUILD</span>
+        <span class="sql-dialect-tag">${entries.length} params · ${buildFormat.toUpperCase()}</span>
+      </div>
+      <div class="url-parse-block">
+        <div class="url-parse-divider">Query String</div>
+        <div class="sql-code" id="${queryId}">${escHtml(qs)}</div>
+        <div class="download-actions mt-8"><button class="download-btn single" id="copy_${queryId}" onclick="copyBlock('${queryId}')">COPY QUERY</button></div>
+        <div class="url-parse-divider">Full URL</div>
+        <div class="sql-code" id="${fullId}">${escHtml(full)}</div>
+        <div class="download-actions mt-8"><button class="download-btn all full" id="copy_${fullId}" onclick="copyBlock('${fullId}')">COPY FULL URL</button></div>
       </div>
     </div>`;
 }

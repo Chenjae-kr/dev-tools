@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,32 +26,37 @@
       <div class="panel">
         <div class="panel-header"><div class="panel-title"><div class="dot"></div>INPUT</div><button class="sample-btn" onclick="loadSample()">예시 불러오기</button></div>
 
-        <div class="options-bar">
-          <span class="options-label">Input Type</span>
-          <div class="toggle-group">
-            <button class="toggle-btn in-btn active" data-in="json">JSON</button>
-            <button class="toggle-btn in-btn" data-in="md">Markdown</button>
-            <button class="toggle-btn in-btn" data-in="excel">Excel</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <div class="options-bar">
+            <span class="options-label">Input Type</span>
+            <div class="toggle-group">
+              <button class="toggle-btn in-btn active" data-in="json">JSON</button>
+              <button class="toggle-btn in-btn" data-in="md">Markdown</button>
+              <button class="toggle-btn in-btn" data-in="excel">Excel</button>
+            </div>
+          </div>
+
+          <textarea id="textInput" class="txt" placeholder='[{"id":1,"name":"Alice"},{"id":2,"name":"Bob"}]'></textarea>
+          <div class="options-bar hidden" id="fileBar">
+            <span class="options-label">Excel File</span>
+            <input id="excelFile" type="file" accept=".xlsx,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
           </div>
         </div>
 
-        <textarea id="textInput" class="txt" placeholder='[{"id":1,"name":"Alice"},{"id":2,"name":"Bob"}]'></textarea>
-        <div class="options-bar hidden" id="fileBar">
-          <span class="options-label">Excel File</span>
-          <input id="excelFile" type="file" accept=".xlsx,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-        </div>
-
-        <div class="options-bar">
-          <span class="options-label">Output Type</span>
-          <div class="toggle-group">
-            <button class="toggle-btn out-btn active" data-out="json">JSON</button>
-            <button class="toggle-btn out-btn" data-out="md">Markdown</button>
-            <button class="toggle-btn out-btn" data-out="excel">Excel</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Output</div>
+          <div class="options-bar">
+            <span class="options-label">Output Type</span>
+            <div class="toggle-group">
+              <button class="toggle-btn out-btn active" data-out="json">JSON</button>
+              <button class="toggle-btn out-btn" data-out="md">Markdown</button>
+              <button class="toggle-btn out-btn" data-out="excel">Excel</button>
+            </div>
           </div>
         </div>
 
-        <button class="generate-btn" onclick="convertNow()">⚡ CONVERT</button>
-        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
+        <button class="generate-btn" onclick="convertNow()" data-shortcut="Ctrl + Enter">⚡ 변환</button>
       </div>
     </div>
 
@@ -68,8 +73,8 @@ const esc = UIUtils.escHtml;
 let inputType='json', outputType='json';
 
 function setInputUI(){
-  document.getElementById('textInput').style.display = inputType==='excel' ? 'none':'block';
-  document.getElementById('fileBar').style.display = inputType==='excel' ? 'flex':'none';
+  document.getElementById('textInput').classList.toggle('hidden', inputType==='excel');
+  document.getElementById('fileBar').classList.toggle('hidden', inputType!=='excel');
 }
 
 document.querySelectorAll('.in-btn').forEach(b=>b.onclick=()=>{

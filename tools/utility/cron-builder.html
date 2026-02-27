@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,45 +72,45 @@
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
-        <div class="form-grid">
-          <div class="form-item">
-            <label>Preset</label>
-            <select id="preset" onchange="applyPreset()">
-              <option value="custom">Custom</option>
-              <option value="every5">Every 5 minutes</option>
-              <option value="hourly">Every hour</option>
-              <option value="daily9">Daily 09:00</option>
-              <option value="weekday9">Weekdays 09:00</option>
-              <option value="weeklyMon9">Every Monday 09:00</option>
-              <option value="monthly1">1st of month 09:00</option>
-            </select>
-          </div>
-          <div class="form-item">
-            <label>Minute</label>
-            <input id="min" value="*" placeholder="0-59, *, */5">
-          </div>
-          <div class="form-item">
-            <label>Hour</label>
-            <input id="hour" value="*" placeholder="0-23, *">
-          </div>
-          <div class="form-item">
-            <label>Day of Month</label>
-            <input id="dom" value="*" placeholder="1-31, *">
-          </div>
-          <div class="form-item">
-            <label>Month</label>
-            <input id="mon" value="*" placeholder="1-12, *">
-          </div>
-          <div class="form-item">
-            <label>Day of Week</label>
-            <input id="dow" value="*" placeholder="0-6 (0=Sun), *">
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Schedule</div>
+          <div class="form-grid">
+            <div class="form-item">
+              <label>Preset</label>
+              <select id="preset" onchange="applyPreset()">
+                <option value="custom">Custom</option>
+                <option value="every5">Every 5 minutes</option>
+                <option value="hourly">Every hour</option>
+                <option value="daily9">Daily 09:00</option>
+                <option value="weekday9">Weekdays 09:00</option>
+                <option value="weeklyMon9">Every Monday 09:00</option>
+                <option value="monthly1">1st of month 09:00</option>
+              </select>
+            </div>
+            <div class="form-item">
+              <label>Minute</label>
+              <input id="min" value="*" placeholder="0-59, *, */5">
+            </div>
+            <div class="form-item">
+              <label>Hour</label>
+              <input id="hour" value="*" placeholder="0-23, *">
+            </div>
+            <div class="form-item">
+              <label>Day of Month</label>
+              <input id="dom" value="*" placeholder="1-31, *">
+            </div>
+            <div class="form-item">
+              <label>Month</label>
+              <input id="mon" value="*" placeholder="1-12, *">
+            </div>
+            <div class="form-item">
+              <label>Day of Week</label>
+              <input id="dow" value="*" placeholder="0-6 (0=Sun), *">
+            </div>
           </div>
         </div>
 
-        <div class="options-bar row-tight">
-          <button class="generate-btn" onclick="buildCron()">⚡ GENERATE</button>
-        </div>
-        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
+        <button class="generate-btn" onclick="buildCron()" data-shortcut="Ctrl + Enter">⚡ 생성</button>
       </div>
     </div>
 

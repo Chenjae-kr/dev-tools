@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,44 +41,49 @@
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
-        <textarea id="jsonInput" class="json-textarea" placeholder='{"id": 1, "name": "Alice", "email": "alice@example.com", "age": 30}'>{
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <textarea id="jsonInput" class="json-textarea" placeholder='{"id": 1, "name": "Alice", "email": "alice@example.com", "age": 30}'>{
   "id": 1,
   "name": "Alice",
   "email": "alice@example.com",
   "age": 30,
   "is_active": true
 }</textarea>
-
-        <div class="options-bar">
-          <span class="options-label">Table</span>
-          <input id="tableName" class="table-name-input" value="users" placeholder="users">
-          <span class="options-label">PK</span>
-          <input id="pkCols" class="table-name-input" value="id" placeholder="id 또는 id,tenant_id">
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Dialect</span>
-          <div class="dialect-group">
-            <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
-            <button class="dialect-btn" data-dialect="oracle">Oracle</button>
-            <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Options</div>
+          <div class="options-bar">
+            <span class="options-label">Table</span>
+            <input id="tableName" class="table-name-input" value="users" placeholder="users">
+            <span class="options-label">PK</span>
+            <input id="pkCols" class="table-name-input" value="id" placeholder="id 또는 id,tenant_id">
+          </div>
+
+          <div class="options-bar row-tight">
+            <span class="options-label">Dialect</span>
+            <div class="dialect-group">
+              <button class="dialect-btn active" data-dialect="mysql">MySQL</button>
+              <button class="dialect-btn" data-dialect="oracle">Oracle</button>
+              <button class="dialect-btn" data-dialect="postgresql">PostgreSQL</button>
+            </div>
+          </div>
+
+          <div class="options-bar row-tight">
+            <span class="options-label">Queries</span>
+            <div class="crud-group">
+              <button class="crud-toggle active" data-crud="CREATE">CREATE</button>
+              <button class="crud-toggle active" data-crud="INSERT">INSERT</button>
+              <button class="crud-toggle active" data-crud="SELECT">SELECT</button>
+              <button class="crud-toggle active" data-crud="UPDATE">UPDATE</button>
+              <button class="crud-toggle active" data-crud="DELETE">DELETE</button>
+            </div>
+            <button class="all-toggle" id="allToggle">전체해제</button>
           </div>
         </div>
 
-        <div class="options-bar row-tight">
-          <span class="options-label">Queries</span>
-          <div class="crud-group">
-            <button class="crud-toggle active" data-crud="CREATE">CREATE</button>
-            <button class="crud-toggle active" data-crud="INSERT">INSERT</button>
-            <button class="crud-toggle active" data-crud="SELECT">SELECT</button>
-            <button class="crud-toggle active" data-crud="UPDATE">UPDATE</button>
-            <button class="crud-toggle active" data-crud="DELETE">DELETE</button>
-          </div>
-          <button class="all-toggle" id="allToggle">전체해제</button>
-        </div>
-
-        <button class="generate-btn" onclick="generateCRUD()">⚡ SQL 생성</button>
-        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
+        <button class="generate-btn" onclick="generateCRUD()" data-shortcut="Ctrl + Enter">⚡ 생성</button>
       </div>
     </div>
 
@@ -192,9 +197,11 @@ function generateCRUD() {
 
   try {
     const parsed = JSON.parse(document.getElementById('jsonInput').value.trim() || '{}');
-    if (Array.isArray(parsed)) throw new Error('현재는 단일 객체 JSON만 지원합니다.');
+    const rows = Array.isArray(parsed) ? parsed : [parsed];
+    if (!rows.length) throw new Error('JSON 데이터가 비어 있습니다.');
+    if (rows.some(r => !r || typeof r !== 'object' || Array.isArray(r))) throw new Error('JSON 객체(또는 객체 배열)만 지원합니다.');
 
-    const keys = Object.keys(parsed);
+    const keys = [...new Set(rows.flatMap(r => Object.keys(r)))];
     if (!keys.length) throw new Error('JSON 객체에 컬럼이 없습니다.');
 
     const pkCols = pkRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -206,19 +213,25 @@ function generateCRUD() {
 
     const tbl = quoteIdent(tableNameRaw);
     const cols = keys.map(quoteIdent);
-    const vals = keys.map(k => toSqlValue(parsed[k]));
+    const first = rows[0];
+    const vals = keys.map(k => toSqlValue(first[k]));
 
-    const whereClause = pkCols.map(k => `${quoteIdent(k)} = ${toSqlValue(parsed[k])}`).join(' AND ');
+    const whereClause = pkCols.map(k => `${quoteIdent(k)} = ${toSqlValue(first[k])}`).join(' AND ');
 
     const setCols = keys.filter(k => !pkCols.includes(k));
     const updateSet = (setCols.length ? setCols : keys)
-      .map(k => `${quoteIdent(k)} = ${toSqlValue(parsed[k])}`).join(', ');
+      .map(k => `${quoteIdent(k)} = ${toSqlValue(first[k])}`).join(', ');
 
     if (!selectedCrud.size) throw new Error('생성할 쿼리를 1개 이상 선택해주세요.');
 
-    const createSql = buildCreateSql(tableNameRaw, keys, parsed, pkCols);
+    const createSql = buildCreateSql(tableNameRaw, keys, first, pkCols);
     const selectSql = `SELECT ${cols.join(', ')}\nFROM ${tbl}\nWHERE ${whereClause};`;
-    const insertSql = `INSERT INTO ${tbl} (${cols.join(', ')})\nVALUES (${vals.join(', ')});`;
+    const insertSql = rows.length === 1
+      ? `INSERT INTO ${tbl} (${cols.join(', ')})\nVALUES (${vals.join(', ')});`
+      : (selectedDialect === 'oracle'
+          ? rows.map(r => `INSERT INTO ${tbl} (${cols.join(', ')}) VALUES (${keys.map(k=>toSqlValue(r[k])).join(', ')});`).join('\n')
+          : `INSERT INTO ${tbl} (${cols.join(', ')})\nVALUES\n${rows.map(r => `  (${keys.map(k=>toSqlValue(r[k])).join(', ')})`).join(',\n')};`
+        );
     const updateSql = `UPDATE ${tbl}\nSET ${updateSet}\nWHERE ${whereClause};`;
     const deleteSql = `DELETE FROM ${tbl}\nWHERE ${whereClause};`;
 
@@ -233,7 +246,7 @@ function generateCRUD() {
     const blockId = 'crud_' + Date.now();
     out.innerHTML = renderSqlBlock({
       badge: 'CRUD',
-      tag: `${selectedDialect.toUpperCase()} · ${keys.length} columns`,
+      tag: `${selectedDialect.toUpperCase()} · ${keys.length} columns · ${rows.length} rows`,
       copyBtnId: `copy_${blockId}`,
       copyLabel: 'COPY',
       copyHandler: `copyCRUD('${blockId}')`,
@@ -256,14 +269,24 @@ document.addEventListener('keydown', e => {
 
 function loadSample() {
   document.getElementById('tableName').value = 'orders';
-  document.getElementById('jsonInput').value = JSON.stringify({
-    order_id: 1001,
-    user_id: 42,
-    product: 'Keyboard',
-    amount: 89000,
-    status: 'paid',
-    created_at: '2026-02-25'
-  }, null, 2);
+  document.getElementById('jsonInput').value = JSON.stringify([
+    {
+      order_id: 1001,
+      user_id: 42,
+      product: 'Keyboard',
+      amount: 89000,
+      status: 'paid',
+      created_at: '2026-02-25'
+    },
+    {
+      order_id: 1002,
+      user_id: 43,
+      product: 'Mouse',
+      amount: 39000,
+      status: 'paid',
+      created_at: '2026-02-25'
+    }
+  ], null, 2);
 }
 </script>
 </body>
