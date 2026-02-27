@@ -34,6 +34,28 @@
       display: none !important
     }
 
+    .main-grid>.output-panel {
+      position: sticky;
+      top: 84px;
+      align-self: start
+    }
+
+    .main-grid>.output-panel .panel {
+      max-height: calc(100vh - 110px);
+      overflow: auto
+    }
+
+    @media (max-width: 980px) {
+      .main-grid>.output-panel {
+        position: static
+      }
+
+      .main-grid>.output-panel .panel {
+        max-height: none;
+        overflow: visible
+      }
+    }
+
     /* ── Mode tabs ── */
     .mode-tabs {
       display: flex;
@@ -268,7 +290,9 @@
               </div>
             </div>
             <div style="padding:10px 16px 16px">
-              <button class="generate-btn" style="width:100%" onclick="downloadOut()">⬇ DOWNLOAD</button>
+              <button class="export-btn single"
+                style="width:100%;background:linear-gradient(135deg,#0f4db8,#2a77ff);color:#fff;border-color:rgba(66,135,255,.45)"
+                onclick="downloadOut()">⬇ DOWNLOAD</button>
             </div>
           </div><!-- end wmSimplePanel -->
 
