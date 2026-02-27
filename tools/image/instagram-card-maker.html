@@ -9,7 +9,21 @@
 <script src="../../ui-utils.js"></script>
 <script src="../../image-tools-utils.js"></script>
 <link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@6.2.2/dist/handsontable.min.css">
+<script src="https://cdn.jsdelivr.net/npm/handsontable@6.2.2/dist/handsontable.full.min.js"></script>
 <style>
+/* ── Handsontable dark theme overrides ── */
+.handsontable td,.handsontable th{background:var(--surface)!important;color:var(--text)!important;border-color:var(--border)!important}
+.handsontable thead th,.handsontable .ht_clone_top th{background:var(--surface2)!important;color:var(--text)!important;border-color:var(--border)!important}
+.handsontable .htCore thead{background:var(--surface2)!important}
+.handsontable .htContextMenu table.htCore td{background:var(--surface2)!important;color:var(--text)!important}
+.handsontable .htContextMenu table.htCore tr:first-child td{background:var(--surface2)!important}
+.handsontable .htContextMenu .htItemWrapper{color:var(--text)!important}
+.handsontable .current.highlight,.handsontable .area.highlight{background:rgba(79,255,176,0.10)!important}
+.handsontable .htBorders .wtBorder.current{background:var(--accent)!important}
+.handsontable .htBorders .wtBorder.area{background:var(--accent2)!important}
+.handsontable .changeType{background:var(--surface2)!important}
+.table-grid-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;padding:0;background:var(--surface)}
 .canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
 #cardCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
 .input-area{width:100%;background:transparent;border:1px solid var(--border);outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;min-height:72px;border-radius:8px}
@@ -23,20 +37,6 @@
 .quick-actions{display:flex;gap:8px;flex-wrap:wrap}
 .quick-actions .toggle-btn{padding:8px 10px}
 .table-dual{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.matrix-grid{display:grid;gap:8px;width:100%}
-.matrix-grid.cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}
-.matrix-grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.matrix-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-.matrix-grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-.matrix-grid.cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
-.matrix-grid.cols-6{grid-template-columns:repeat(6,minmax(0,1fr))}
-.matrix-grid.cols-7{grid-template-columns:repeat(7,minmax(0,1fr))}
-.matrix-grid.cols-8{grid-template-columns:repeat(8,minmax(0,1fr))}
-.matrix-grid.cols-9{grid-template-columns:repeat(9,minmax(0,1fr))}
-.matrix-grid.cols-10{grid-template-columns:repeat(10,minmax(0,1fr))}
-.matrix-grid .matrix-cell input{width:100%;min-width:0}
-.matrix-grid .matrix-head input{font-weight:700}
-.table-grid-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)}
 #presetSelect{max-width:220px}
 @media (max-width: 980px){.table-dual{grid-template-columns:1fr}.control-grid-4{grid-template-columns:1fr 1fr}}
 @media (max-width: 640px){.control-grid-4,.control-grid-2{grid-template-columns:1fr}}
@@ -695,58 +695,43 @@ function setTableInputUI(){
   }
 }
 
-function renderTableGrid(head, body){
-  const wrap = document.getElementById('tableGridWrap');
-  const cols = Math.max(1, head.length);
-  const rows = Math.max(1, body.length);
 
-  const headerCells = head.map((h,i)=>
-    `<div class="matrix-cell matrix-head"><input data-r="0" data-c="${i}" value="${String(h||'').replace(/"/g,'&quot;')}" class="table-name-input"></div>`
-  ).join('');
-
-  const bodyCells = Array.from({length:rows},(_,ri)=>
-    Array.from({length:cols},(_,ci)=>
-      `<div class="matrix-cell"><input data-r="${ri+1}" data-c="${ci}" value="${String(((body[ri]&&body[ri][ci])||'')).replace(/"/g,'&quot;')}" class="table-name-input"></div>`
-    ).join('')
-  ).join('');
-
-  const colClass = `cols-${Math.min(Math.max(cols,1),10)}`;
-  wrap.innerHTML = `<div class="matrix-grid ${colClass}">${headerCells}${bodyCells}</div>`;
-
-  wrap.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>syncTextFromGrid(false)));
-  document.getElementById('tblCols').value = cols;
-  document.getElementById('tblRows').value = rows;
-}
-
+let hotInstance = null;
 function syncGridFromText(doRender=true){
   const t = parseCsvTable(document.getElementById('tableText').value || '');
   if(!t) return;
-  renderTableGrid(t.head, t.body);
+  const allRows = [t.head, ...t.body];
+  if (hotInstance) {
+    hotInstance.loadData(allRows);
+  } else {
+    hotInstance = new Handsontable(document.getElementById('tableGridWrap'), {
+      data: allRows,
+      rowHeaders: true,
+      colHeaders: false,
+      contextMenu: true,
+      width: '100%',
+      height: 240,
+      licenseKey: 'non-commercial-and-evaluation',
+      afterChange: (changes, src) => {
+        if (src !== 'loadData') syncTextFromGrid(true);
+      },
+      afterCreateRow: () => syncTextFromGrid(true),
+      afterRemoveRow: () => syncTextFromGrid(true),
+      afterCreateCol: () => syncTextFromGrid(true),
+      afterRemoveCol: () => syncTextFromGrid(true),
+    });
+  }
+  document.getElementById('tblCols').value = t.head.length;
+  document.getElementById('tblRows').value = t.body.length;
   if (doRender) renderCard();
 }
 
 function syncTextFromGrid(doRender=true){
-  const wrap = document.getElementById('tableGridWrap');
-  const inputs = [...wrap.querySelectorAll('input[data-r]')];
-  if(!inputs.length) return;
-
-  const head = [];
-  const bodyMap = new Map();
-  for(const el of inputs){
-    const r = parseInt(el.dataset.r,10);
-    const c = parseInt(el.dataset.c,10);
-    if(r===0) head[c]=el.value;
-    else {
-      if(!bodyMap.has(r)) bodyMap.set(r, []);
-      bodyMap.get(r)[c]=el.value;
-    }
-  }
-  const body = [...bodyMap.keys()].sort((a,b)=>a-b).map(k=>{
-    const row = bodyMap.get(k);
-    while(row.length<head.length) row.push('');
-    return row;
-  });
-
+  if (!hotInstance) return;
+  const allRows = hotInstance.getData();
+  if (!allRows || allRows.length < 1) return;
+  const head = allRows[0].map(v => String(v ?? ''));
+  const body = allRows.slice(1).map(r => r.map(v => String(v ?? '')));
   document.getElementById('tableText').value = serializeTableData(head, body);
   if (doRender) renderCard();
 }
@@ -770,24 +755,11 @@ function serializeTableData(head, body){
 }
 
 function getGridMatrix(){
-  const wrap = document.getElementById('tableGridWrap');
-  const inputs = [...wrap.querySelectorAll('input[data-r]')];
-  if(!inputs.length) return null;
-  const head=[];
-  const bodyMap=new Map();
-  for(const el of inputs){
-    const r=parseInt(el.dataset.r,10), c=parseInt(el.dataset.c,10);
-    if(r===0) head[c]=el.value;
-    else {
-      if(!bodyMap.has(r)) bodyMap.set(r,[]);
-      bodyMap.get(r)[c]=el.value;
-    }
-  }
-  const body=[...bodyMap.keys()].sort((a,b)=>a-b).map(k=>{
-    const row=bodyMap.get(k);
-    while(row.length<head.length) row.push('');
-    return row;
-  });
+  if (!hotInstance) return null;
+  const allRows = hotInstance.getData();
+  if (!allRows || allRows.length < 1) return null;
+  const head = allRows[0].map(v => String(v ?? ''));
+  const body = allRows.slice(1).map(r => r.map(v => String(v ?? '')));
   return {head, body};
 }
 
@@ -813,40 +785,56 @@ function buildTableTemplate(){
 }
 
 function addTableRow(){
+  if (tableInputMode === 'grid') {
+    if (!hotInstance) return buildTableTemplate();
+    hotInstance.alter('insert_row', hotInstance.countRows());
+    return;
+  }
   const m = tableToMatrix();
   if (!m) return buildTableTemplate();
   m.body.push(Array.from({length:m.head.length}, ()=>''));
   document.getElementById('tableText').value = serializeTableData(m.head, m.body);
-  if (tableInputMode === 'grid') syncGridFromText();
   renderCard();
 }
 
 function addTableCol(){
+  if (tableInputMode === 'grid') {
+    if (!hotInstance) return buildTableTemplate();
+    hotInstance.alter('insert_col', hotInstance.countCols());
+    return;
+  }
   const m = tableToMatrix();
   if (!m) return buildTableTemplate();
   m.head.push(`컬럼${m.head.length+1}`);
   m.body = m.body.map(r => [...r, '']);
   document.getElementById('tableText').value = serializeTableData(m.head, m.body);
-  if (tableInputMode === 'grid') syncGridFromText();
   renderCard();
 }
 
 function removeTableRow(){
+  if (tableInputMode === 'grid') {
+    if (!hotInstance || hotInstance.countRows() <= 2) return;
+    hotInstance.alter('remove_row', hotInstance.countRows() - 1);
+    return;
+  }
   const m = tableToMatrix();
   if (!m || m.body.length <= 1) return;
   m.body.pop();
   document.getElementById('tableText').value = serializeTableData(m.head, m.body);
-  if (tableInputMode === 'grid') syncGridFromText();
   renderCard();
 }
 
 function removeTableCol(){
+  if (tableInputMode === 'grid') {
+    if (!hotInstance || hotInstance.countCols() <= 1) return;
+    hotInstance.alter('remove_col', hotInstance.countCols() - 1);
+    return;
+  }
   const m = tableToMatrix();
   if (!m || m.head.length <= 1) return;
   m.head.pop();
   m.body = m.body.map(r => r.slice(0, m.head.length));
   document.getElementById('tableText').value = serializeTableData(m.head, m.body);
-  if (tableInputMode === 'grid') syncGridFromText();
   renderCard();
 }
 
