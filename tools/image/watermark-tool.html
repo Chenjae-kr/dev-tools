@@ -1,416 +1,601 @@
 <!DOCTYPE html>
 <html lang="ko" data-theme="light">
+
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Image Watermark Tool | Dev Tools</title>
-<script src="../../tools.js"></script>
-<script src="../../nav.js"></script>
-<script src="../../ui-utils.js"></script>
-<script src="../../image-tools-utils.js"></script>
-<link rel="stylesheet" href="../../styles.css">
-<style>
-.canvas-wrap{display:flex;justify-content:center;align-items:center;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
-#wmCanvas{max-width:100%;height:auto;border-radius:8px;background:#fff}
-.hidden{display:none !important}
-/* ── Mode tabs ── */
-.mode-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 16px}
-.mode-tab{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;padding:10px 14px;border:none;background:none;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
-.mode-tab.active{color:var(--accent);border-bottom-color:var(--accent)}.mode-tab:hover:not(.active){color:var(--text)}
-/* ── Drop zone ── */
-.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:24px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;margin:12px 16px 4px}
-.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(79,255,176,0.04)}
-.drop-zone-icon{font-size:28px;margin-bottom:6px}
-.drop-zone-label{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted)}
-.drop-zone-hint{font-size:10px;color:var(--text-muted);opacity:.6;margin-top:3px}
-/* ── Preset cards ── */
-.wm-preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px}
-.wm-preset-card{border-radius:8px;border:2px solid var(--border);cursor:pointer;padding:10px;transition:border-color .15s,transform .1s;position:relative}
-.wm-preset-card.active{border-color:var(--accent)}.wm-preset-card:hover{transform:translateY(-2px)}
-.wm-preset-name{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--text);margin-bottom:4px}
-.wm-preset-desc{font-size:10px;color:var(--text-muted);line-height:1.4}
-.wm-preset-check{position:absolute;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:var(--accent);color:#000;font-size:9px;display:none;align-items:center;justify-content:center;font-weight:900}
-.wm-preset-card.active .wm-preset-check{display:flex}
-/* ── Simple fields ── */
-.s-label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:5px}
-.s-field-wrap{padding:0 16px 12px}
-.wm-color-row{display:flex;align-items:center;gap:6px;margin-top:8px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Watermark Tool | Dev Tools</title>
+  <script src="../../tools.js"></script>
+  <script src="../../nav.js"></script>
+  <script src="../../ui-utils.js"></script>
+  <script src="../../image-tools-utils.js"></script>
+  <link rel="stylesheet" href="../../styles.css">
+  <style>
+    .canvas-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 14px;
+      background: var(--surface2);
+      border-radius: 10px;
+      border: 1px solid var(--border)
+    }
+
+    #wmCanvas {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      background: #fff
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    /* ── Mode tabs ── */
+    .mode-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px
+    }
+
+    .mode-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      padding: 10px 14px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color .15s, border-color .15s
+    }
+
+    .mode-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent)
+    }
+
+    .mode-tab:hover:not(.active) {
+      color: var(--text)
+    }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 24px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      margin: 12px 16px
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(79, 255, 176, 0.04)
+    }
+
+    .drop-zone-icon {
+      font-size: 28px;
+      margin-bottom: 6px
+    }
+
+    .drop-zone-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted)
+    }
+
+    .drop-zone-hint {
+      font-size: 10px;
+      color: var(--text-muted);
+      opacity: .6;
+      margin-top: 3px
+    }
+
+    /* ── Preset cards ── */
+    .wm-preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 12px 16px
+    }
+
+    .wm-preset-card {
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      padding: 10px;
+      transition: border-color .15s, transform .1s;
+      position: relative
+    }
+
+    .wm-preset-card.active {
+      border-color: var(--accent)
+    }
+
+    .wm-preset-card:hover {
+      transform: translateY(-2px)
+    }
+
+    .wm-preset-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px
+    }
+
+    .wm-preset-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.4
+    }
+
+    .wm-preset-check {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      font-size: 9px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900
+    }
+
+    .wm-preset-card.active .wm-preset-check {
+      display: flex
+    }
+
+    /* ── Simple fields ── */
+    .s-label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: .5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 5px
+    }
+
+    .s-field-wrap {
+      padding: 12px 16px
+    }
+
+    .wm-color-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px
+    }
+  </style>
 </head>
+
 <body>
-<script>renderNav();</script>
-<div class="container">
-  <div class="tool-header"><h1>Image <span>Watermark Tool</span></h1><p>// PNG 또는 텍스트 워터마크 삽입</p></div>
-  <div class="main-grid">
-    <div>
-      <div class="panel">
-        <!-- MODE TABS -->
-        <div class="mode-tabs">
-          <button class="mode-tab active" id="wmTabSimple" onclick="switchWmMode('simple')">⚡ 간편 모드</button>
-          <button class="mode-tab" id="wmTabAdv" onclick="switchWmMode('advanced')">⚙ 고급 모드</button>
-        </div>
-
-        <!-- SIMPLE PANEL -->
-        <div id="wmSimplePanel">
-          <div class="panel-header"><div class="panel-title"><div class="dot"></div>IMAGE</div></div>
-          <div class="drop-zone" id="dropZone" onclick="document.getElementById('baseImageInput').click()">
-            <div class="drop-zone-icon">🖼️</div>
-            <div class="drop-zone-label">클릭하거나 드래그해서 이미지 업로드</div>
-            <div class="drop-zone-hint">JPG · PNG · WEBP</div>
+  <script>renderNav();</script>
+  <div class="container">
+    <div class="tool-header">
+      <h1>Image <span>Watermark Tool</span></h1>
+      <p>// PNG 또는 텍스트 워터마크 삽입</p>
+    </div>
+    <div class="main-grid">
+      <div>
+        <div class="panel">
+          <!-- MODE TABS -->
+          <div class="mode-tabs">
+            <button class="mode-tab active" id="wmTabSimple" onclick="switchWmMode('simple')">⚡ 간편 모드</button>
+            <button class="mode-tab" id="wmTabAdv" onclick="switchWmMode('advanced')">⚙ 고급 모드</button>
           </div>
 
-          <div class="panel-header"><div class="panel-title"><div class="dot"></div>STYLE</div></div>
-          <div class="wm-preset-grid">
-            <div class="wm-preset-card active" data-preset="corner" onclick="applyWmPreset('corner')">
-              <div class="wm-preset-name">Corner</div>
-              <div class="wm-preset-desc">우하단 · 투명 60% · SNS 기본</div>
-              <div class="wm-preset-check">✓</div>
-            </div>
-            <div class="wm-preset-card" data-preset="stamp" onclick="applyWmPreset('stamp')">
-              <div class="wm-preset-name">Stamp</div>
-              <div class="wm-preset-desc">중앙 · 투명 30% · 저작권 표시</div>
-              <div class="wm-preset-check">✓</div>
-            </div>
-            <div class="wm-preset-card" data-preset="bold" onclick="applyWmPreset('bold')">
-              <div class="wm-preset-name">Bold</div>
-              <div class="wm-preset-desc">우하단 · 투명 90% · 선명한 워터마크</div>
-              <div class="wm-preset-check">✓</div>
-            </div>
-          </div>
-
-          <div class="panel-header"><div class="panel-title"><div class="dot"></div>TEXT</div></div>
-          <div class="s-field-wrap">
-            <label class="s-label">워터마크 텍스트</label>
-            <input id="s-wm-text" class="table-name-input" style="width:100%" placeholder="@instagram" value="@instagram">
-            <div class="wm-color-row">
-              <span class="s-label" style="margin:0">색상</span>
-              <button class="toggle-btn wm-color-btn active" data-color="#ffffff" style="background:#ffffff;color:#333;border-color:#999">흰색</button>
-              <button class="toggle-btn wm-color-btn" data-color="#000000" style="background:#000000;color:#fff;border-color:#555">검정</button>
-              <input id="s-wm-color" type="color" value="#ffffff" class="table-name-input input-xs color-input" title="직접 색상 선택">
-            </div>
-          </div>
-
-          <div class="panel-header"><div class="panel-title"><div class="dot"></div>EXPORT</div></div>
-          <div class="options-bar" style="padding:12px 16px 0">
-            <div class="toggle-group">
-              <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
-            </div>
-          </div>
-          <div style="padding:10px 16px 16px">
-            <button class="generate-btn" style="width:100%" onclick="downloadOut()">⬇ DOWNLOAD</button>
-          </div>
-        </div><!-- end wmSimplePanel -->
-
-        <!-- ADVANCED PANEL -->
-        <div id="wmAdvPanel" class="hidden">
-        <div class="panel-header"><div class="panel-title"><div class="dot"></div>SETTINGS</div></div>
-
-        <div class="setting-group">
-          <div class="setting-title">Base Image</div>
-          <div class="options-bar"><input id="baseImageInput" type="file" accept="image/*"></div>
-        </div>
-
-        <div class="setting-group">
-          <div class="setting-title">Watermark Type</div>
-          <div class="options-bar">
-            <div class="toggle-group">
-              <button class="toggle-btn wmtype-btn active" data-type="text">Text</button>
-              <button class="toggle-btn wmtype-btn" data-type="image">PNG</button>
-            </div>
-          </div>
-
-          <div id="wmTextWrap">
-            <div class="options-bar"><span class="options-label">Text</span><input id="wmText" class="table-name-input" value="@instagram"></div>
-            <div class="options-bar">
-              <span class="options-label">Timestamp</span>
-              <div class="toggle-group">
-                <button class="toggle-btn ts-btn active" data-ts="off">OFF</button>
-                <button class="toggle-btn ts-btn" data-ts="on">ON</button>
+          <!-- SIMPLE PANEL -->
+          <div id="wmSimplePanel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>IMAGE
               </div>
             </div>
-            <div class="options-bar">
-              <span class="options-label">Color</span><input id="wmColor" type="color" value="#ffffff" class="table-name-input input-xs color-input">
-              <span class="options-label">Size%</span><input id="wmTextSize" type="number" value="5" min="1" max="20" class="table-name-input input-xs">
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('baseImageInput').click()">
+              <div class="drop-zone-icon">🖼️</div>
+              <div class="drop-zone-label">클릭하거나 드래그해서 이미지 업로드</div>
+              <div class="drop-zone-hint">JPG · PNG · WEBP</div>
             </div>
-          </div>
 
-          <div id="wmImageWrap" class="hidden">
-            <div class="options-bar"><input id="wmImageInput" type="file" accept="image/png,image/*"></div>
-            <div class="options-bar"><span class="options-label">Scale%</span><input id="wmImgScale" type="number" value="18" min="5" max="80" class="table-name-input input-xs"></div>
-          </div>
-
-          <div class="options-bar">
-            <span class="options-label">Position</span>
-            <div class="toggle-group">
-              <button class="toggle-btn pos-btn" data-pos="tl">좌상</button>
-              <button class="toggle-btn pos-btn" data-pos="tr">우상</button>
-              <button class="toggle-btn pos-btn" data-pos="bl">좌하</button>
-              <button class="toggle-btn pos-btn active" data-pos="br">우하</button>
-              <button class="toggle-btn pos-btn" data-pos="center">중앙</button>
-              <button class="toggle-btn pos-btn" data-pos="tile">바둑판</button>
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>STYLE
+              </div>
             </div>
-          </div>
-          <div class="options-bar hidden" id="tileOpts">
-            <span class="options-label">Gap(px)</span><input id="tileGap" type="number" value="40" min="0" max="500" class="table-name-input input-xs">
-            <span class="options-label">Offset</span>
-            <div class="toggle-group">
-              <button class="toggle-btn tileoff-btn active" data-offset="on">ON</button>
-              <button class="toggle-btn tileoff-btn" data-offset="off">OFF</button>
+            <div class="wm-preset-grid">
+              <div class="wm-preset-card active" data-preset="corner" onclick="applyWmPreset('corner')">
+                <div class="wm-preset-name">Corner</div>
+                <div class="wm-preset-desc">우하단 · 투명 60% · SNS 기본</div>
+                <div class="wm-preset-check">✓</div>
+              </div>
+              <div class="wm-preset-card" data-preset="stamp" onclick="applyWmPreset('stamp')">
+                <div class="wm-preset-name">Stamp</div>
+                <div class="wm-preset-desc">중앙 · 투명 30% · 저작권 표시</div>
+                <div class="wm-preset-check">✓</div>
+              </div>
+              <div class="wm-preset-card" data-preset="bold" onclick="applyWmPreset('bold')">
+                <div class="wm-preset-name">Bold</div>
+                <div class="wm-preset-desc">우하단 · 투명 90% · 선명한 워터마크</div>
+                <div class="wm-preset-check">✓</div>
+              </div>
             </div>
-          </div>
-          <div class="options-bar">
-            <span class="options-label">Margin(px)</span><input id="wmMargin" type="number" value="24" min="0" max="200" class="table-name-input input-xs">
-            <span class="options-label">Opacity%</span><input id="wmOpacity" type="number" value="60" min="1" max="100" class="table-name-input input-xs">
-            <span class="options-label">Rotate°</span><input id="wmRotate" type="number" value="0" min="-180" max="180" class="table-name-input input-xs">
-          </div>
-        </div>
 
-        <div class="setting-group">
-          <div class="setting-title">Export</div>
-          <div class="options-row options-row-2">
-            <div class="options-item">
-              <div class="options-bar row-tight">
-                <span class="options-label">Format</span>
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>TEXT
+              </div>
+            </div>
+            <div class="s-field-wrap">
+              <label class="s-label">워터마크 텍스트</label>
+              <input id="s-wm-text" class="table-name-input" style="width:100%" placeholder="@instagram"
+                value="@instagram">
+              <div class="wm-color-row">
+                <span class="s-label" style="margin:0">색상</span>
+                <button class="toggle-btn wm-color-btn active" data-color="#ffffff"
+                  style="background:#ffffff;color:#333;border-color:#999">흰색</button>
+                <button class="toggle-btn wm-color-btn" data-color="#000000"
+                  style="background:#000000;color:#fff;border-color:#555">검정</button>
+                <input id="s-wm-color" type="color" value="#ffffff" class="table-name-input input-xs color-input"
+                  title="직접 색상 선택">
+              </div>
+            </div>
+
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>EXPORT
+              </div>
+            </div>
+            <div class="options-bar" style="padding:12px 16px 0;border-top:none">
+              <div class="toggle-group">
+                <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
+                <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
+                <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+              </div>
+            </div>
+            <div style="padding:10px 16px 16px">
+              <button class="generate-btn" style="width:100%" onclick="downloadOut()">⬇ DOWNLOAD</button>
+            </div>
+          </div><!-- end wmSimplePanel -->
+
+          <!-- ADVANCED PANEL -->
+          <div id="wmAdvPanel" class="hidden">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="dot"></div>SETTINGS
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <div class="setting-title">Base Image</div>
+              <div class="options-bar"><input id="baseImageInput" type="file" accept="image/*"></div>
+            </div>
+
+            <div class="setting-group">
+              <div class="setting-title">Watermark Type</div>
+              <div class="options-bar">
                 <div class="toggle-group">
-                  <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
-                  <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
-                  <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+                  <button class="toggle-btn wmtype-btn active" data-type="text">Text</button>
+                  <button class="toggle-btn wmtype-btn" data-type="image">PNG</button>
                 </div>
               </div>
-            </div>
-            <div class="options-item">
-              <div class="options-bar row-tight">
-                <span class="options-label">Quality</span>
-                <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input input-sm">
+
+              <div id="wmTextWrap">
+                <div class="options-bar"><span class="options-label">Text</span><input id="wmText"
+                    class="table-name-input" value="@instagram"></div>
+                <div class="options-bar">
+                  <span class="options-label">Timestamp</span>
+                  <div class="toggle-group">
+                    <button class="toggle-btn ts-btn active" data-ts="off">OFF</button>
+                    <button class="toggle-btn ts-btn" data-ts="on">ON</button>
+                  </div>
+                </div>
+                <div class="options-bar">
+                  <span class="options-label">Color</span><input id="wmColor" type="color" value="#ffffff"
+                    class="table-name-input input-xs color-input">
+                  <span class="options-label">Size%</span><input id="wmTextSize" type="number" value="5" min="1"
+                    max="20" class="table-name-input input-xs">
+                </div>
+              </div>
+
+              <div id="wmImageWrap" class="hidden">
+                <div class="options-bar"><input id="wmImageInput" type="file" accept="image/png,image/*"></div>
+                <div class="options-bar"><span class="options-label">Scale%</span><input id="wmImgScale" type="number"
+                    value="18" min="5" max="80" class="table-name-input input-xs"></div>
+              </div>
+
+              <div class="options-bar">
+                <span class="options-label">Position</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn pos-btn" data-pos="tl">좌상</button>
+                  <button class="toggle-btn pos-btn" data-pos="tr">우상</button>
+                  <button class="toggle-btn pos-btn" data-pos="bl">좌하</button>
+                  <button class="toggle-btn pos-btn active" data-pos="br">우하</button>
+                  <button class="toggle-btn pos-btn" data-pos="center">중앙</button>
+                  <button class="toggle-btn pos-btn" data-pos="tile">바둑판</button>
+                </div>
+              </div>
+              <div class="options-bar hidden" id="tileOpts">
+                <span class="options-label">Gap(px)</span><input id="tileGap" type="number" value="40" min="0" max="500"
+                  class="table-name-input input-xs">
+                <span class="options-label">Offset</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn tileoff-btn active" data-offset="on">ON</button>
+                  <button class="toggle-btn tileoff-btn" data-offset="off">OFF</button>
+                </div>
+              </div>
+              <div class="options-bar">
+                <span class="options-label">Margin(px)</span><input id="wmMargin" type="number" value="24" min="0"
+                  max="200" class="table-name-input input-xs">
+                <span class="options-label">Opacity%</span><input id="wmOpacity" type="number" value="60" min="1"
+                  max="100" class="table-name-input input-xs">
+                <span class="options-label">Rotate°</span><input id="wmRotate" type="number" value="0" min="-180"
+                  max="180" class="table-name-input input-xs">
               </div>
             </div>
-          </div>
-          <div class="download-actions">
-            <button class="export-btn all download-btn all full" onclick="downloadOut()">⬇ 다운로드</button>
-          </div>
+
+            <div class="setting-group">
+              <div class="setting-title">Export</div>
+              <div class="options-row options-row-2">
+                <div class="options-item">
+                  <div class="options-bar row-tight">
+                    <span class="options-label">Format</span>
+                    <div class="toggle-group">
+                      <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
+                      <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
+                      <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="options-item">
+                  <div class="options-bar row-tight">
+                    <span class="options-label">Quality</span>
+                    <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input input-sm">
+                  </div>
+                </div>
+              </div>
+              <div class="download-actions">
+                <button class="export-btn all download-btn all full" onclick="downloadOut()">⬇ 다운로드</button>
+              </div>
+            </div>
+          </div><!-- end wmAdvPanel -->
         </div>
-        </div><!-- end wmAdvPanel -->
+      </div>
+
+      <div class="output-panel">
+        <div class="panel">
+          <div class="canvas-wrap"><canvas id="wmCanvas" width="1200" height="675"></canvas></div>
+        </div>
       </div>
     </div>
-
-    <div class="output-panel"><div class="panel"><div class="canvas-wrap"><canvas id="wmCanvas" width="1200" height="675"></canvas></div></div></div>
+    <footer>// Image Watermark Tool</footer>
   </div>
-  <footer>// Image Watermark Tool</footer>
-</div>
 
-<script>
-let baseImage=null, watermarkImage=null, wmType='text', wmPos='br', exportFormat='png', showTimestamp=false, tileOffset=true;
-const canvas=document.getElementById('wmCanvas'); const ctx=canvas.getContext('2d');
+  <script>
+    let baseImage = null, watermarkImage = null, wmType = 'text', wmPos = 'br', exportFormat = 'png', showTimestamp = false, tileOffset = true;
+    const canvas = document.getElementById('wmCanvas'); const ctx = canvas.getContext('2d');
 
-function bindInput(ids){ ids.forEach(id=>document.getElementById(id).addEventListener('input', render)); }
-bindInput(['wmText','wmColor','wmTextSize','wmImgScale','wmMargin','wmOpacity','wmRotate','imgQuality','tileGap']);
+    function bindInput(ids) { ids.forEach(id => document.getElementById(id).addEventListener('input', render)); }
+    bindInput(['wmText', 'wmColor', 'wmTextSize', 'wmImgScale', 'wmMargin', 'wmOpacity', 'wmRotate', 'imgQuality', 'tileGap']);
 
-function updateWatermarkTypeUI(){
-  document.getElementById('wmTextWrap').classList.toggle('hidden', wmType!=='text');
-  document.getElementById('wmImageWrap').classList.toggle('hidden', wmType!=='image');
-}
-function updatePositionUI(){
-  document.getElementById('tileOpts').classList.toggle('hidden', wmPos !== 'tile');
-}
-
-document.querySelectorAll('.wmtype-btn').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.wmtype-btn').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');
-  wmType=b.dataset.type;
-  updateWatermarkTypeUI();
-  render();
-});
-document.querySelectorAll('.pos-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pos-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmPos=b.dataset.pos;updatePositionUI();render();});
-document.querySelectorAll('.tileoff-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tileoff-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tileOffset=b.dataset.offset==='on';render();});
-document.querySelectorAll('.ts-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.ts-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');showTimestamp=b.dataset.ts==='on';render();});
-document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
-
-function readImageFile(input, cb){ const f=input.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{ const i=new Image(); i.onload=()=>cb(i); i.src=e.target.result; }; r.readAsDataURL(f); }
-document.getElementById('baseImageInput').addEventListener('change',e=>readImageFile(e.target, img=>{baseImage=img; render();}));
-document.getElementById('wmImageInput').addEventListener('change',e=>readImageFile(e.target, img=>{watermarkImage=img; render();}));
-
-function computePos(w,h,mw,mh,margin,pos){
-  if(pos==='tl') return [margin+mw/2, margin+mh/2];
-  if(pos==='tr') return [w-margin-mw/2, margin+mh/2];
-  if(pos==='bl') return [margin+mw/2, h-margin-mh/2];
-  if(pos==='center') return [w/2,h/2];
-  return [w-margin-mw/2, h-margin-mh/2];
-}
-
-function computeTilePoints(w,h,mw,mh,margin,gapInput,offsetOn){
-  const pts=[];
-  const pad = Math.max(0, Math.min(200, margin));
-  const gap = Math.max(0, Math.min(500, gapInput));
-  const stepX = mw + gap;
-  const stepY = mh + gap;
-  const minX = pad + mw/2, maxX = w - pad - mw/2;
-  const minY = pad + mh/2, maxY = h - pad - mh/2;
-
-  let row = 0;
-  for(let y=minY; y<=maxY; y+=stepY){
-    const offsetX = (offsetOn && row % 2 === 1) ? stepX / 2 : 0;
-    for(let x=minX - offsetX; x<=maxX + stepX; x+=stepX){
-      if (x < minX || x > maxX) continue;
-      pts.push([x,y]);
+    function updateWatermarkTypeUI() {
+      document.getElementById('wmTextWrap').classList.toggle('hidden', wmType !== 'text');
+      document.getElementById('wmImageWrap').classList.toggle('hidden', wmType !== 'image');
     }
-    row++;
-  }
-  return pts;
-}
+    function updatePositionUI() {
+      document.getElementById('tileOpts').classList.toggle('hidden', wmPos !== 'tile');
+    }
 
-function drawBase(){
-  if(baseImage){
-    canvas.width=baseImage.width; canvas.height=baseImage.height;
-    ImageToolUtils.drawImageCover(ctx, baseImage, 0,0,canvas.width,canvas.height);
-  } else {
-    canvas.width=1200; canvas.height=675; ctx.fillStyle='#1f2937'; ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle='#fff'; ctx.font='700 34px sans-serif'; ctx.textAlign='center'; ctx.fillText('기본 이미지를 업로드하세요', canvas.width/2, canvas.height/2);
-  }
-}
+    document.querySelectorAll('.wmtype-btn').forEach(b => b.onclick = () => {
+      document.querySelectorAll('.wmtype-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      wmType = b.dataset.type;
+      updateWatermarkTypeUI();
+      render();
+    });
+    document.querySelectorAll('.pos-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.pos-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); wmPos = b.dataset.pos; updatePositionUI(); render(); });
+    document.querySelectorAll('.tileoff-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.tileoff-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); tileOffset = b.dataset.offset === 'on'; render(); });
+    document.querySelectorAll('.ts-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.ts-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); showTimestamp = b.dataset.ts === 'on'; render(); });
+    document.querySelectorAll('.exfmt-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.exfmt-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); exportFormat = b.dataset.fmt; });
 
-function fmtTimestamp(){
-  const d = new Date();
-  const p = n => String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-}
+    function readImageFile(input, cb) { const f = input.files[0]; if (!f) return; const r = new FileReader(); r.onload = e => { const i = new Image(); i.onload = () => cb(i); i.src = e.target.result; }; r.readAsDataURL(f); }
+    document.getElementById('baseImageInput').addEventListener('change', e => readImageFile(e.target, img => { baseImage = img; render(); }));
+    document.getElementById('wmImageInput').addEventListener('change', e => readImageFile(e.target, img => { watermarkImage = img; render(); }));
 
-function render(){
-  drawBase();
-  if(!baseImage) return;
-  const w=canvas.width, h=canvas.height;
-  const margin=ImageToolUtils.clamp(parseInt(document.getElementById('wmMargin').value||'24',10),0,200);
-  const op=ImageToolUtils.clamp(parseInt(document.getElementById('wmOpacity').value||'60',10),1,100)/100;
-  const rot=ImageToolUtils.clamp(parseInt(document.getElementById('wmRotate').value||'0',10),-180,180)*Math.PI/180;
+    function computePos(w, h, mw, mh, margin, pos) {
+      if (pos === 'tl') return [margin + mw / 2, margin + mh / 2];
+      if (pos === 'tr') return [w - margin - mw / 2, margin + mh / 2];
+      if (pos === 'bl') return [margin + mw / 2, h - margin - mh / 2];
+      if (pos === 'center') return [w / 2, h / 2];
+      return [w - margin - mw / 2, h - margin - mh / 2];
+    }
 
-  const drawAt = (x,y,drawer)=>{
-    ctx.save();
-    ctx.globalAlpha=op;
-    ctx.translate(x,y);
-    ctx.rotate(rot);
-    drawer();
-    ctx.restore();
-  };
+    function computeTilePoints(w, h, mw, mh, margin, gapInput, offsetOn) {
+      const pts = [];
+      const pad = Math.max(0, Math.min(200, margin));
+      const gap = Math.max(0, Math.min(500, gapInput));
+      const stepX = mw + gap;
+      const stepY = mh + gap;
+      const minX = pad + mw / 2, maxX = w - pad - mw / 2;
+      const minY = pad + mh / 2, maxY = h - pad - mh / 2;
 
-  if(wmType==='text'){
-    const base=document.getElementById('wmText').value||'@instagram';
-    const ts=showTimestamp ? fmtTimestamp() : '';
-    const txt=[base, ts].filter(Boolean).join(' ');
-    const fs=Math.floor((ImageToolUtils.clamp(parseInt(document.getElementById('wmTextSize').value||'5',10),1,20)/100)*Math.min(w,h));
-    ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
-    const tw=ctx.measureText(txt).width, th=fs;
-    const drawTxt = ()=>{
-      ctx.fillStyle=document.getElementById('wmColor').value;
-      ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(txt,0,0);
+      let row = 0;
+      for (let y = minY; y <= maxY; y += stepY) {
+        const offsetX = (offsetOn && row % 2 === 1) ? stepX / 2 : 0;
+        for (let x = minX - offsetX; x <= maxX + stepX; x += stepX) {
+          if (x < minX || x > maxX) continue;
+          pts.push([x, y]);
+        }
+        row++;
+      }
+      return pts;
+    }
+
+    function drawBase() {
+      if (baseImage) {
+        canvas.width = baseImage.width; canvas.height = baseImage.height;
+        ImageToolUtils.drawImageCover(ctx, baseImage, 0, 0, canvas.width, canvas.height);
+      } else {
+        canvas.width = 1200; canvas.height = 675; ctx.fillStyle = '#1f2937'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff'; ctx.font = '700 34px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('기본 이미지를 업로드하세요', canvas.width / 2, canvas.height / 2);
+      }
+    }
+
+    function fmtTimestamp() {
+      const d = new Date();
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+    }
+
+    function render() {
+      drawBase();
+      if (!baseImage) return;
+      const w = canvas.width, h = canvas.height;
+      const margin = ImageToolUtils.clamp(parseInt(document.getElementById('wmMargin').value || '24', 10), 0, 200);
+      const op = ImageToolUtils.clamp(parseInt(document.getElementById('wmOpacity').value || '60', 10), 1, 100) / 100;
+      const rot = ImageToolUtils.clamp(parseInt(document.getElementById('wmRotate').value || '0', 10), -180, 180) * Math.PI / 180;
+
+      const drawAt = (x, y, drawer) => {
+        ctx.save();
+        ctx.globalAlpha = op;
+        ctx.translate(x, y);
+        ctx.rotate(rot);
+        drawer();
+        ctx.restore();
+      };
+
+      if (wmType === 'text') {
+        const base = document.getElementById('wmText').value || '@instagram';
+        const ts = showTimestamp ? fmtTimestamp() : '';
+        const txt = [base, ts].filter(Boolean).join(' ');
+        const fs = Math.floor((ImageToolUtils.clamp(parseInt(document.getElementById('wmTextSize').value || '5', 10), 1, 20) / 100) * Math.min(w, h));
+        ctx.font = `700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
+        const tw = ctx.measureText(txt).width, th = fs;
+        const drawTxt = () => {
+          ctx.fillStyle = document.getElementById('wmColor').value;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(txt, 0, 0);
+        };
+
+        if (wmPos === 'tile') {
+          const tileGap = parseInt(document.getElementById('tileGap').value || '40', 10);
+          const pts = computeTilePoints(w, h, tw, th, margin, tileGap, tileOffset);
+          pts.forEach(([x, y]) => drawAt(x, y, drawTxt));
+        } else {
+          const [x, y] = computePos(w, h, tw, th, margin, wmPos);
+          drawAt(x, y, drawTxt);
+        }
+
+      } else if (watermarkImage) {
+        const scale = ImageToolUtils.clamp(parseInt(document.getElementById('wmImgScale').value || '18', 10), 5, 80) / 100;
+        const long = Math.min(w, h) * scale;
+        const ir = watermarkImage.width / watermarkImage.height;
+        const mw = ir >= 1 ? long : long * ir, mh = ir >= 1 ? long / ir : long;
+        const drawImg = () => ctx.drawImage(watermarkImage, -mw / 2, -mh / 2, mw, mh);
+
+        if (wmPos === 'tile') {
+          const tileGap = parseInt(document.getElementById('tileGap').value || '40', 10);
+          const pts = computeTilePoints(w, h, mw, mh, margin, tileGap, tileOffset);
+          pts.forEach(([x, y]) => drawAt(x, y, drawImg));
+        } else {
+          const [x, y] = computePos(w, h, mw, mh, margin, wmPos);
+          drawAt(x, y, drawImg);
+        }
+      }
+    }
+
+    function downloadOut() {
+      render();
+      const q = ImageToolUtils.clamp(parseInt(document.getElementById('imgQuality').value || '92', 10), 1, 100) / 100;
+      ImageToolUtils.downloadCanvas(canvas, { format: exportFormat, quality: q, filename: `watermark_${Date.now()}` });
+    }
+
+    // ── Simple Mode ──────────────────────────────────────────
+    const WM_PRESETS = {
+      corner: { pos: 'br', opacity: 60, size: 5, rotate: 0, margin: 24, color: '#ffffff' },
+      stamp: { pos: 'center', opacity: 30, size: 10, rotate: -30, margin: 0, color: '#ffffff' },
+      bold: { pos: 'br', opacity: 90, size: 7, rotate: 0, margin: 24, color: '#ffffff' },
     };
 
-    if (wmPos === 'tile') {
-      const tileGap = parseInt(document.getElementById('tileGap').value||'40',10);
-      const pts = computeTilePoints(w,h,tw,th,margin,tileGap,tileOffset);
-      pts.forEach(([x,y])=>drawAt(x,y,drawTxt));
-    } else {
-      const [x,y]=computePos(w,h,tw,th,margin,wmPos);
-      drawAt(x,y,drawTxt);
+    function applyWmPreset(id) {
+      const p = WM_PRESETS[id];
+      wmPos = p.pos;
+      document.getElementById('wmOpacity').value = p.opacity;
+      document.getElementById('wmTextSize').value = p.size;
+      document.getElementById('wmRotate').value = p.rotate;
+      document.getElementById('wmMargin').value = p.margin;
+      document.getElementById('wmColor').value = p.color;
+      document.getElementById('s-wm-color').value = p.color;
+      document.querySelectorAll('.pos-btn').forEach(b => b.classList.toggle('active', b.dataset.pos === p.pos));
+      document.querySelectorAll('.wm-preset-card').forEach(c => c.classList.toggle('active', c.dataset.preset === id));
+      render();
     }
 
-  } else if(watermarkImage){
-    const scale=ImageToolUtils.clamp(parseInt(document.getElementById('wmImgScale').value||'18',10),5,80)/100;
-    const long=Math.min(w,h)*scale;
-    const ir=watermarkImage.width/watermarkImage.height;
-    const mw=ir>=1?long:long*ir, mh=ir>=1?long/ir:long;
-    const drawImg = ()=>ctx.drawImage(watermarkImage,-mw/2,-mh/2,mw,mh);
-
-    if (wmPos === 'tile') {
-      const tileGap = parseInt(document.getElementById('tileGap').value||'40',10);
-      const pts = computeTilePoints(w,h,mw,mh,margin,tileGap,tileOffset);
-      pts.forEach(([x,y])=>drawAt(x,y,drawImg));
-    } else {
-      const [x,y]=computePos(w,h,mw,mh,margin,wmPos);
-      drawAt(x,y,drawImg);
+    function switchWmMode(mode) {
+      const isSimple = mode === 'simple';
+      if (isSimple) {
+        document.getElementById('s-wm-text').value = document.getElementById('wmText').value;
+        document.getElementById('s-wm-color').value = document.getElementById('wmColor').value;
+      } else {
+        document.getElementById('wmText').value = document.getElementById('s-wm-text').value;
+        document.getElementById('wmColor').value = document.getElementById('s-wm-color').value;
+      }
+      document.getElementById('wmSimplePanel').classList.toggle('hidden', !isSimple);
+      document.getElementById('wmAdvPanel').classList.toggle('hidden', isSimple);
+      document.getElementById('wmTabSimple').classList.toggle('active', isSimple);
+      document.getElementById('wmTabAdv').classList.toggle('active', !isSimple);
     }
-  }
-}
 
-function downloadOut(){
-  render();
-  const q=ImageToolUtils.clamp(parseInt(document.getElementById('imgQuality').value||'92',10),1,100)/100;
-  ImageToolUtils.downloadCanvas(canvas,{format:exportFormat,quality:q,filename:`watermark_${Date.now()}`});
-}
+    document.getElementById('s-wm-text').addEventListener('input', () => {
+      document.getElementById('wmText').value = document.getElementById('s-wm-text').value;
+      render();
+    });
 
-// ── Simple Mode ──────────────────────────────────────────
-const WM_PRESETS = {
-  corner: { pos:'br',     opacity:60, size:5,  rotate:0,   margin:24, color:'#ffffff' },
-  stamp:  { pos:'center', opacity:30, size:10, rotate:-30, margin:0,  color:'#ffffff' },
-  bold:   { pos:'br',     opacity:90, size:7,  rotate:0,   margin:24, color:'#ffffff' },
-};
+    document.querySelectorAll('.wm-color-btn').forEach(b => b.onclick = () => {
+      document.querySelectorAll('.wm-color-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      const c = b.dataset.color;
+      document.getElementById('wmColor').value = c;
+      document.getElementById('s-wm-color').value = c;
+      render();
+    });
 
-function applyWmPreset(id) {
-  const p = WM_PRESETS[id];
-  wmPos = p.pos;
-  document.getElementById('wmOpacity').value  = p.opacity;
-  document.getElementById('wmTextSize').value = p.size;
-  document.getElementById('wmRotate').value   = p.rotate;
-  document.getElementById('wmMargin').value   = p.margin;
-  document.getElementById('wmColor').value    = p.color;
-  document.getElementById('s-wm-color').value = p.color;
-  document.querySelectorAll('.pos-btn').forEach(b => b.classList.toggle('active', b.dataset.pos === p.pos));
-  document.querySelectorAll('.wm-preset-card').forEach(c => c.classList.toggle('active', c.dataset.preset === id));
-  render();
-}
+    document.getElementById('s-wm-color').addEventListener('input', () => {
+      document.getElementById('wmColor').value = document.getElementById('s-wm-color').value;
+      document.querySelectorAll('.wm-color-btn').forEach(x => x.classList.remove('active'));
+      render();
+    });
 
-function switchWmMode(mode) {
-  const isSimple = mode === 'simple';
-  if (isSimple) {
-    document.getElementById('s-wm-text').value  = document.getElementById('wmText').value;
-    document.getElementById('s-wm-color').value = document.getElementById('wmColor').value;
-  } else {
-    document.getElementById('wmText').value  = document.getElementById('s-wm-text').value;
-    document.getElementById('wmColor').value = document.getElementById('s-wm-color').value;
-  }
-  document.getElementById('wmSimplePanel').classList.toggle('hidden', !isSimple);
-  document.getElementById('wmAdvPanel').classList.toggle('hidden', isSimple);
-  document.getElementById('wmTabSimple').classList.toggle('active', isSimple);
-  document.getElementById('wmTabAdv').classList.toggle('active', !isSimple);
-}
+    // Drop zone drag-and-drop
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const f = e.dataTransfer.files[0];
+      if (!f || !f.type.startsWith('image/')) return;
+      const r = new FileReader();
+      r.onload = ev => { const i = new Image(); i.onload = () => { baseImage = i; render(); }; i.src = ev.target.result; };
+      r.readAsDataURL(f);
+    });
 
-document.getElementById('s-wm-text').addEventListener('input', () => {
-  document.getElementById('wmText').value = document.getElementById('s-wm-text').value;
-  render();
-});
-
-document.querySelectorAll('.wm-color-btn').forEach(b => b.onclick = () => {
-  document.querySelectorAll('.wm-color-btn').forEach(x => x.classList.remove('active'));
-  b.classList.add('active');
-  const c = b.dataset.color;
-  document.getElementById('wmColor').value    = c;
-  document.getElementById('s-wm-color').value = c;
-  render();
-});
-
-document.getElementById('s-wm-color').addEventListener('input', () => {
-  document.getElementById('wmColor').value = document.getElementById('s-wm-color').value;
-  document.querySelectorAll('.wm-color-btn').forEach(x => x.classList.remove('active'));
-  render();
-});
-
-// Drop zone drag-and-drop
-const dropZone = document.getElementById('dropZone');
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  const f = e.dataTransfer.files[0];
-  if (!f || !f.type.startsWith('image/')) return;
-  const r = new FileReader();
-  r.onload = ev => { const i = new Image(); i.onload = () => { baseImage = i; render(); }; i.src = ev.target.result; };
-  r.readAsDataURL(f);
-});
-
-updateWatermarkTypeUI();
-updatePositionUI();
-render();
-</script>
+    updateWatermarkTypeUI();
+    updatePositionUI();
+    render();
+  </script>
 </body>
+
 </html>
