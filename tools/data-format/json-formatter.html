@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,43 +61,46 @@
           <button class="sample-btn" onclick="loadSample()">예시 불러오기</button>
         </div>
 
-        <textarea class="ddl-textarea" id="jsonInput" placeholder='{
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Source</div>
+          <textarea class="ddl-textarea" id="jsonInput" placeholder='{
   "name": "example",
   "version": 1,
   "active": true,
   "tags": ["dev", "tools"],
   "meta": null
 }'></textarea>
+        </div>
 
-        <!-- Mode -->
-        <div class="options-bar">
-          <span class="options-label">Mode</span>
-          <div class="toggle-group">
-            <button class="toggle-btn active" data-mode="format">Format</button>
-            <button class="toggle-btn" data-mode="minify">Minify</button>
+        <div class="setting-group" data-level="basic">
+          <div class="setting-title">Options</div>
+          <div class="options-bar">
+            <span class="options-label">Mode</span>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-mode="format">Format</button>
+              <button class="toggle-btn" data-mode="minify">Minify</button>
+            </div>
+          </div>
+
+          <div class="options-bar" id="indentBar">
+            <span class="options-label">Indent</span>
+            <div class="toggle-group">
+              <button class="toggle-btn" data-indent="1">1</button>
+              <button class="toggle-btn active" data-indent="2">2</button>
+              <button class="toggle-btn" data-indent="4">4</button>
+              <button class="toggle-btn" data-indent="tab">Tab</button>
+            </div>
+            <span class="options-label">정렬</span>
+            <div class="toggle-group">
+              <button class="toggle-btn" data-sort="on">키 정렬</button>
+              <button class="toggle-btn active" data-sort="off">원본 순서</button>
+            </div>
           </div>
         </div>
 
-        <!-- Indent (only shown for format mode) -->
-        <div class="options-bar" id="indentBar">
-          <span class="options-label">Indent</span>
-          <div class="toggle-group">
-            <button class="toggle-btn" data-indent="1">1</button>
-            <button class="toggle-btn active" data-indent="2">2</button>
-            <button class="toggle-btn" data-indent="4">4</button>
-            <button class="toggle-btn" data-indent="tab">Tab</button>
-          </div>
-          <span class="options-label">정렬</span>
-          <div class="toggle-group">
-            <button class="toggle-btn" data-sort="on">키 정렬</button>
-            <button class="toggle-btn active" data-sort="off">원본 순서</button>
-          </div>
-        </div>
-
-        <button class="generate-btn" id="formatBtn" onclick="format()">
+        <button class="generate-btn" id="formatBtn" onclick="format()" data-shortcut="Ctrl + Enter">
           ⚡ 변환하기
         </button>
-        <p class="kb-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></p>
       </div>
     </div>
 
@@ -127,7 +130,7 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
     document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     mode = btn.dataset.mode;
-    document.getElementById('indentBar').style.display = mode === 'minify' ? 'none' : '';
+    document.getElementById('indentBar').classList.toggle('hidden', mode === 'minify');
   });
 });
 

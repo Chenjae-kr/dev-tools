@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,11 +8,20 @@
 <script src="../../nav.js"></script>
 <script src="../../ui-utils.js"></script>
 <script src="../../image-tools-utils.js"></script>
+<script src="../../vendor/jszip.min.js"></script>
 <link rel="stylesheet" href="../../styles.css">
 <style>
 .preview-wrap{position:sticky;top:84px}
 .pdf-canvas{width:100%;height:auto;border:1px solid var(--border);border-radius:10px;background:#fff}
+.page-row .page-nav-btn{width:34px;min-width:34px;padding:5px 0;text-align:center}
+.page-row #pageNum{flex:0 0 78px;max-width:78px !important}
+.page-row #pageTotal{min-width:46px;text-align:center}
 @media(max-width:980px){.preview-wrap{position:static;top:auto}}
+@media(max-width:768px){
+  .page-row{align-items:center}
+  .page-row > .options-label:first-child{flex:0 0 auto !important;min-width:auto !important}
+  .page-row #pageNum{flex:0 0 72px;max-width:72px !important}
+}
 </style>
 </head>
 <body>
@@ -34,12 +43,12 @@
 
         <div class="setting-group">
           <div class="setting-title">Render</div>
-          <div class="options-bar row-tight">
+          <div class="options-bar row-tight page-row">
             <span class="options-label">Page</span>
-            <button class="toggle-btn" onclick="prevPage()">◀</button>
+            <button class="toggle-btn page-nav-btn" onclick="prevPage()">◀</button>
             <input id="pageNum" class="table-name-input input-xs" type="number" min="1" value="1">
             <span id="pageTotal" class="options-label">/ 0</span>
-            <button class="toggle-btn" onclick="nextPage()">▶</button>
+            <button class="toggle-btn page-nav-btn" onclick="nextPage()">▶</button>
           </div>
           <div class="options-bar row-tight">
             <span class="options-label">Scale%</span>
@@ -54,9 +63,16 @@
             <input id="quality" class="table-name-input input-xs" type="number" min="1" max="100" value="92">
           </div>
           <div class="options-bar row-tight">
-            <button class="generate-btn" onclick="renderCurrent()">⚡ 렌더</button>
-            <button class="toggle-btn" onclick="downloadCurrent()">⬇ 현재 페이지 다운로드</button>
-            <button class="toggle-btn" onclick="downloadAll()">⬇ 전체 페이지 다운로드</button>
+            <span class="options-label">Range</span>
+            <input id="pageRange" class="table-name-input" placeholder="예: 1-3,5" value="all">
+          </div>
+          <div class="download-actions">
+            <button class="toggle-btn download-btn single" onclick="downloadCurrent()">⬇ 현재 페이지 다운로드</button>
+            <button class="toggle-btn download-btn all" onclick="downloadRangeZip()">⬇ 범위 ZIP 다운로드</button>
+            <button class="toggle-btn download-btn all full" onclick="downloadAll()">⬇ 전체 ZIP 다운로드</button>
+          </div>
+          <div class="options-bar row-tight">
+            <span id="zipProgress" class="options-label"></span>
           </div>
         </div>
       </div>
@@ -99,6 +115,9 @@ document.getElementById('pdfFile').addEventListener('change', async (e)=>{
   renderCurrent();
 });
 
+document.getElementById('pageNum').addEventListener('change', () => { if (pdfDoc) renderCurrent(); });
+document.getElementById('scale').addEventListener('change', () => { if (pdfDoc) renderCurrent(); });
+
 async function renderPage(pageNum){
   if (!pdfDoc) return;
   const page = await pdfDoc.getPage(pageNum);
@@ -132,20 +151,83 @@ window.downloadCurrent = function(){
   ImageToolUtils.downloadCanvas(canvas, { format: fmt, quality: q, filename: `pdf_p${currentPage}` });
 };
 
-window.downloadAll = async function(){
-  if (!pdfDoc) return;
+function parsePageRange(input, maxPages){
+  const text = String(input || 'all').trim().toLowerCase();
+  if (!text || text === 'all') return Array.from({length:maxPages}, (_,i)=>i+1);
+  const set = new Set();
+  const invalid = [];
+  text.split(',').map(x=>x.trim()).filter(Boolean).forEach(part => {
+    if (part.includes('-')) {
+      const [a,b] = part.split('-').map(v => parseInt(v.trim(),10));
+      if (Number.isFinite(a) && Number.isFinite(b)) {
+        const s = Math.max(1, Math.min(a,b));
+        const e = Math.min(maxPages, Math.max(a,b));
+        for (let i=s;i<=e;i++) set.add(i);
+      } else invalid.push(part);
+    } else {
+      const n = parseInt(part,10);
+      if (Number.isFinite(n) && n>=1 && n<=maxPages) set.add(n);
+      else invalid.push(part);
+    }
+  });
+  const out = [...set].sort((x,y)=>x-y);
+  if (!out.length) throw new Error('유효한 페이지 범위를 찾을 수 없습니다. 예: 1-3,5');
+  if (invalid.length) throw new Error(`잘못된 범위: ${invalid.join(', ')}`);
+  return out;
+}
+
+function canvasBlob(type, quality){
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+async function downloadZipForPages(pages){
+  if (!pdfDoc || !pages.length) return;
+  const progressEl = document.getElementById('zipProgress');
   const q = Math.max(1, Math.min(100, Number(document.getElementById('quality').value || 92)))/100;
+  const mime = fmt === 'png' ? 'image/png' : fmt === 'webp' ? 'image/webp' : 'image/jpeg';
+  const ext = fmt === 'jpeg' ? 'jpg' : fmt;
+  const zip = new JSZip();
   const keep = currentPage;
-  for (let i=1;i<=pdfDoc.numPages;i++) {
-    currentPage = i;
-    document.getElementById('pageNum').value = i;
-    await renderPage(i);
-    ImageToolUtils.downloadCanvas(canvas, { format: fmt, quality: q, filename: `pdf_p${i}` });
-    await new Promise(r=>setTimeout(r,80));
+  let idx = 0;
+
+  for (const p of pages) {
+    idx += 1;
+    if (progressEl) progressEl.textContent = `ZIP 생성중 ${idx}/${pages.length}`;
+    currentPage = p;
+    document.getElementById('pageNum').value = p;
+    await renderPage(p);
+    const blob = await canvasBlob(mime, q);
+    if (blob) zip.file(`pdf_p${p}.${ext}`, blob);
   }
+
+  if (progressEl) progressEl.textContent = 'ZIP 압축중...';
+  const content = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(content);
+  a.download = `pdf_pages_${Date.now()}.zip`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+
   currentPage = keep;
   document.getElementById('pageNum').value = keep;
   await renderPage(keep);
+  if (progressEl) progressEl.textContent = '';
+}
+
+window.downloadRangeZip = async function(){
+  if (!pdfDoc) return;
+  try {
+    const pages = parsePageRange(document.getElementById('pageRange').value, pdfDoc.numPages);
+    await downloadZipForPages(pages);
+  } catch (e) {
+    alert(e.message || '유효한 페이지 범위를 입력하세요.');
+  }
+};
+
+window.downloadAll = async function(){
+  if (!pdfDoc) return;
+  const pages = Array.from({length: pdfDoc.numPages}, (_,i)=>i+1);
+  await downloadZipForPages(pages);
 };
 </script>
 </body>

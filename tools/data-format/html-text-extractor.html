@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,11 +33,10 @@
           <div class="setting-title">Extract</div>
           <div class="options-bar">
             <label class="options-label"><input type="checkbox" id="keepLines" checked> 줄바꿈 유지</label>
-            <button class="generate-btn" onclick="extractTextNow()">⚡ 추출</button>
-            <span class="kb-hint" style="margin:0 4px"><kbd>Ctrl</kbd>+<kbd>Enter</kbd></span>
+            <button class="generate-btn" onclick="extractTextNow()" data-shortcut="Ctrl + Enter">⚡ 추출</button>
             <button class="toggle-btn" onclick="resetForm()">RESET</button>
             <button class="toggle-btn" onclick="copyOut()">COPY</button>
-            <button class="toggle-btn" onclick="downloadOut()">⬇ .txt</button>
+            <button class="toggle-btn download-btn single" onclick="downloadOut()">⬇ .txt</button>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -250,8 +250,28 @@
 
         <div class="options-bar row-tight">
           <span class="options-label">Label Banner</span>
-          <input id="labelText" class="table-name-input" placeholder="2026년 IPO 예상 주요 기업" value="2026년 IPO 예상 주요 기업">
+          <input id="labelText" class="table-name-input" placeholder="라벨 배너 텍스트를 입력하세요" value="">
         </div>
+
+        <div class="options-bar row-tight json-action-bar">
+          <span class="options-label">Card JSON</span>
+          <button class="toggle-btn" onclick="openCardJsonPopup()">JSON 입력</button>
+          <button class="toggle-btn" onclick="document.getElementById('cardJsonFile').click()">JSON 파일</button>
+          <input id="cardJsonFile" type="file" accept=".json,application/json" class="hidden">
+          <button class="toggle-btn reset-icon-btn" onclick="resetCardInputs()" title="전체 입력값 초기화" aria-label="전체 입력값 초기화">↻</button>
+        </div>
+        <textarea id="cardJsonInput" class="input-area hidden" placeholder='{
+  "headline": { "headline1": "카드뉴스 제목 1줄", "headline2": "카드뉴스 제목 2줄", "subtitle": "소제목", "label": "라벨" },
+  "body": { "bodyType": "text", "bodyText": "본문 텍스트", "bodyScale": 100 },
+  "footer": { "sourceText": "출처: 관련 자료", "brandText": "@instagram", "showSource": true, "showBrand": true, "showPage": true, "pageCount": 1 }
+}'></textarea>
+        <div id="cardJsonHint" class="text-muted mt-8 hidden">카드 전체(헤드라인/바디/푸터)를 JSON 한 번에 입력할 수 있어요.</div>
+        <textarea id="headlineJsonInput" class="hidden"></textarea>
+        <div id="headlineJsonHint" class="hidden"></div>
+        <textarea id="bodyJsonInput" class="hidden"></textarea>
+        <div id="bodyJsonHint" class="hidden"></div>
+        <textarea id="footerJsonInput" class="hidden"></textarea>
+        <div id="footerJsonHint" class="hidden"></div>
 
         <div class="control-grid-4">
           <input id="h1Scale" type="number" value="100" min="60" max="180" class="table-name-input" placeholder="H1 Size%">
@@ -279,8 +299,15 @@
           <textarea id="bodyText" class="input-area" placeholder="본문 텍스트 (줄바꿈 지원)"></textarea>
         </div>
 
+        <!-- body JSON controls unified into Card JSON -->
+
         <div id="bodyTableWrap" class="hidden">
           <div class="options-bar row-tight">
+            <span class="options-label">Data</span>
+            <div class="toggle-group" id="tblDataGroup">
+              <button class="toggle-btn tbldata-btn active" data-tbl-data="text">TEXT</button>
+              <button class="toggle-btn tbldata-btn" data-tbl-data="json">JSON</button>
+            </div>
             <span class="options-label" id="tblSepLabel">구분자</span>
             <div class="toggle-group" id="tblSepGroup">
               <button class="toggle-btn tblsep-btn active" data-sep="auto">AUTO</button>
@@ -329,6 +356,18 @@
             <span class="options-label">X%</span><input id="imgPosX" type="number" value="50" min="0" max="100" class="table-name-input small">
             <span class="options-label">Y%</span><input id="imgPosY" type="number" value="50" min="0" max="100" class="table-name-input small">
           </div>
+          <div class="options-bar row-tight">
+            <span class="options-label">Guide</span>
+            <div class="toggle-group">
+              <button class="toggle-btn guide-btn" data-guide="off">OFF</button>
+              <button class="toggle-btn guide-btn active" data-guide="on">ON</button>
+            </div>
+            <span class="options-label">Snap</span>
+            <div class="toggle-group">
+              <button class="toggle-btn snap-btn" data-snap="off">OFF</button>
+              <button class="toggle-btn snap-btn active" data-snap="on">ON</button>
+            </div>
+          </div>
         </div>
 
         <div class="options-bar row-tight">
@@ -372,13 +411,15 @@
             </div>
           </div>
 
-        <div class="options-bar row-tight">
+        <div class="options-bar row-tight page-controls">
           <span class="options-label">Pages</span>
-          <input id="pageCount" type="number" value="1" min="1" max="20" class="table-name-input small">
-          <button class="toggle-btn" onclick="prevPage()">◀</button>
+          <input id="pageCount" type="number" value="1" min="1" max="20" class="table-name-input input-xs">
+          <button class="toggle-btn page-nav-btn" onclick="prevPage()">◀</button>
           <span id="pageLabel" class="options-label">1 / 1</span>
-          <button class="toggle-btn" onclick="nextPage()">▶</button>
+          <button class="toggle-btn page-nav-btn" onclick="nextPage()">▶</button>
         </div>
+
+        <!-- footer JSON controls unified into Card JSON -->
         </div>
 
         <div class="setting-group">
@@ -390,7 +431,7 @@
               <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
               <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
             </div>
-            <span class="options-label">Quality</span>
+            <span class="options-label" id="imgQualityLabel">Quality</span>
             <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input small">
           </div>
           <div class="options-bar row-tight">
@@ -400,11 +441,19 @@
             <select id="presetSelect" class="table-name-input"></select>
             <button class="toggle-btn" onclick="loadPreset()">불러오기</button>
             <button class="toggle-btn" onclick="deletePreset()">삭제</button>
+            <button class="toggle-btn" onclick="exportPresets()">내보내기</button>
+            <button class="toggle-btn" onclick="document.getElementById('presetImport').click()">가져오기</button>
+            <input id="presetImport" type="file" accept="application/json" class="hidden">
+            <span class="options-label">적용</span>
+            <div class="toggle-group">
+              <button class="toggle-btn pscope-btn active" data-scope="current">현재</button>
+              <button class="toggle-btn pscope-btn" data-scope="all">전체</button>
+            </div>
           </div>
           <div class="export-actions">
             <button class="export-btn save" onclick="savePage()">💾 페이지 저장</button>
-            <button class="export-btn single" onclick="downloadCurrent()">⬇ 현재 다운로드</button>
-            <button class="export-btn all" onclick="downloadAll()">⬇ 전체 다운로드</button>
+            <button class="export-btn single download-btn" onclick="downloadCurrent()">⬇ 현재 다운로드</button>
+            <button class="export-btn all download-btn" onclick="downloadAll()">⬇ 전체 다운로드</button>
           </div>
         </div>
         </div><!-- end advancedPanel -->
@@ -420,6 +469,15 @@
   <footer>// Instagram Card News Maker</footer>
 </div>
 
+<dialog id="cardJsonDialog" class="json-dialog">
+  <div class="json-dialog-head">카드 전체 JSON 입력</div>
+  <textarea id="cardJsonDialogInput" class="input-area json-dialog-input"></textarea>
+  <div class="json-dialog-actions">
+    <button class="toggle-btn" onclick="closeCardJsonPopup()">취소</button>
+    <button class="download-btn single" onclick="applyCardJsonFromPopup()">적용</button>
+  </div>
+</dialog>
+
 <script>
 const sizes = { '1:1':[1080,1080], '4:5':[1080,1350], '9:16':[1080,1920] };
 const themes = {
@@ -431,10 +489,12 @@ let sizeKey='1:1', themeKey='navy', bgMode='color', bgImage=null;
 let page=1, pages=[{}], bodyType='text';
 let exportFormat='png';
 let tableSepMode='auto';
+let tableDataMode='text';
 let tableInputMode='text';
+let presetScope='current';
 const PRESET_KEY='insta-card-presets-v1';
 
-function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',bodyBgMode:'solid',bodyBgColor:'#ffffff',bodyBgOpacity:100,bodyBgImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50}; }
+function newPage(){ return {title:'',title2:'',subtitle:'',label:'',source:'출처: 관련 자료',brand:'@instagram',showHeadline:true,showSubtitle:true,showSource:true,showBrand:true,showPage:true,h1Scale:100,h2Scale:100,subScale:100,titleY:8,bodyScale:100,bodyType:'text',bodyText:'',tableText:'',bodyImageData:'',bodyBgMode:'solid',bodyBgColor:'#ffffff',bodyBgOpacity:100,bodyBgImageData:'',imgFit:'cover',imgZoom:100,imgPosX:50,imgPosY:50,showGuide:true,snapGuide:true}; }
 function getCanvas(){return document.getElementById('cardCanvas');}
 function current(){return pages[page-1] || newPage();}
 function setPageLabel(){document.getElementById('pageLabel').textContent=`${page} / ${pages.length}`;document.getElementById('pageCount').value=pages.length;}
@@ -451,13 +511,39 @@ function refreshPresetSelect(){
   sel.innerHTML = `<option value="">프리셋 선택</option>` + names.map(n=>`<option value="${n}">${n}</option>`).join('');
 }
 function collectPreset(){
+  const p = current();
   return {
     sizeKey, themeKey, bgMode, exportFormat,
     bgColor:document.getElementById('bgColor').value,
     titleColor1:document.getElementById('titleColor1').value,
     titleColor2:document.getElementById('titleColor2').value,
     imgQuality:parseInt(document.getElementById('imgQuality').value||'92',10),
+    pageStyle: {
+      showHeadline: p.showHeadline !== false,
+      showSubtitle: p.showSubtitle !== false,
+      showSource: p.showSource !== false,
+      showBrand: p.showBrand !== false,
+      showPage: p.showPage !== false,
+      showGuide: p.showGuide !== false,
+      snapGuide: p.snapGuide !== false,
+      h1Scale: p.h1Scale ?? 100,
+      h2Scale: p.h2Scale ?? 100,
+      subScale: p.subScale ?? 100,
+      titleY: p.titleY ?? 8,
+      bodyScale: p.bodyScale ?? 100,
+      bodyBgMode: p.bodyBgMode || 'solid',
+      bodyBgColor: p.bodyBgColor || '#ffffff',
+      bodyBgOpacity: p.bodyBgOpacity ?? 100,
+      imgFit: p.imgFit || 'cover',
+      imgZoom: p.imgZoom ?? 100,
+      imgPosX: p.imgPosX ?? 50,
+      imgPosY: p.imgPosY ?? 50,
+    }
   };
+}
+function applyPresetToPage(target, style){
+  if (!style) return target;
+  return { ...target, ...style };
 }
 function applyPreset(v){
   if(!v) return;
@@ -470,7 +556,13 @@ function applyPreset(v){
   document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active', b.dataset.theme===themeKey));
   document.querySelectorAll('.bgmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.bgmode===bgMode));
   document.querySelectorAll('.exfmt-btn').forEach(b=>b.classList.toggle('active', b.dataset.fmt===exportFormat));
+  syncExportQualityUI();
   document.getElementById('bgImageInput').classList.toggle('hidden', bgMode!=='image');
+
+  if (presetScope === 'all') pages = pages.map(pg => applyPresetToPage(pg, v.pageStyle));
+  else pages[page-1] = applyPresetToPage(pages[page-1], v.pageStyle);
+
+  fillInputsFromPage();
   renderCard();
 }
 function savePreset(){
@@ -494,6 +586,15 @@ function deletePreset(){
   delete presets[name];
   setPresets(presets); refreshPresetSelect();
 }
+function exportPresets(){
+  const presets = getPresets();
+  const blob = new Blob([JSON.stringify(presets, null, 2)], { type:'application/json;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `insta_presets_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 function setBodyUI(){
   document.getElementById('bodyTextWrap').classList.toggle('hidden', bodyType!=='text');
@@ -505,6 +606,12 @@ function setBodyUI(){
 function setBodyBgUI(){
   const mode = document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid';
   document.getElementById('bodyBgImageInput').classList.toggle('hidden', mode !== 'image');
+}
+
+function syncExportQualityUI(){
+  const hide = exportFormat === 'png';
+  document.getElementById('imgQualityLabel')?.classList.toggle('hidden', hide);
+  document.getElementById('imgQuality')?.classList.toggle('hidden', hide);
 }
 
 function updateInputModeToggle(){
@@ -533,6 +640,7 @@ function fillInputsFromPage(){
   document.getElementById('labelText').value=p.label||'';
   document.getElementById('bodyText').value=p.bodyText||'';
   document.getElementById('tableText').value=p.tableText||'';
+  fillCardJsonFromInputs(false);
   document.getElementById('h1Scale').value=p.h1Scale ?? 100;
   document.getElementById('h2Scale').value=p.h2Scale ?? 100;
   document.getElementById('subScale').value=p.subScale ?? 100;
@@ -545,11 +653,15 @@ function fillInputsFromPage(){
   const brandVis = p.showBrand === false ? 'off' : 'on';
   const headVis = p.showHeadline === false ? 'off' : 'on';
   const subVis = p.showSubtitle === false ? 'off' : 'on';
+  const guideVis = p.showGuide === false ? 'off' : 'on';
+  const snapVis = p.snapGuide === false ? 'off' : 'on';
   document.querySelectorAll('.pagewm-btn').forEach(b=>b.classList.toggle('active', b.dataset.pagewm===pagewm));
   document.querySelectorAll('.sourcevis-btn').forEach(b=>b.classList.toggle('active', b.dataset.source===sourceVis));
   document.querySelectorAll('.brandvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===brandVis));
   document.querySelectorAll('.headvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.head===headVis));
   document.querySelectorAll('.subvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===subVis));
+  document.querySelectorAll('.guide-btn').forEach(b=>b.classList.toggle('active', b.dataset.guide===guideVis));
+  document.querySelectorAll('.snap-btn').forEach(b=>b.classList.toggle('active', b.dataset.snap===snapVis));
   document.getElementById('imgZoom').value=p.imgZoom ?? 100;
   document.getElementById('imgPosX').value=p.imgPosX ?? 50;
   document.getElementById('imgPosY').value=p.imgPosY ?? 50;
@@ -565,7 +677,349 @@ function fillInputsFromPage(){
   setBodyUI();
 }
 
+function fillHeadlineJsonFromInputs(showMsg=true){
+  const payload = {
+    headline1: document.getElementById('titleText').value || '',
+    headline2: document.getElementById('titleText2').value || '',
+    subtitle: document.getElementById('subTitleText').value || '',
+    label: document.getElementById('labelText').value || '',
+    showHeadline: (document.querySelector('.headvis-btn.active')?.dataset.head || 'on') === 'on',
+    showSubtitle: (document.querySelector('.subvis-btn.active')?.dataset.sub || 'on') === 'on'
+  };
+  document.getElementById('headlineJsonInput').value = JSON.stringify(payload, null, 2);
+  if (showMsg) document.getElementById('headlineJsonHint').textContent = '현재 화면 값을 JSON으로 채웠습니다.';
+}
+
+function openHeadlineJsonPopup(){
+  fillHeadlineJsonFromInputs(false);
+  const dlg = document.getElementById('headlineJsonDialog');
+  const input = document.getElementById('headlineJsonDialogInput');
+  if (!dlg || !input) return;
+  input.value = document.getElementById('headlineJsonInput').value || '';
+  dlg.showModal();
+}
+
+function closeHeadlineJsonPopup(){
+  document.getElementById('headlineJsonDialog')?.close();
+}
+
+function applyHeadlineJsonFromPopup(){
+  const input = document.getElementById('headlineJsonDialogInput');
+  if (!input) return;
+  document.getElementById('headlineJsonInput').value = input.value;
+  applyHeadlineJsonToInputs();
+  closeHeadlineJsonPopup();
+}
+
+function resetHeadlineInputs(){
+  document.getElementById('titleText').value = '';
+  document.getElementById('titleText2').value = '';
+  document.getElementById('subTitleText').value = '';
+  document.getElementById('labelText').value = '';
+  document.getElementById('headlineJsonInput').value = '';
+  const dialogInput = document.getElementById('headlineJsonDialogInput');
+  if (dialogInput) dialogInput.value = '';
+  savePage();
+  renderCard();
+}
+
+function applyHeadlineJsonToInputs(){
+  const raw = (document.getElementById('headlineJsonInput').value || '').trim();
+  if (!raw) {
+    document.getElementById('headlineJsonHint').textContent = 'JSON 입력값이 비어 있습니다.';
+    return;
+  }
+
+  try {
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object') throw new Error('object expected');
+
+    const h1 = obj.headline1 ?? obj.title1 ?? obj.title ?? null;
+    const h2 = obj.headline2 ?? obj.title2 ?? null;
+    const sub = obj.subtitle ?? obj.subTitle ?? null;
+    const label = obj.label ?? obj.banner ?? null;
+
+    if (h1 != null) document.getElementById('titleText').value = String(h1);
+    if (h2 != null) document.getElementById('titleText2').value = String(h2);
+    if (sub != null) document.getElementById('subTitleText').value = String(sub);
+    if (label != null) document.getElementById('labelText').value = String(label);
+
+    if (typeof obj.showHeadline === 'boolean') {
+      const val = obj.showHeadline ? 'on' : 'off';
+      document.querySelectorAll('.headvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.head===val));
+    }
+    if (typeof obj.showSubtitle === 'boolean') {
+      const val = obj.showSubtitle ? 'on' : 'off';
+      document.querySelectorAll('.subvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===val));
+    }
+
+    savePage();
+    renderCard();
+    fillHeadlineJsonFromInputs(false);
+    document.getElementById('headlineJsonHint').textContent = 'JSON 적용 완료';
+  } catch (_) {
+    document.getElementById('headlineJsonHint').textContent = 'JSON 형식이 올바르지 않습니다. 예시 형식을 확인해 주세요.';
+  }
+}
+
+function fillBodyJsonFromInputs(showMsg=true){
+  const payload = {
+    bodyType,
+    bodyText: document.getElementById('bodyText').value || '',
+    tableText: document.getElementById('tableText').value || '',
+    bodyScale: parseInt(document.getElementById('bodyScale').value || '100', 10),
+    bodyBgMode: (document.querySelector('.bodybgmode-btn.active')?.dataset.bgmode || 'solid'),
+    bodyBgColor: document.getElementById('bodyBgColor').value || '#ffffff',
+    bodyBgOpacity: parseInt(document.getElementById('bodyBgOpacity').value || '100', 10),
+    imgFit: (document.querySelector('.imgfit-btn.active')?.dataset.fit || 'cover'),
+    imgZoom: parseInt(document.getElementById('imgZoom').value || '100', 10),
+    imgPosX: parseInt(document.getElementById('imgPosX').value || '50', 10),
+    imgPosY: parseInt(document.getElementById('imgPosY').value || '50', 10),
+    showGuide: (document.querySelector('.guide-btn.active')?.dataset.guide || 'on') === 'on',
+    snapGuide: (document.querySelector('.snap-btn.active')?.dataset.snap || 'on') === 'on'
+  };
+  document.getElementById('bodyJsonInput').value = JSON.stringify(payload, null, 2);
+  if (showMsg) document.getElementById('bodyJsonHint').textContent = '현재 바디 설정을 JSON으로 채웠습니다.';
+}
+
+function openBodyJsonPopup(){
+  fillBodyJsonFromInputs(false);
+  const dlg = document.getElementById('bodyJsonDialog');
+  const input = document.getElementById('bodyJsonDialogInput');
+  if (!dlg || !input) return;
+  input.value = document.getElementById('bodyJsonInput').value || '';
+  dlg.showModal();
+}
+function closeBodyJsonPopup(){ document.getElementById('bodyJsonDialog')?.close(); }
+function applyBodyJsonFromPopup(){
+  const input = document.getElementById('bodyJsonDialogInput');
+  if (!input) return;
+  document.getElementById('bodyJsonInput').value = input.value;
+  applyBodyJsonToInputs();
+  closeBodyJsonPopup();
+}
+function applyBodyJsonToInputs(){
+  const raw = (document.getElementById('bodyJsonInput').value || '').trim();
+  if (!raw) { document.getElementById('bodyJsonHint').textContent = 'JSON 입력값이 비어 있습니다.'; return; }
+  try {
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object') throw new Error('object expected');
+    if (obj.bodyType && ['text','table','image'].includes(String(obj.bodyType))) {
+      bodyType = String(obj.bodyType);
+      document.querySelectorAll('.bodytype-btn').forEach(b=>b.classList.toggle('active', b.dataset.body===bodyType));
+      setBodyUI();
+    }
+    if (obj.bodyText != null) document.getElementById('bodyText').value = String(obj.bodyText);
+    if (obj.tableText != null) document.getElementById('tableText').value = String(obj.tableText);
+    if (obj.bodyScale != null) document.getElementById('bodyScale').value = parseInt(obj.bodyScale,10);
+    if (obj.bodyBgMode && ['solid','image'].includes(String(obj.bodyBgMode))) {
+      document.querySelectorAll('.bodybgmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.bgmode===String(obj.bodyBgMode)));
+      setBodyBgUI();
+    }
+    if (obj.bodyBgColor) document.getElementById('bodyBgColor').value = String(obj.bodyBgColor);
+    if (obj.bodyBgOpacity != null) document.getElementById('bodyBgOpacity').value = parseInt(obj.bodyBgOpacity,10);
+    if (obj.imgFit && ['cover','contain'].includes(String(obj.imgFit))) {
+      document.querySelectorAll('.imgfit-btn').forEach(b=>b.classList.toggle('active', b.dataset.fit===String(obj.imgFit)));
+    }
+    if (obj.imgZoom != null) document.getElementById('imgZoom').value = parseInt(obj.imgZoom,10);
+    if (obj.imgPosX != null) document.getElementById('imgPosX').value = parseInt(obj.imgPosX,10);
+    if (obj.imgPosY != null) document.getElementById('imgPosY').value = parseInt(obj.imgPosY,10);
+    if (typeof obj.showGuide === 'boolean') {
+      const val = obj.showGuide ? 'on' : 'off';
+      document.querySelectorAll('.guide-btn').forEach(b=>b.classList.toggle('active', b.dataset.guide===val));
+    }
+    if (typeof obj.snapGuide === 'boolean') {
+      const val = obj.snapGuide ? 'on' : 'off';
+      document.querySelectorAll('.snap-btn').forEach(b=>b.classList.toggle('active', b.dataset.snap===val));
+    }
+    savePage();
+    if (bodyType === 'table' && tableInputMode === 'grid') syncGridFromText();
+    renderCard();
+    fillBodyJsonFromInputs(false);
+    document.getElementById('bodyJsonHint').textContent = 'JSON 적용 완료';
+  } catch (_) {
+    document.getElementById('bodyJsonHint').textContent = 'JSON 형식이 올바르지 않습니다.';
+  }
+}
+function resetBodyInputs(){
+  bodyType = 'text';
+  document.querySelectorAll('.bodytype-btn').forEach(b=>b.classList.toggle('active', b.dataset.body==='text'));
+  setBodyUI();
+  document.getElementById('bodyText').value = '';
+  document.getElementById('tableText').value = '';
+  document.getElementById('bodyScale').value = '100';
+  document.querySelectorAll('.bodybgmode-btn').forEach(b=>b.classList.toggle('active', b.dataset.bgmode==='solid'));
+  document.getElementById('bodyBgColor').value = '#ffffff';
+  document.getElementById('bodyBgOpacity').value = '100';
+  setBodyBgUI();
+  document.getElementById('bodyJsonInput').value = '';
+  const dialogInput = document.getElementById('bodyJsonDialogInput');
+  if (dialogInput) dialogInput.value = '';
+  savePage();
+  renderCard();
+}
+
+function fillFooterJsonFromInputs(showMsg=true){
+  const payload = {
+    sourceText: document.getElementById('sourceText').value || '',
+    brandText: document.getElementById('brandText').value || '',
+    showSource: (document.querySelector('.sourcevis-btn.active')?.dataset.source || 'on') === 'on',
+    showBrand: (document.querySelector('.brandvis-btn.active')?.dataset.brand || 'on') === 'on',
+    showPage: (document.querySelector('.pagewm-btn.active')?.dataset.pagewm || 'on') === 'on',
+    pageCount: parseInt(document.getElementById('pageCount').value || '1', 10)
+  };
+  document.getElementById('footerJsonInput').value = JSON.stringify(payload, null, 2);
+  if (showMsg) document.getElementById('footerJsonHint').textContent = '현재 푸터 설정을 JSON으로 채웠습니다.';
+}
+function openFooterJsonPopup(){
+  fillFooterJsonFromInputs(false);
+  const dlg = document.getElementById('footerJsonDialog');
+  const input = document.getElementById('footerJsonDialogInput');
+  if (!dlg || !input) return;
+  input.value = document.getElementById('footerJsonInput').value || '';
+  dlg.showModal();
+}
+function closeFooterJsonPopup(){ document.getElementById('footerJsonDialog')?.close(); }
+function applyFooterJsonFromPopup(){
+  const input = document.getElementById('footerJsonDialogInput');
+  if (!input) return;
+  document.getElementById('footerJsonInput').value = input.value;
+  applyFooterJsonToInputs();
+  closeFooterJsonPopup();
+}
+function applyFooterJsonToInputs(){
+  const raw = (document.getElementById('footerJsonInput').value || '').trim();
+  if (!raw) { document.getElementById('footerJsonHint').textContent = 'JSON 입력값이 비어 있습니다.'; return; }
+  try {
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object') throw new Error('object expected');
+    if (obj.sourceText != null) document.getElementById('sourceText').value = String(obj.sourceText);
+    if (obj.brandText != null) document.getElementById('brandText').value = String(obj.brandText);
+    if (typeof obj.showSource === 'boolean') {
+      const val = obj.showSource ? 'on' : 'off';
+      document.querySelectorAll('.sourcevis-btn').forEach(b=>b.classList.toggle('active', b.dataset.source===val));
+    }
+    if (typeof obj.showBrand === 'boolean') {
+      const val = obj.showBrand ? 'on' : 'off';
+      document.querySelectorAll('.brandvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand===val));
+    }
+    if (typeof obj.showPage === 'boolean') {
+      const val = obj.showPage ? 'on' : 'off';
+      document.querySelectorAll('.pagewm-btn').forEach(b=>b.classList.toggle('active', b.dataset.pagewm===val));
+    }
+    if (obj.pageCount != null) {
+      document.getElementById('pageCount').value = parseInt(obj.pageCount, 10);
+      syncPages();
+    }
+    savePage();
+    renderCard();
+    fillFooterJsonFromInputs(false);
+    document.getElementById('footerJsonHint').textContent = 'JSON 적용 완료';
+  } catch (_) {
+    document.getElementById('footerJsonHint').textContent = 'JSON 형식이 올바르지 않습니다.';
+  }
+}
+function resetFooterInputs(){
+  document.getElementById('sourceText').value = '출처: 관련 자료';
+  document.getElementById('brandText').value = '@instagram';
+  document.querySelectorAll('.sourcevis-btn').forEach(b=>b.classList.toggle('active', b.dataset.source==='on'));
+  document.querySelectorAll('.brandvis-btn').forEach(b=>b.classList.toggle('active', b.dataset.brand==='on'));
+  document.querySelectorAll('.pagewm-btn').forEach(b=>b.classList.toggle('active', b.dataset.pagewm==='on'));
+  document.getElementById('footerJsonInput').value = '';
+  const dialogInput = document.getElementById('footerJsonDialogInput');
+  if (dialogInput) dialogInput.value = '';
+  savePage();
+  renderCard();
+}
+
+function fillCardJsonFromInputs(showMsg=true){
+  fillHeadlineJsonFromInputs(false);
+  fillBodyJsonFromInputs(false);
+  fillFooterJsonFromInputs(false);
+  let h={}, b={}, f={};
+  try { h = JSON.parse(document.getElementById('headlineJsonInput').value || '{}'); } catch(_) {}
+  try { b = JSON.parse(document.getElementById('bodyJsonInput').value || '{}'); } catch(_) {}
+  try { f = JSON.parse(document.getElementById('footerJsonInput').value || '{}'); } catch(_) {}
+  const payload = { headline: h, body: b, footer: f };
+  document.getElementById('cardJsonInput').value = JSON.stringify(payload, null, 2);
+  if (showMsg) document.getElementById('cardJsonHint').textContent = '현재 카드 설정을 JSON으로 채웠습니다.';
+}
+
+function openCardJsonPopup(){
+  fillCardJsonFromInputs(false);
+  const dlg = document.getElementById('cardJsonDialog');
+  const input = document.getElementById('cardJsonDialogInput');
+  if (!dlg || !input) return;
+  input.value = document.getElementById('cardJsonInput').value || '';
+  dlg.showModal();
+}
+function closeCardJsonPopup(){ document.getElementById('cardJsonDialog')?.close(); }
+function applyCardJsonFromPopup(){
+  const input = document.getElementById('cardJsonDialogInput');
+  if (!input) return;
+  document.getElementById('cardJsonInput').value = input.value;
+  const ok = applyCardJsonToInputs();
+  if (ok) closeCardJsonPopup();
+}
+function applyCardJsonToInputs(){
+  const raw = (document.getElementById('cardJsonInput').value || '').trim();
+  if (!raw) {
+    document.getElementById('cardJsonHint').textContent = 'JSON 입력값이 비어 있습니다.';
+    alert('JSON 입력값이 비어 있습니다.');
+    return false;
+  }
+  try {
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object') throw new Error('object expected');
+
+    const h = (obj.headline && typeof obj.headline === 'object') ? obj.headline : obj;
+    const b = (obj.body && typeof obj.body === 'object') ? obj.body : obj;
+    const f = (obj.footer && typeof obj.footer === 'object') ? obj.footer : obj;
+
+    document.getElementById('headlineJsonInput').value = JSON.stringify(h);
+    document.getElementById('bodyJsonInput').value = JSON.stringify(b);
+    document.getElementById('footerJsonInput').value = JSON.stringify(f);
+
+    applyHeadlineJsonToInputs();
+    applyBodyJsonToInputs();
+    applyFooterJsonToInputs();
+
+    savePage();
+    setPageLabel();
+    renderCard();
+    fillCardJsonFromInputs(false);
+    document.getElementById('cardJsonHint').textContent = '카드 JSON 적용 완료';
+    return true;
+  } catch (e) {
+    document.getElementById('cardJsonHint').textContent = 'JSON 형식이 올바르지 않습니다.';
+    alert(`JSON 형식 오류: ${e?.message || e}`);
+    return false;
+  }
+}
+
+function resetCardInputs(){
+  resetHeadlineInputs();
+  resetBodyInputs();
+  resetFooterInputs();
+  document.getElementById('cardJsonInput').value = '';
+  const d = document.getElementById('cardJsonDialogInput');
+  if (d) d.value = '';
+  savePage();
+  renderCard();
+}
+
+function snapVal(v, targets=[50], threshold=3){
+  const n = Number(v);
+  for (const t of targets) if (Math.abs(n - t) <= threshold) return t;
+  return n;
+}
+
 function savePage(){
+  const snapOn = (document.querySelector('.snap-btn.active')?.dataset.snap || 'on') === 'on';
+  const posXRaw = parseInt(document.getElementById('imgPosX').value || '50',10);
+  const posYRaw = parseInt(document.getElementById('imgPosY').value || '50',10);
+  const posX = snapOn ? snapVal(posXRaw, [0,50,100], 3) : posXRaw;
+  const posY = snapOn ? snapVal(posYRaw, [0,50,100], 3) : posYRaw;
   pages[page-1]={
     ...(pages[page-1]||newPage()),
     title:document.getElementById('titleText').value,
@@ -580,6 +1034,8 @@ function savePage(){
     showSource:(document.querySelector('.sourcevis-btn.active')?.dataset.source || 'on') === 'on',
     showBrand:(document.querySelector('.brandvis-btn.active')?.dataset.brand || 'on') === 'on',
     showPage:(document.querySelector('.pagewm-btn.active')?.dataset.pagewm || 'on') === 'on',
+    showGuide:(document.querySelector('.guide-btn.active')?.dataset.guide || 'on') === 'on',
+    snapGuide:snapOn,
     h1Scale:parseInt(document.getElementById('h1Scale').value || '100',10),
     h2Scale:parseInt(document.getElementById('h2Scale').value || '100',10),
     subScale:parseInt(document.getElementById('subScale').value || '100',10),
@@ -591,8 +1047,8 @@ function savePage(){
     bodyBgOpacity:parseInt(document.getElementById('bodyBgOpacity').value || '100',10),
     bodyBgImageData:(pages[page-1]?.bodyBgImageData || ''),
     imgZoom:parseInt(document.getElementById('imgZoom').value || '100',10),
-    imgPosX:parseInt(document.getElementById('imgPosX').value || '50',10),
-    imgPosY:parseInt(document.getElementById('imgPosY').value || '50',10),
+    imgPosX:posX,
+    imgPosY:posY,
     bodyText:document.getElementById('bodyText').value,
     tableText:document.getElementById('tableText').value,
   };
@@ -641,7 +1097,61 @@ function parseMarkdownTable(text){
   return {head, body};
 }
 
+function parseJsonTable(text){
+  try {
+    const data = JSON.parse(text || '[]');
+
+    if (Array.isArray(data)) {
+      if (!data.length) return null;
+
+      if (Array.isArray(data[0])) {
+        const maxCols = Math.max(...data.map(r => Array.isArray(r) ? r.length : 0));
+        if (!maxCols) return null;
+        const head = Array.from({length:maxCols}, (_,i)=>`col_${i+1}`);
+        const body = data.map(r => {
+          const row = Array.isArray(r) ? r : [];
+          const x = row.slice(0, maxCols).map(v => String(v ?? ''));
+          while (x.length < maxCols) x.push('');
+          return x;
+        });
+        return { head, body };
+      }
+
+      if (typeof data[0] === 'object' && data[0] !== null) {
+        const head = [];
+        data.forEach(obj => {
+          if (!obj || typeof obj !== 'object') return;
+          Object.keys(obj).forEach(k => { if (!head.includes(k)) head.push(k); });
+        });
+        if (!head.length) return null;
+        const body = data.map(obj => head.map(k => String((obj && obj[k] != null) ? obj[k] : '')));
+        return { head, body };
+      }
+
+      return null;
+    }
+
+    if (data && typeof data === 'object' && Array.isArray(data.head) && Array.isArray(data.body)) {
+      const head = data.head.map(v => String(v ?? ''));
+      const body = data.body.map(r => {
+        const row = Array.isArray(r) ? r : [];
+        const x = row.slice(0, head.length).map(v => String(v ?? ''));
+        while (x.length < head.length) x.push('');
+        return x;
+      });
+      if (!head.length) return null;
+      return { head, body };
+    }
+
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
 function parseCsvTable(text){
+  if (tableDataMode === 'json') return parseJsonTable(text);
+
   const lines=(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
   if(lines.length<2) return null;
 
@@ -680,7 +1190,14 @@ function setTableInputUI(){
   const dual = document.getElementById('tableDual');
   const sepLabel = document.getElementById('tblSepLabel');
   const sepGroup = document.getElementById('tblSepGroup');
-  dual.style.gridTemplateColumns = '1fr';
+  const textArea = document.getElementById('tableText');
+
+  const isJson = tableDataMode === 'json';
+  if (textArea) {
+    textArea.placeholder = isJson
+      ? '[\n  {"기업명":"케이뱅크","예상가치":"3조 3,673억","주요사업":"인터넷전문은행"},\n  {"기업명":"한화에너지","예상가치":"5조원 이상","주요사업":"에너지 발전·공급"}\n]'
+      : '기업명\t예상가치\t주요사업\n케이뱅크\t3조 3,673억\t인터넷전문은행\n\n또는 Markdown 표:\n| 기업명 | 예상가치 | 주요사업 |\n|---|---|---|\n| 케이뱅크 | 3조 3,673억 | 인터넷전문은행 |';
+  }
 
   if (tableInputMode === 'grid') {
     textWrap.classList.add('hidden');
@@ -690,8 +1207,8 @@ function setTableInputUI(){
   } else {
     textWrap.classList.remove('hidden');
     gridWrap.classList.add('hidden');
-    if (sepLabel) sepLabel.classList.remove('hidden');
-    if (sepGroup) sepGroup.classList.remove('hidden');
+    if (sepLabel) sepLabel.classList.toggle('hidden', isJson);
+    if (sepGroup) sepGroup.classList.toggle('hidden', isJson);
   }
 }
 
@@ -752,9 +1269,17 @@ function syncTextFromGrid(doRender=true){
 }
 
 function serializeTableData(head, body){
+  if (tableDataMode === 'json') {
+    const rows = body.map(r => {
+      const obj = {};
+      head.forEach((h, i) => { obj[String(h || `col_${i+1}`)] = String((r && r[i]) ?? ''); });
+      return obj;
+    });
+    return JSON.stringify(rows, null, 2);
+  }
+
   const mode = tableSepMode === 'auto' ? 'tab' : tableSepMode;
   if (mode === 'pipe') {
-    const sep = '|';
     const h = `| ${head.join(' | ')} |`;
     const s = `| ${head.map(()=> '---').join(' | ')} |`;
     const b = body.map(r => `| ${r.map(v=>String(v||'')).join(' | ')} |`);
@@ -884,6 +1409,18 @@ function drawBodyImage(ctx, img, x, y, w, h, fit='cover', zoom=100, posX=50, pos
 }
 
 const imageCache = new Map();
+function drawGuides(ctx, x, y, w, h){
+  ctx.save();
+  ctx.strokeStyle='rgba(45,212,191,.55)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  ctx.moveTo(x + w/2, y); ctx.lineTo(x + w/2, y + h);
+  ctx.moveTo(x, y + h/2); ctx.lineTo(x + w, y + h/2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function getCachedImage(dataUrl){
   if(!dataUrl) return null;
   let img = imageCache.get(dataUrl);
@@ -1059,6 +1596,7 @@ function renderCard(){
         );
         ctx.strokeStyle='rgba(0,0,0,0.3)';
         ctx.strokeRect(contentX,contentY,contentW,contentH);
+        if (p.showGuide !== false) drawGuides(ctx, contentX, contentY, contentW, contentH);
       };
       img.src=p.bodyImageData;
     } else {
@@ -1066,6 +1604,10 @@ function renderCard(){
       ctx.fillStyle='#666'; ctx.font=`600 ${Math.floor(h*0.024)}px sans-serif`; ctx.textAlign='center';
       ctx.fillText('본문 이미지를 업로드하세요',contentX+contentW/2,contentY+contentH/2);
     }
+  }
+
+  if (p.showGuide !== false && p.bodyType !== 'image') {
+    drawGuides(ctx, contentX, contentY, contentW, contentH);
   }
 
   // footer
@@ -1214,15 +1756,26 @@ document.querySelectorAll('.theme-btn').forEach(b=>b.onclick=()=>{document.query
 document.querySelectorAll('.bgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bgMode=b.dataset.bgmode;document.getElementById('bgImageInput').classList.toggle('hidden', bgMode!=='image');renderCard();});
 document.querySelectorAll('.bodytype-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodytype-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bodyType=b.dataset.body;setBodyUI();savePage();renderCard();});
 document.querySelectorAll('.tblsep-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tblsep-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tableSepMode=b.dataset.sep;if(tableInputMode==='grid') syncGridFromText();renderCard();});
+document.querySelectorAll('.tbldata-btn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tbldata-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  tableDataMode = b.dataset.tblData;
+  setTableInputUI();
+  if (tableInputMode === 'grid') syncGridFromText();
+  renderCard();
+});
 /* table input mode is controlled by single toggle button */
 document.querySelectorAll('.imgfit-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.imgfit-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.bodybgmode-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bodybgmode-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');setBodyBgUI();savePage();renderCard();});
 document.querySelectorAll('.headvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.headvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.subvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.subvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.guide-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.guide-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
+document.querySelectorAll('.snap-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.snap-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.sourcevis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sourcevis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.brandvis-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.brandvis-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
 document.querySelectorAll('.pagewm-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pagewm-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');savePage();renderCard();});
-document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
+document.querySelectorAll('.pscope-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pscope-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');presetScope=b.dataset.scope;});
+document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;syncExportQualityUI();});
 
 ['bgColor','titleText','titleText2','titleColor1','titleColor2','subTitleText','labelText','h1Scale','h2Scale','subScale','titleY','bodyScale','bodyBgColor','bodyBgOpacity','imgZoom','imgPosX','imgPosY','sourceText','brandText','bodyText','tableText','pageCount','imgQuality'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
   if(id==='pageCount') syncPages();
@@ -1233,6 +1786,8 @@ document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.query
 document.getElementById('bgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{bgImage=i;renderCard();};i.src=ev.target.result;};r.readAsDataURL(f);});
 document.getElementById('bodyImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyImageData=ev.target.result;renderCard();};r.readAsDataURL(f);});
 document.getElementById('bodyBgImageInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[page-1].bodyBgImageData=ev.target.result;savePage();renderCard();};r.readAsDataURL(f);});
+document.getElementById('presetImport').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const data=JSON.parse(ev.target.result||'{}');if(!data||typeof data!=='object')return;const presets=getPresets();setPresets({...presets,...data});refreshPresetSelect();}catch(_){}};r.readAsText(f,'utf-8');});
+document.getElementById('cardJsonFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const txt=String(ev.target?.result||'');document.getElementById('cardJsonInput').value=txt;applyCardJsonToInputs();}catch(_){document.getElementById('cardJsonHint').textContent='JSON 파일을 읽는 중 오류가 발생했습니다.';}};r.readAsText(f,'utf-8');});
 
 // init
 pages[0]={
@@ -1259,7 +1814,9 @@ pages[0]={
   bodyBgMode:'solid',
   bodyBgColor:'#ffffff',
   bodyBgOpacity:100,
-  bodyBgImageData:''
+  bodyBgImageData:'',
+  showGuide:true,
+  snapGuide:true
 };
 fillInputsFromPage(); setBodyUI(); setTableInputUI(); setPageLabel(); refreshPresetSelect(); syncGridFromText(false); syncPageToSimple(); renderCard();
 </script>

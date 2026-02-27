@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Image Watermark Tool | Dev Tools</title>
@@ -148,6 +148,15 @@
               <button class="toggle-btn pos-btn" data-pos="bl">좌하</button>
               <button class="toggle-btn pos-btn active" data-pos="br">우하</button>
               <button class="toggle-btn pos-btn" data-pos="center">중앙</button>
+              <button class="toggle-btn pos-btn" data-pos="tile">바둑판</button>
+            </div>
+          </div>
+          <div class="options-bar hidden" id="tileOpts">
+            <span class="options-label">Gap(px)</span><input id="tileGap" type="number" value="40" min="0" max="500" class="table-name-input input-xs">
+            <span class="options-label">Offset</span>
+            <div class="toggle-group">
+              <button class="toggle-btn tileoff-btn active" data-offset="on">ON</button>
+              <button class="toggle-btn tileoff-btn" data-offset="off">OFF</button>
             </div>
           </div>
           <div class="options-bar">
@@ -159,15 +168,26 @@
 
         <div class="setting-group">
           <div class="setting-title">Export</div>
-          <div class="options-bar">
-            <span class="options-label">Format</span>
-            <div class="toggle-group">
-              <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
-              <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+          <div class="options-row options-row-2">
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Format</span>
+                <div class="toggle-group">
+                  <button class="toggle-btn exfmt-btn active" data-fmt="png">PNG</button>
+                  <button class="toggle-btn exfmt-btn" data-fmt="jpeg">JPG</button>
+                  <button class="toggle-btn exfmt-btn" data-fmt="webp">WEBP</button>
+                </div>
+              </div>
             </div>
-            <span class="options-label">Quality</span><input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input input-xs">
-            <button class="generate-btn" onclick="downloadOut()">⬇ 다운로드</button>
+            <div class="options-item">
+              <div class="options-bar row-tight">
+                <span class="options-label">Quality</span>
+                <input id="imgQuality" type="number" value="92" min="1" max="100" class="table-name-input input-sm">
+              </div>
+            </div>
+          </div>
+          <div class="download-actions">
+            <button class="export-btn all download-btn all full" onclick="downloadOut()">⬇ 다운로드</button>
           </div>
         </div>
         </div><!-- end wmAdvPanel -->
@@ -180,15 +200,18 @@
 </div>
 
 <script>
-let baseImage=null, watermarkImage=null, wmType='text', wmPos='br', exportFormat='png', showTimestamp=false;
+let baseImage=null, watermarkImage=null, wmType='text', wmPos='br', exportFormat='png', showTimestamp=false, tileOffset=true;
 const canvas=document.getElementById('wmCanvas'); const ctx=canvas.getContext('2d');
 
 function bindInput(ids){ ids.forEach(id=>document.getElementById(id).addEventListener('input', render)); }
-bindInput(['wmText','wmColor','wmTextSize','wmImgScale','wmMargin','wmOpacity','wmRotate','imgQuality']);
+bindInput(['wmText','wmColor','wmTextSize','wmImgScale','wmMargin','wmOpacity','wmRotate','imgQuality','tileGap']);
 
 function updateWatermarkTypeUI(){
   document.getElementById('wmTextWrap').classList.toggle('hidden', wmType!=='text');
   document.getElementById('wmImageWrap').classList.toggle('hidden', wmType!=='image');
+}
+function updatePositionUI(){
+  document.getElementById('tileOpts').classList.toggle('hidden', wmPos !== 'tile');
 }
 
 document.querySelectorAll('.wmtype-btn').forEach(b=>b.onclick=()=>{
@@ -198,7 +221,8 @@ document.querySelectorAll('.wmtype-btn').forEach(b=>b.onclick=()=>{
   updateWatermarkTypeUI();
   render();
 });
-document.querySelectorAll('.pos-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pos-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmPos=b.dataset.pos;render();});
+document.querySelectorAll('.pos-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.pos-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');wmPos=b.dataset.pos;updatePositionUI();render();});
+document.querySelectorAll('.tileoff-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tileoff-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');tileOffset=b.dataset.offset==='on';render();});
 document.querySelectorAll('.ts-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.ts-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');showTimestamp=b.dataset.ts==='on';render();});
 document.querySelectorAll('.exfmt-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.exfmt-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');exportFormat=b.dataset.fmt;});
 
@@ -212,6 +236,27 @@ function computePos(w,h,mw,mh,margin,pos){
   if(pos==='bl') return [margin+mw/2, h-margin-mh/2];
   if(pos==='center') return [w/2,h/2];
   return [w-margin-mw/2, h-margin-mh/2];
+}
+
+function computeTilePoints(w,h,mw,mh,margin,gapInput,offsetOn){
+  const pts=[];
+  const pad = Math.max(0, Math.min(200, margin));
+  const gap = Math.max(0, Math.min(500, gapInput));
+  const stepX = mw + gap;
+  const stepY = mh + gap;
+  const minX = pad + mw/2, maxX = w - pad - mw/2;
+  const minY = pad + mh/2, maxY = h - pad - mh/2;
+
+  let row = 0;
+  for(let y=minY; y<=maxY; y+=stepY){
+    const offsetX = (offsetOn && row % 2 === 1) ? stepX / 2 : 0;
+    for(let x=minX - offsetX; x<=maxX + stepX; x+=stepX){
+      if (x < minX || x > maxX) continue;
+      pts.push([x,y]);
+    }
+    row++;
+  }
+  return pts;
 }
 
 function drawBase(){
@@ -238,8 +283,14 @@ function render(){
   const op=ImageToolUtils.clamp(parseInt(document.getElementById('wmOpacity').value||'60',10),1,100)/100;
   const rot=ImageToolUtils.clamp(parseInt(document.getElementById('wmRotate').value||'0',10),-180,180)*Math.PI/180;
 
-  ctx.save();
-  ctx.globalAlpha=op;
+  const drawAt = (x,y,drawer)=>{
+    ctx.save();
+    ctx.globalAlpha=op;
+    ctx.translate(x,y);
+    ctx.rotate(rot);
+    drawer();
+    ctx.restore();
+  };
 
   if(wmType==='text'){
     const base=document.getElementById('wmText').value||'@instagram';
@@ -248,22 +299,37 @@ function render(){
     const fs=Math.floor((ImageToolUtils.clamp(parseInt(document.getElementById('wmTextSize').value||'5',10),1,20)/100)*Math.min(w,h));
     ctx.font=`700 ${fs}px Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif`;
     const tw=ctx.measureText(txt).width, th=fs;
-    const [x,y]=computePos(w,h,tw,th,margin,wmPos);
-    ctx.translate(x,y); ctx.rotate(rot);
-    ctx.fillStyle=document.getElementById('wmColor').value;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(txt,0,0);
+    const drawTxt = ()=>{
+      ctx.fillStyle=document.getElementById('wmColor').value;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(txt,0,0);
+    };
+
+    if (wmPos === 'tile') {
+      const tileGap = parseInt(document.getElementById('tileGap').value||'40',10);
+      const pts = computeTilePoints(w,h,tw,th,margin,tileGap,tileOffset);
+      pts.forEach(([x,y])=>drawAt(x,y,drawTxt));
+    } else {
+      const [x,y]=computePos(w,h,tw,th,margin,wmPos);
+      drawAt(x,y,drawTxt);
+    }
+
   } else if(watermarkImage){
     const scale=ImageToolUtils.clamp(parseInt(document.getElementById('wmImgScale').value||'18',10),5,80)/100;
     const long=Math.min(w,h)*scale;
     const ir=watermarkImage.width/watermarkImage.height;
     const mw=ir>=1?long:long*ir, mh=ir>=1?long/ir:long;
-    const [x,y]=computePos(w,h,mw,mh,margin,wmPos);
-    ctx.translate(x,y); ctx.rotate(rot);
-    ctx.drawImage(watermarkImage,-mw/2,-mh/2,mw,mh);
-  }
+    const drawImg = ()=>ctx.drawImage(watermarkImage,-mw/2,-mh/2,mw,mh);
 
-  ctx.restore();
+    if (wmPos === 'tile') {
+      const tileGap = parseInt(document.getElementById('tileGap').value||'40',10);
+      const pts = computeTilePoints(w,h,mw,mh,margin,tileGap,tileOffset);
+      pts.forEach(([x,y])=>drawAt(x,y,drawImg));
+    } else {
+      const [x,y]=computePos(w,h,mw,mh,margin,wmPos);
+      drawAt(x,y,drawImg);
+    }
+  }
 }
 
 function downloadOut(){
@@ -343,6 +409,7 @@ dropZone.addEventListener('drop', e => {
 });
 
 updateWatermarkTypeUI();
+updatePositionUI();
 render();
 </script>
 </body>
