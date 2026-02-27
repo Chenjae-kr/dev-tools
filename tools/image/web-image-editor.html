@@ -776,6 +776,12 @@
         }
 
         function onMouseDown(opt) {
+            // 다른 객체 선택 시 백업 지우기
+            const activeObj = canvas.getActiveObject();
+            if (activeObj) {
+                activeObj._savedSelection = null;
+            }
+
             if (!isSelectionMode) return;
 
             // 기존 선택상자 있으면 제거 (바탕 클릭 시 재작성 또는 취소 용도)
