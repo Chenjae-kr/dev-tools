@@ -17,11 +17,23 @@
 .main-grid > .output-panel{position:sticky;top:84px;align-self:start}
 .main-grid > .output-panel .panel{max-height:calc(100vh - 110px);overflow:auto}
 @media (max-width: 980px){.main-grid > .output-panel{position:static}.main-grid > .output-panel .panel{max-height:none;overflow:visible}}
-.json-dialog{width:min(760px,92vw);border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);padding:12px}
-.json-dialog::backdrop{background:rgba(0,0,0,.45)}
-.json-dialog-head{font-family:var(--font-title);font-size:13px;margin-bottom:8px}
-.json-dialog-input{min-height:300px}
-.json-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+/* ── Mode tabs ── */
+.mode-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 16px}
+.mode-tab{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;padding:10px 14px;border:none;background:none;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.mode-tab.active{color:var(--accent);border-bottom-color:var(--accent)}.mode-tab:hover:not(.active){color:var(--text)}
+/* ── Template cards ── */
+.tpl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px}
+.tpl-card{border-radius:8px;border:2px solid var(--border);cursor:pointer;overflow:hidden;transition:border-color .15s,transform .1s;position:relative}
+.tpl-card.active{border-color:var(--accent)}.tpl-card:hover{transform:translateY(-2px)}
+.tpl-card-inner{width:100%;padding:8px;display:flex;flex-direction:column;gap:3px;min-height:76px}
+.tpl-h1{font-size:9px;font-weight:900;line-height:1.2}.tpl-h2{font-size:8px;font-weight:700;opacity:.8}
+.tpl-name{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;text-align:center;padding:4px 0;color:var(--text-muted);border-top:1px solid var(--border)}
+.tpl-check{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#000;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:900}
+.tpl-card.active .tpl-check{display:flex}
+/* ── Simple mode fields ── */
+.s-label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:5px}
+.simple-textarea{width:100%;background:transparent;border:1px solid var(--border);outline:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:10px 12px;resize:vertical;border-radius:8px}
+.s-field-wrap{padding:0 16px 12px}
 </style>
 </head>
 <body>
@@ -35,6 +47,84 @@
   <div class="main-grid">
     <div>
       <div class="panel">
+        <!-- MODE TABS -->
+        <div class="mode-tabs">
+          <button class="mode-tab active" id="thumbTabSimple" onclick="switchThumbMode('simple')">⚡ 간편 모드</button>
+          <button class="mode-tab" id="thumbTabAdv" onclick="switchThumbMode('advanced')">⚙ 고급 모드</button>
+        </div>
+
+        <!-- SIMPLE PANEL -->
+        <div id="thumbSimplePanel">
+          <div class="panel-header"><div class="panel-title"><div class="dot"></div>TEMPLATE</div></div>
+          <div class="tpl-grid">
+            <div class="tpl-card active" data-tpl="quote" onclick="applyPreset('quote');syncAdvToSimple()">
+              <div class="tpl-card-inner" style="background:#5f6fdd">
+                <div class="tpl-h1" style="color:#ffffff">블로그 썸네일</div>
+                <div class="tpl-h2" style="color:#ffffff">Quote · 1:1</div>
+              </div>
+              <div class="tpl-name">Quote</div>
+              <div class="tpl-check">✓</div>
+            </div>
+            <div class="tpl-card" data-tpl="blog" onclick="applyPreset('blog');syncAdvToSimple()">
+              <div class="tpl-card-inner" style="background:#2e3f8f">
+                <div class="tpl-h1" style="color:#ffffff">실전 가이드</div>
+                <div class="tpl-h2" style="color:#aaccff">Blog · 4:3</div>
+              </div>
+              <div class="tpl-name">Blog</div>
+              <div class="tpl-check">✓</div>
+            </div>
+            <div class="tpl-card" data-tpl="youtube" onclick="applyPreset('youtube');syncAdvToSimple()">
+              <div class="tpl-card-inner" style="background:#1c1f2a">
+                <div class="tpl-h1" style="color:#ffffff">유튜브 썸네일</div>
+                <div class="tpl-h2" style="color:#aaaaaa">YouTube · 16:9</div>
+              </div>
+              <div class="tpl-name">YouTube</div>
+              <div class="tpl-check">✓</div>
+            </div>
+            <div class="tpl-card" data-tpl="minimal" onclick="applyPreset('minimal');syncAdvToSimple()">
+              <div class="tpl-card-inner" style="background:#222831">
+                <div class="tpl-h1" style="color:#ffffff">미니멀 디자인</div>
+                <div class="tpl-h2" style="color:#aaaaaa">Minimal · 16:9</div>
+              </div>
+              <div class="tpl-name">Minimal</div>
+              <div class="tpl-check">✓</div>
+            </div>
+          </div>
+
+          <div class="panel-header"><div class="panel-title"><div class="dot"></div>CONTENT</div></div>
+          <div class="s-field-wrap">
+            <label class="s-label">메인 텍스트 (줄바꿈 가능)</label>
+            <textarea id="s-main" class="simple-textarea" style="min-height:72px" placeholder="블로그 썸네일&#10;3분 제작"></textarea>
+            <label class="s-label" style="margin-top:10px">서브 텍스트</label>
+            <input id="s-sub" class="table-name-input" style="width:100%" placeholder="3분만에 블로그 썸네일 만들기">
+          </div>
+          <div class="options-bar row-tight" style="padding:0 16px 10px;justify-content:flex-end">
+            <button class="toggle-btn" onclick="loadThumbSample()">예시 불러오기</button>
+          </div>
+
+          <div class="panel-header"><div class="panel-title"><div class="dot"></div>SIZE</div></div>
+          <div class="options-bar" style="padding:12px 16px">
+            <button class="toggle-btn ratio-btn active" data-ratio="1:1">1:1</button>
+            <button class="toggle-btn ratio-btn" data-ratio="16:9">16:9</button>
+            <button class="toggle-btn ratio-btn" data-ratio="4:3">4:3</button>
+            <button class="toggle-btn ratio-btn" data-ratio="3:2">3:2</button>
+          </div>
+
+          <div class="panel-header"><div class="panel-title"><div class="dot"></div>EXPORT</div></div>
+          <div class="options-bar" style="padding:12px 16px 0">
+            <div class="toggle-group">
+              <button class="toggle-btn fmt-btn active" data-fmt="png">PNG</button>
+              <button class="toggle-btn fmt-btn" data-fmt="jpeg">JPG</button>
+              <button class="toggle-btn fmt-btn" data-fmt="webp">WEBP</button>
+            </div>
+          </div>
+          <div style="padding:10px 16px 16px">
+            <button class="export-btn single" style="width:100%;background:linear-gradient(135deg,#0f4db8,#2a77ff);color:#fff;border-color:rgba(66,135,255,.45)" onclick="syncSimpleToThumb();downloadThumb()">⬇ DOWNLOAD</button>
+          </div>
+        </div><!-- end thumbSimplePanel -->
+
+        <!-- ADVANCED PANEL -->
+        <div id="thumbAdvPanel" class="hidden">
         <div class="panel-header"><div class="panel-title"><div class="dot"></div>SETTINGS</div></div>
 
         <div class="setting-group">
@@ -164,6 +254,7 @@
             <button class="export-btn all download-btn all full" onclick="downloadThumb()">⬇ 다운로드</button>
           </div>
         </div>
+        </div><!-- end thumbAdvPanel -->
       </div>
     </div>
 
@@ -211,6 +302,12 @@ const presets = {
     ratio: '16:9', bgColor: '#1c1f2a', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 6, pad: 70, ov: 'vignette', ovStrength: 40, decor: 'corner-lines',
     mainScale: 110, subScale: 95, mainY: 42, subY: 74,
     main: '조회수 올리는\n썸네일', sub: '클릭을 부르는 타이틀 디자인'
+  },
+  minimal: {
+    ratio: '16:9', bgColor: '#222831', textColor: '#ffffff', strokeColor: '#000000', strokeWidth: 4, pad: 120,
+    ov: 'none', ovStrength: 0, decor: 'minimal',
+    mainScale: 105, subScale: 100, mainY: 43, subY: 72,
+    main: '썸네일 제목\n핵심 키워드', sub: '부제목 텍스트'
   }
 };
 
@@ -306,141 +403,42 @@ function applyPreset(name){
   if (p.subScale) document.getElementById('subScale').value = p.subScale;
   if (p.mainY) document.getElementById('mainY').value = p.mainY;
   if (p.subY) document.getElementById('subY').value = p.subY;
-  fillThumbJsonFromInputs(false);
+  document.querySelectorAll('.tpl-card').forEach(c => c.classList.toggle('active', c.dataset.tpl === name));
+  document.querySelectorAll('.preset-btn').forEach(x => x.classList.toggle('active', x.dataset.preset === name));
   renderThumb();
 }
 
-function setToggleByData(selector, key, value){
-  document.querySelectorAll(selector).forEach(btn=>btn.classList.toggle('active', btn.dataset[key]===value));
+function syncSimpleToThumb() {
+  document.getElementById('mainText').value = document.getElementById('s-main').value;
+  document.getElementById('subText').value  = document.getElementById('s-sub').value;
 }
 
-function fillThumbJsonFromInputs(showMsg=true){
-  const payload = {
-    mainText: document.getElementById('mainText').value || '',
-    subText: document.getElementById('subText').value || '',
-    ratio,
-    bgMode,
-    bgColor: document.getElementById('bgColor').value || '#5f6fdd',
-    overlay: overlayMode,
-    overlayStrength: parseInt(document.getElementById('ovStrength').value || '28', 10),
-    decor: decorStyle,
-    decorColor: document.getElementById('decorColor').value || '#ffffff',
-    textColor: document.getElementById('textColor').value || '#ffffff',
-    strokeColor: document.getElementById('strokeColor').value || '#000000',
-    strokeWidth: parseInt(document.getElementById('strokeWidth').value || '6', 10),
-    padding: parseInt(document.getElementById('pad').value || '90', 10),
-    mainScale: parseInt(document.getElementById('mainScale').value || '100', 10),
-    subScale: parseInt(document.getElementById('subScale').value || '100', 10),
-    mainY: parseInt(document.getElementById('mainY').value || '43', 10),
-    subY: parseInt(document.getElementById('subY').value || '72', 10),
-    saveFormat,
-    quality: parseInt(document.getElementById('imgQuality').value || '92', 10)
-  };
-  document.getElementById('thumbJsonInput').value = JSON.stringify(payload, null, 2);
-  if (showMsg) document.getElementById('thumbJsonHint').textContent = '현재 설정을 JSON으로 채웠습니다.';
+function syncAdvToSimple() {
+  document.getElementById('s-main').value = document.getElementById('mainText').value;
+  document.getElementById('s-sub').value  = document.getElementById('subText').value;
 }
 
-function applyThumbJsonObject(rawObj){
-  const obj = (rawObj && typeof rawObj === 'object' && rawObj.thumbnail && typeof rawObj.thumbnail === 'object')
-    ? rawObj.thumbnail
-    : rawObj;
-  if (!obj || typeof obj !== 'object') throw new Error('object expected');
-
-  if (obj.mainText != null) document.getElementById('mainText').value = String(obj.mainText);
-  if (obj.subText != null) document.getElementById('subText').value = String(obj.subText);
-
-  if (obj.ratio && ratios[obj.ratio]) {
-    ratio = obj.ratio;
-    setToggleByData('.ratio-btn','ratio',ratio);
-  }
-  if (obj.bgMode === 'color' || obj.bgMode === 'image') {
-    bgMode = obj.bgMode;
-    setToggleByData('.bgmode-btn','bgmode',bgMode);
-    document.getElementById('bgColorBar').classList.toggle('hidden', bgMode!=='color');
-    document.getElementById('bgImageBar').classList.toggle('hidden', bgMode!=='image');
-  }
-  if (obj.bgColor) document.getElementById('bgColor').value = String(obj.bgColor);
-
-  const ov = obj.overlay ?? obj.ov;
-  if (ov && ['none','dim','gradient','vignette'].includes(String(ov))) {
-    overlayMode = String(ov);
-    setToggleByData('.ov-btn','ov',overlayMode);
-  }
-  if (obj.overlayStrength != null || obj.ovStrength != null) {
-    document.getElementById('ovStrength').value = parseInt(obj.overlayStrength ?? obj.ovStrength, 10);
-  }
-
-  if (obj.decor) {
-    decorStyle = String(obj.decor);
-    setToggleByData('.decor-btn','decor',decorStyle);
-  }
-  if (obj.decorColor) document.getElementById('decorColor').value = String(obj.decorColor);
-
-  if (obj.textColor) document.getElementById('textColor').value = String(obj.textColor);
-  if (obj.strokeColor) document.getElementById('strokeColor').value = String(obj.strokeColor);
-  if (obj.strokeWidth != null) document.getElementById('strokeWidth').value = parseInt(obj.strokeWidth, 10);
-  if (obj.padding != null || obj.pad != null) document.getElementById('pad').value = parseInt(obj.padding ?? obj.pad, 10);
-  if (obj.mainScale != null) document.getElementById('mainScale').value = parseInt(obj.mainScale, 10);
-  if (obj.subScale != null) document.getElementById('subScale').value = parseInt(obj.subScale, 10);
-  if (obj.mainY != null) document.getElementById('mainY').value = parseInt(obj.mainY, 10);
-  if (obj.subY != null) document.getElementById('subY').value = parseInt(obj.subY, 10);
-
-  const fmt = obj.saveFormat ?? obj.format;
-  if (fmt && ['png','jpeg','webp'].includes(String(fmt))) {
-    saveFormat = String(fmt);
-    setToggleByData('.fmt-btn','fmt',saveFormat);
-  }
-  if (obj.quality != null || obj.imgQuality != null) {
-    document.getElementById('imgQuality').value = parseInt(obj.quality ?? obj.imgQuality, 10);
-  }
-}
-
-function openThumbJsonPopup(){
-  fillThumbJsonFromInputs(false);
-  const dlg = document.getElementById('thumbJsonDialog');
-  const input = document.getElementById('thumbJsonDialogInput');
-  if (!dlg || !input) return;
-  input.value = document.getElementById('thumbJsonInput').value || '';
-  dlg.showModal();
-}
-
-function closeThumbJsonPopup(){
-  document.getElementById('thumbJsonDialog')?.close();
-}
-
-function applyThumbJsonFromPopup(){
-  const input = document.getElementById('thumbJsonDialogInput');
-  if (!input) return;
-  document.getElementById('thumbJsonInput').value = input.value;
-  applyThumbJsonToInputs();
-  closeThumbJsonPopup();
-}
-
-function resetThumbTextInputs(){
-  document.getElementById('mainText').value = '';
-  document.getElementById('subText').value = '';
-  document.getElementById('thumbJsonInput').value = '';
-  const dialogInput = document.getElementById('thumbJsonDialogInput');
-  if (dialogInput) dialogInput.value = '';
+function switchThumbMode(mode) {
+  const isSimple = mode === 'simple';
+  if (isSimple) syncAdvToSimple();
+  else syncSimpleToThumb();
+  document.getElementById('thumbSimplePanel').classList.toggle('hidden', !isSimple);
+  document.getElementById('thumbAdvPanel').classList.toggle('hidden', isSimple);
+  document.getElementById('thumbTabSimple').classList.toggle('active', isSimple);
+  document.getElementById('thumbTabAdv').classList.toggle('active', !isSimple);
   renderThumb();
 }
 
-function applyThumbJsonToInputs(){
-  const raw = (document.getElementById('thumbJsonInput').value || '').trim();
-  if (!raw) {
-    document.getElementById('thumbJsonHint').textContent = 'JSON 입력값이 비어 있습니다.';
-    return;
-  }
-  try {
-    const obj = JSON.parse(raw);
-    applyThumbJsonObject(obj);
-    fillThumbJsonFromInputs(false);
-    renderThumb();
-    document.getElementById('thumbJsonHint').textContent = 'JSON 적용 완료';
-  } catch (_) {
-    document.getElementById('thumbJsonHint').textContent = 'JSON 형식이 올바르지 않습니다. 예시를 확인해 주세요.';
-  }
+function loadThumbSample() {
+  document.getElementById('s-main').value = '블로그 썸네일\n3분 제작';
+  document.getElementById('s-sub').value  = '3분만에 블로그 썸네일 만들기';
+  syncSimpleToThumb();
+  renderThumb();
 }
+
+['s-main','s-sub'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { syncSimpleToThumb(); renderThumb(); });
+});
 
 function drawBg(ctx,w,h){
   if(bgMode==='image' && bgImage){
@@ -617,8 +615,7 @@ function downloadThumb(){
   });
 }
 
-applyPreset('quote');
-fillThumbJsonFromInputs(false);
+applyPreset('quote'); syncAdvToSimple();
 </script>
 </body>
 </html>
