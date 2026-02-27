@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/svg+xml" href="/dev-tools/favicon.svg">
+    <title>Web Image Editor | Dev Tools</title>
+    <script src="../../tools.js"></script>
+    <script src="../../nav.js"></script>
+    <script src="../../ui-utils.js"></script>
+    <script src="../../image-tools-utils.js"></script>
+    <link rel="stylesheet" href="../../styles.css">
+    <!-- Fabric.js v5.3.1 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable-dynamic-subset.css"
+        rel="stylesheet">
+
+    <style>
+        /* ── Editor App Layout (100vh) ── */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            /* 방지: 모바일에서 상하 풀당기기 새로고침 등 */
+            height: 100%;
+        }
+
+        .topnav {
+            z-index: 50;
+            position: relative;
+        }
+
+        /* nav.js 에서 가져오는 상단 네비게이션바 유지 */
+        .editor-app {
+            display: flex;
+            height: calc(100% - 61px);
+            /* 100dvh 지원 브라우저를 위해 필요 시 js에서 보정, 61=nav높이추정 */
+            height: calc(100dvh - 61px);
+            background: var(--surface);
+            color: var(--text);
+            font-family: Pretendard, sans-serif;
+            overflow: hidden;
+        }
+
+        /* ── Left Toolbar ── */
+        .editor-toolbar {
+            width: 72px;
+            background: var(--surface2);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 12px;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .tool-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .tool-btn:hover {
+            background: var(--surface);
+            border-color: var(--border);
+        }
+
+        .tool-btn:active {
+            transform: scale(0.96);
+        }
+
+        .tool-icon {
+            font-size: 20px;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .tool-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        /* ── Center Workspace ── */
+        .editor-workspace {
+            flex: 1;
+            background: #1e1e1e;
+            /* Photoshop-like dark backdrop */
+            position: relative;
+            overflow: auto;
+            /* scrollable canvas area */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 모바일/데스크톱 줌 패닝을 위해 컨테이너 여백 확보 */
+            padding: 40px;
+        }
+
+        /* 바둑판 배경 래퍼 */
+        .canvas-zoom-wrapper {
+            background-image:
+                linear-gradient(45deg, #d1d1d1 25%, transparent 25%),
+                linear-gradient(-45deg, #d1d1d1 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #d1d1d1 75%),
+                linear-gradient(-45deg, transparent 75%, #d1d1d1 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+            /* 부드러운 줌아웃/초기화 시 */
+        }
+
+        /* Fabric.js 캔버스 자체 스타일 (투명) */
+        .canvas-container {
+            margin: 0 auto;
+        }
+
+        /* ── Right Properties Panel ── */
+        .editor-props {
+            width: 320px;
+            background: var(--surface2);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .prop-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .prop-section:last-child {
+            border-bottom: none;
+        }
+
+        .prop-title {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .prop-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 12px;
+            background: var(--accent);
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+
+        /* 옵션 컨트롤 스타일 */
+        .prop-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .prop-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 50px;
+        }
+
+        .prop-input-group {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            gap: 4px;
+        }
+
+        .prop-input {
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            outline: none;
+        }
+
+        .prop-input:focus {
+            border-color: var(--accent);
+        }
+
+        .size-input-box {
+            width: 64px;
+            text-align: center;
+        }
+
+        .size-x {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.15s;
+        }
+
+        .action-btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--text-muted);
+        }
+
+        .action-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        .action-btn.icon-btn {
+            flex: none;
+            width: 32px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+
+        .color-picker {
+            border: none;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .color-hex {
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .primary-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0f4db8, #2a77ff);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(42, 119, 255, 0.3);
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(42, 119, 255, 0.4);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ── Workspace Controls (Bottom Right zoom) ── */
+        .zoom-controls {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            display: flex;
+            gap: 4px;
+            background: var(--surface2);
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 20;
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        .zoom-btn:hover {
+            background: var(--surface-hover);
+        }
+
+        .zoom-label {
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+            font-family: 'JetBrains Mono';
+        }
+
+        /* ── Mobile Layout (< 768px) ── */
+        @media (max-width: 768px) {
+            .editor-app {
+                flex-direction: column;
+            }
+
+            /* Workspace가 가장 넓게 상단에 */
+            .editor-workspace {
+                order: 1;
+                padding: 16px;
+            }
+
+            /* Props Panel이 중간에 위치 (선택 시 열리는 느낌) */
+            .editor-props {
+                order: 2;
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Toolbar가 가장 하단에 가로로 스크롤 가능하게 배치 */
+            .editor-toolbar {
+                order: 3;
+                width: 100%;
+                height: 64px;
+                flex-direction: row;
+                border-right: none;
+                border-top: 1px solid var(--border);
+                padding: 0 12px;
+                gap: 8px;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            .tool-btn {
+                width: 56px;
+                height: 50px;
+                flex-shrink: 0;
+            }
+
+            .zoom-controls {
+                bottom: auto;
+                top: 16px;
+                right: 16px;
+            }
+
+            /* 줌 컨트롤을 위로 */
+        }
+
+        /* Custom Scrollbar for editor panels */
+        .editor-props::-webkit-scrollbar,
+        .editor-toolbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .editor-props::-webkit-scrollbar-track,
+        .editor-toolbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .editor-props::-webkit-scrollbar-thumb,
+        .editor-toolbar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .editor-props::-webkit-scrollbar-thumb:hover,
+        .editor-toolbar::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="topnav">
+        <script>renderNav();</script>
+    </nav>
+
+    <div class="editor-app">
+
+        <!-- Left: Toolbar -->
+        <div class="editor-toolbar">
+            <button class="tool-btn" onclick="addText()">
+                <span class="tool-icon">T</span>
+                <span class="tool-label">TEXT</span>
+            </button>
+            <button class="tool-btn" onclick="document.getElementById('imageUpload').click()">
+                <span class="tool-icon">🖼️</span>
+                <span class="tool-label">IMAGE</span>
+            </button>
+            <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="addImage(event)">
+            <button class="tool-btn" onclick="addShape('rect')">
+                <span class="tool-icon">⬛</span>
+                <span class="tool-label">RECT</span>
+            </button>
+            <button class="tool-btn" onclick="addShape('circle')">
+                <span class="tool-icon">⚫</span>
+                <span class="tool-label">CIRCLE</span>
+            </button>
+            <button class="tool-btn" onclick="deleteObj()" style="color: #ff5f57; margin-top:auto"
+                title="Delete Selection">
+                <span class="tool-icon">🗑️</span>
+                <span class="tool-label">DELETE</span>
+            </button>
+        </div>
+
+        <!-- Center: Workspace -->
+        <div class="editor-workspace" id="workspace">
+            <div class="canvas-zoom-wrapper" id="zoomWrapper">
+                <canvas id="c"></canvas>
+            </div>
+
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="changeZoom(-0.1)">-</button>
+                <span class="zoom-label" id="zoomLabel">100%</span>
+                <button class="zoom-btn" onclick="changeZoom(0.1)">+</button>
+                <button class="zoom-btn" onclick="resetZoom()" style="font-size:10px">FIT</button>
+            </div>
+        </div>
+
+        <!-- Right: Properties -->
+        <div class="editor-props">
+
+            <!-- Canvas Settings -->
+            <div class="prop-section" id="canvasPropsPanel">
+                <div class="prop-title">Canvas Settings</div>
+                <div class="prop-row">
+                    <span class="prop-label">Size (px)</span>
+                    <div class="prop-input-group">
+                        <input type="number" id="canvasW" class="prop-input size-input-box" value="1200" title="가로 너비">
+                        <span class="size-x">×</span>
+                        <input type="number" id="canvasH" class="prop-input size-input-box" value="800" title="세로 높이">
+                        <button class="action-btn" onclick="applyCustomSize()"
+                            style="flex:unset; padding:6px 10px;">적용</button>
+                    </div>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Background</span>
+                    <label class="color-wrap">
+                        <input type="color" id="bgColor" class="color-picker" value="#ffffff">
+                        <span class="color-hex" id="bgColorHex">#FFFFFF</span>
+                    </label>
+                </div>
+                <div class="prop-row">
+                    <input type="file" id="bgImageInput" accept="image/*" class="hidden">
+                    <button class="action-btn" style="width:100%"
+                        onclick="document.getElementById('bgImageInput').click()"
+                        title="포토샵처럼 이미지 해상도에 맞춰 캔버스가 자동으로 조절됩니다.">🖼️ 이미지 원본으로 시작하기</button>
+                </div>
+            </div>
+
+            <!-- Object Settings (Hidden by default) -->
+            <div class="prop-section hidden" id="objPropsPanel">
+                <div class="prop-title" style="color:var(--accent)">Layer Properties</div>
+
+                <div class="prop-row">
+                    <span class="prop-label">Color</span>
+                    <label class="color-wrap">
+                        <input type="color" id="objColor" class="color-picker">
+                        <span class="color-hex" id="objColorHex">#000000</span>
+                    </label>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label">Opacity</span>
+                    <input type="range" id="objOpacity" min="0" max="1" step="0.05" value="1" style="flex:1"
+                        onchange="updateObj('opacity', parseFloat(this.value))">
+                </div>
+
+                <!-- Text Specific Props -->
+                <div id="textPropsBar" class="hidden" style="margin-top:16px;">
+                    <div class="prop-row">
+                        <span class="prop-label">Font</span>
+                        <select id="fontFamily" class="prop-input" onchange="updateObj('fontFamily', this.value)">
+                            <option value="Pretendard Variable">Pretendard (Korean)</option>
+                            <option value="'Noto Sans KR'">Noto Sans KR</option>
+                            <option value="'Noto Serif KR'">Noto Serif KR</option>
+                            <option value="sans-serif">Sans-serif</option>
+                            <option value="'JetBrains Mono'">JetBrains Mono</option>
+                        </select>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Style</span>
+                        <div class="btn-group">
+                            <button class="action-btn" id="btnBold" onclick="toggleStyle('bold')">B</button>
+                            <button class="action-btn" id="btnItalic" onclick="toggleStyle('italic')">I</button>
+                            <button class="action-btn" id="btnShadow" onclick="toggleShadow()">Shadow</button>
+                        </div>
+                    </div>
+                    <div class="prop-row">
+                        <span class="prop-label">Align</span>
+                        <div class="btn-group">
+                            <button class="action-btn" onclick="updateObj('textAlign', 'left')">Left</button>
+                            <button class="action-btn" onclick="updateObj('textAlign', 'center')">Center</button>
+                            <button class="action-btn" onclick="updateObj('textAlign', 'right')">Right</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prop-row" style="margin-top:20px;">
+                    <span class="prop-label">Order</span>
+                    <div class="btn-group">
+                        <button class="action-btn" onclick="moveLayer('up')">▲ Bring Forward</button>
+                        <button class="action-btn" onclick="moveLayer('down')">▼ Send Backward</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div style="flex:1"></div> <!-- Push export to bottom -->
+
+            <!-- Save & Export -->
+            <div class="prop-section" style="background:var(--surface)">
+                <div class="prop-title">Export & Save</div>
+
+                <div class="prop-row">
+                    <span class="prop-label">Format</span>
+                    <div class="btn-group">
+                        <button class="action-btn fmt-btn active" data-fmt="png">PNG</button>
+                        <button class="action-btn fmt-btn" data-fmt="jpeg">JPG</button>
+                        <button class="action-btn fmt-btn" data-fmt="webp">WEBP</button>
+                    </div>
+                </div>
+
+                <button class="primary-btn" onclick="downloadImage()">⬇ EXPORT IMAGE</button>
+
+                <div style="margin-top:16px; display:flex; gap:8px;">
+                    <button class="action-btn" style="flex:1" onclick="saveJson()">💾 JSON 저장</button>
+                    <button class="action-btn" style="flex:1" onclick="document.getElementById('jsonUpload').click()">📂
+                        불러오기</button>
+                    <input type="file" id="jsonUpload" accept=".json" class="hidden" onchange="loadJson(event)">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let canvas;
+        let saveFormat = 'png';
+        let currentZoom = 1;
+
+        function initCanvas() {
+            const w = parseInt(document.getElementById('canvasW').value, 10) || 1200;
+            const h = parseInt(document.getElementById('canvasH').value, 10) || 800;
+
+            canvas = new fabric.Canvas('c', {
+                width: w,
+                height: h,
+                backgroundColor: '#ffffff',
+                preserveObjectStacking: true
+            });
+
+            canvas.on('selection:created', onObjSelected);
+            canvas.on('selection:updated', onObjSelected);
+            canvas.on('selection:cleared', onObjCleared);
+
+            setTimeout(resetZoom, 100); // 렌더링 후 줌 리셋
+        }
+
+        onload = () => {
+            initCanvas();
+        };
+
+        function applyCustomSize() {
+            const w = parseInt(document.getElementById('canvasW').value, 10) || 1200;
+            const h = parseInt(document.getElementById('canvasH').value, 10) || 800;
+            canvas.setWidth(w);
+            canvas.setHeight(h);
+            canvas.renderAll();
+            resetZoom();
+        }
+
+        function resizeCanvasToImage(img) {
+            document.getElementById('canvasW').value = img.width;
+            document.getElementById('canvasH').value = img.height;
+            canvas.setWidth(img.width);
+            canvas.setHeight(img.height);
+            resetZoom();
+        }
+
+        document.querySelectorAll('.fmt-btn').forEach(b => b.onclick = () => {
+            document.querySelectorAll('.fmt-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            saveFormat = b.dataset.fmt;
+        });
+
+        function onObjSelected(e) {
+            const obj = e.selected[0];
+            if (!obj) return;
+            document.getElementById('objPropsPanel').classList.remove('hidden');
+
+            if (obj.fill && typeof obj.fill === 'string') {
+                document.getElementById('objColor').value = obj.fill;
+                document.getElementById('objColorHex').textContent = obj.fill.toUpperCase();
+            }
+
+            const isText = (obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text');
+            document.getElementById('textPropsBar').classList.toggle('hidden', !isText);
+
+            if (isText) {
+                document.getElementById('fontFamily').value = obj.fontFamily || 'Pretendard Variable';
+                document.getElementById('btnBold').classList.toggle('active', obj.fontWeight === 'bold');
+                document.getElementById('btnItalic').classList.toggle('active', obj.fontStyle === 'italic');
+            }
+
+            document.getElementById('objOpacity').value = obj.opacity !== undefined ? obj.opacity : 1;
+            document.getElementById('btnShadow').classList.toggle('active', !!obj.shadow);
+        }
+
+        function onObjCleared() {
+            document.getElementById('objPropsPanel').classList.add('hidden');
+        }
+
+        function updateObj(key, val) {
+            const obj = canvas.getActiveObject();
+            if (!obj) return;
+            obj.set(key, val);
+            canvas.renderAll();
+        }
+
+        document.getElementById('objColor').addEventListener('input', e => {
+            const obj = canvas.getActiveObject();
+            const val = e.target.value;
+            document.getElementById('objColorHex').textContent = val.toUpperCase();
+            if (!obj) return;
+            if (obj.type === 'path' || obj.type === 'line') obj.set('stroke', val);
+            else obj.set('fill', val);
+            canvas.renderAll();
+        });
+
+        function toggleStyle(type) {
+            const obj = canvas.getActiveObject();
+            if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
+            if (type === 'bold') {
+                const isBold = obj.fontWeight === 'bold';
+                obj.set('fontWeight', isBold ? 'normal' : 'bold');
+                document.getElementById('btnBold').classList.toggle('active', !isBold);
+            } else if (type === 'italic') {
+                const isItalic = obj.fontStyle === 'italic';
+                obj.set('fontStyle', isItalic ? 'normal' : 'italic');
+                document.getElementById('btnItalic').classList.toggle('active', !isItalic);
+            }
+            canvas.renderAll();
+        }
+
+        function toggleShadow() {
+            const obj = canvas.getActiveObject();
+            if (!obj) return;
+            if (obj.shadow) {
+                obj.set('shadow', null);
+                document.getElementById('btnShadow').classList.remove('active');
+            } else {
+                obj.set('shadow', new fabric.Shadow({
+                    color: 'rgba(0,0,0,0.5)',
+                    blur: 20, offsetX: 0, offsetY: 10
+                }));
+                document.getElementById('btnShadow').classList.add('active');
+            }
+            canvas.renderAll();
+        }
+
+        function deleteObj() {
+            const objects = canvas.getActiveObjects();
+            if (!objects.length) return;
+            objects.forEach(o => canvas.remove(o));
+            canvas.discardActiveObject();
+            canvas.renderAll();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && !document.activeElement.matches('input, textarea, select, [contenteditable]')) {
+                deleteObj();
+            }
+        });
+
+        function moveLayer(dir) {
+            const obj = canvas.getActiveObject();
+            if (!obj) return;
+            if (dir === 'up') canvas.bringForward(obj);
+            else canvas.sendBackwards(obj);
+        }
+
+        function getCenter() { return { x: canvas.width / 2, y: canvas.height / 2 }; }
+
+        function addText(text = '이곳을 더블클릭하여 수정하세요') {
+            const center = getCenter();
+            const t = new fabric.Textbox(text, {
+                left: center.x, top: center.y, originX: 'center', originY: 'center',
+                fontSize: Math.max(24, Math.floor(canvas.height * 0.08)), fill: '#1d1d1f',
+                fontFamily: 'Pretendard Variable', fontWeight: 'bold',
+                textAlign: 'center',
+                width: Math.min(600, canvas.width - 100)
+            });
+            canvas.add(t);
+            canvas.setActiveObject(t);
+        }
+
+        function addShape(type) {
+            const center = getCenter();
+            let obj;
+            const baseDim = Math.min(canvas.width, canvas.height) * 0.3;
+
+            if (type === 'rect') {
+                obj = new fabric.Rect({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim * 1.5, height: baseDim, fill: '#cfd4de', rx: 8, ry: 8 });
+            } else if (type === 'circle') {
+                obj = new fabric.Circle({ left: center.x, top: center.y, originX: 'center', originY: 'center', radius: baseDim / 2, fill: '#5f6fdd' });
+            }
+            if (obj) {
+                canvas.add(obj);
+                canvas.setActiveObject(obj);
+            }
+        }
+
+        function addImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                fabric.Image.fromURL(ev.target.result, function (img) {
+                    img.set({ left: canvas.width / 2, top: canvas.height / 2, originX: 'center', originY: 'center' });
+                    if (img.width > canvas.width * 0.8) {
+                        img.scaleToWidth(canvas.width * 0.8);
+                    }
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                });
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        }
+
+        document.getElementById('bgColor').addEventListener('input', e => {
+            const val = e.target.value;
+            canvas.backgroundColor = val;
+            canvas.backgroundImage = null;
+            document.getElementById('bgColorHex').textContent = val.toUpperCase();
+            canvas.renderAll();
+        });
+
+        document.getElementById('bgImageInput').addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                fabric.Image.fromURL(ev.target.result, function (img) {
+                    resizeCanvasToImage(img);
+                    img.set({ originX: 'center', originY: 'center', left: canvas.width / 2, top: canvas.height / 2 });
+                    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+                });
+            };
+            reader.readAsDataURL(f);
+            e.target.value = '';
+        });
+
+        function downloadImage() {
+            canvas.discardActiveObject();
+            canvas.renderAll();
+            const dataUrl = canvas.toDataURL({ format: saveFormat, quality: 0.92, multiplier: 1 });
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `exported_image_${Date.now()}.${saveFormat}`;
+            a.click();
+        }
+
+        function saveJson() {
+            const obj = canvas.toJSON(['id', 'opacity', 'shadow']);
+            obj.customW = canvas.width;
+            obj.customH = canvas.height;
+            const json = JSON.stringify(obj);
+            const blob = new Blob([json], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `image_project_${Date.now()}.json`;
+            a.click();
+        }
+
+        function loadJson(e) {
+            const f = e.target.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (data.customW && data.customH) {
+                        document.getElementById('canvasW').value = data.customW;
+                        document.getElementById('canvasH').value = data.customH;
+                        canvas.setWidth(data.customW);
+                        canvas.setHeight(data.customH);
+                    }
+                    canvas.loadFromJSON(data, function () {
+                        if (!canvas.backgroundColor) canvas.backgroundColor = '#ffffff';
+                        canvas.renderAll();
+                        resetZoom();
+                    });
+                } catch (err) {
+                    alert("올바른 프로젝트 파일이 아닙니다.");
+                }
+            };
+            reader.readAsText(f);
+            e.target.value = '';
+        }
+
+        // ─── Scaled Canvas View (Zoom) ───
+        function getFitScale() {
+            const ws = document.getElementById('workspace');
+            const availW = ws.clientWidth - 40; // padding
+            const availH = ws.clientHeight - 40;
+            if (availW <= 0 || availH <= 0) return 1;
+            const scaleX = availW / canvas.width;
+            const scaleY = availH / canvas.height;
+            return Math.min(scaleX, scaleY, 1); // 1보다 커지진 않게 (원본 비율유지)
+        }
+
+        function applyZoom() {
+            document.getElementById('zoomWrapper').style.transform = `scale(${currentZoom})`;
+            document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function resetZoom() {
+            currentZoom = getFitScale();
+            applyZoom();
+        }
+
+        function changeZoom(delta) {
+            currentZoom += delta;
+            if (currentZoom < 0.1) currentZoom = 0.1;
+            if (currentZoom > 3) currentZoom = 3;
+            applyZoom();
+        }
+
+        window.addEventListener('resize', () => { setTimeout(resetZoom, 100); });
+    </script>
+</body>
+
+</html>

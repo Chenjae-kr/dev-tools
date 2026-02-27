@@ -118,6 +118,13 @@ const TOOLS = [
     footer: 'URL → Encode · Decode · Parse · Build',
   },
   {
+    category: 'Image', href: 'image/web-image-editor.html', label: 'Image Editor', icon: 'EDIT',
+    title: '🎨 Web Image Editor',
+    desc: '브라우저 기반의 범용 이미지 에디터입니다. 이미지 해상도에 맞춰 캔버스를 자동 조절하고 레이어(텍스트/이미지/도형) 편집 및 투명 PNG 내보내기를 지원합니다.',
+    tags: ['Web Editor', 'Fabric.js', 'Layer', 'JSON Save'],
+    footer: 'Drag & Drop Canvas Editor',
+  },
+  {
     category: 'Image', href: 'image/thumbnail-maker.html', label: 'Thumbnail', icon: 'THMB',
     title: '🖼️ Blog Thumbnail Maker',
     desc: '블로그 썸네일을 빠르게 제작합니다. 이미지 비율 선택, 배경 단색/이미지, 텍스트 입력 및 PNG 다운로드를 지원합니다.',
