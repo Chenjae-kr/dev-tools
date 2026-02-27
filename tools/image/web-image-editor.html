@@ -473,6 +473,23 @@
                 <span class="tool-icon">➖</span>
                 <span class="tool-label">LINE</span>
             </button>
+            <div style="width:40px;height:1px;background:var(--border);margin:4px 0;"></div>
+            <button class="tool-btn" onclick="addShape('heart')">
+                <span class="tool-icon">❤️</span>
+                <span class="tool-label">HEART</span>
+            </button>
+            <button class="tool-btn" onclick="addShape('star')">
+                <span class="tool-icon">⭐</span>
+                <span class="tool-label">STAR</span>
+            </button>
+            <button class="tool-btn" onclick="addShape('bolt')">
+                <span class="tool-icon">⚡</span>
+                <span class="tool-label">BOLT</span>
+            </button>
+            <button class="tool-btn" onclick="addShape('smile')">
+                <span class="tool-icon">🙂</span>
+                <span class="tool-label">SMILE</span>
+            </button>
         </div>
 
         <!-- Center: Workspace -->
@@ -1273,9 +1290,30 @@
                     originX: 'center',
                     originY: 'center'
                 });
-                // 화살표처럼 자주 쓰이므로 라인은 크기 조절 시 두께가 찌그러지지 않도록 양끝점 컨트롤 등 특별한 제어가 필요할 수 있으나 Web Editor 기본 사양으론 제공
-                // (선택 시 컨트롤 포인트 지원을 위해 일반 Line 객체로 일단 반환)
+            } else if (type === 'heart') {
+                const path = "M 272.70141,238.71731 C 206.46141,238.71731 152.70146,292.4773 152.70146,358.71731 C 152.70146,493.47282 288.63461,528.80461 381.26391,662.02535 C 468.83815,529.62199 609.82641,489.17075 609.82641,358.71731 C 609.82641,292.4773 556.06651,238.71731 489.82641,238.71731 C 441.77681,238.71731 400.42481,266.90222 381.26391,309.51385 C 362.10311,266.90222 320.75111,238.71731 272.70141,238.71731 z";
+                obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: '#ff5f57' });
+                // Scale path to fit baseDim
+                const bound = obj.getBoundingRect();
+                obj.scale(baseDim / Math.max(bound.width, bound.height));
+            } else if (type === 'star') {
+                const path = "M 119.349 27.601 L 140.404 90.963 L 206.848 91.56 L 153.305 131.25 L 173.238 194.88 L 119.349 156.4 L 65.461 194.88 L 85.393 131.25 L 31.851 91.56 L 98.295 90.963 Z";
+                obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: '#ffbd2e' });
+                const bound = obj.getBoundingRect();
+                obj.scale(baseDim / Math.max(bound.width, bound.height));
+            } else if (type === 'bolt') {
+                const path = "M 152.33 13.92 L 63.85 158.42 L 129.23 158.42 L 102.34 290.79 L 210.89 126.96 L 142.14 126.96 Z";
+                obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: '#ffbd2e' });
+                const bound = obj.getBoundingRect();
+                obj.scale(baseDim / Math.max(bound.width, bound.height));
+            } else if (type === 'smile') {
+                // simple face svg path
+                const path = "M 100 0 A 100 100 0 1 0 100 200 A 100 100 0 1 0 100 0 Z M 65 65 A 15 15 0 1 1 65 95 A 15 15 0 1 1 65 65 Z M 135 65 A 15 15 0 1 1 135 95 A 15 15 0 1 1 135 65 Z M 100 150 C 70 150 50 120 50 120 L 65 110 C 65 110 80 135 100 135 C 120 135 135 110 135 110 L 150 120 C 150 120 130 150 100 150 Z";
+                obj = new fabric.Path(path, { left: center.x, top: center.y, originX: 'center', originY: 'center', fill: '#ffbd2e' });
+                const bound = obj.getBoundingRect();
+                obj.scale(baseDim / Math.max(bound.width, bound.height));
             }
+
             if (obj) {
                 canvas.add(obj);
                 canvas.setActiveObject(obj);
