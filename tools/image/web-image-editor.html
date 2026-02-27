@@ -452,6 +452,11 @@
                 <span class="tool-label">IMAGE</span>
             </button>
             <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="addImage(event)">
+            <button class="tool-btn" onclick="startSelectionMode()" id="btnSelect" title="영역 잡기 (자르기/모자이크)">
+                <span class="tool-icon">🔲</span>
+                <span class="tool-label">SELECT</span>
+            </button>
+            <div style="width:40px;height:1px;background:var(--border);margin:4px 0;"></div>
             <button class="tool-btn" onclick="addShape('rect')">
                 <span class="tool-icon">⬛</span>
                 <span class="tool-label">RECT</span>
@@ -461,7 +466,7 @@
                 <span class="tool-label">CIRCLE</span>
             </button>
             <button class="tool-btn" onclick="deleteObj()" style="color: #ff5f57; margin-top:auto"
-                title="Delete Selection">
+                title="Delete Selection (Del)">
                 <span class="tool-icon">🗑️</span>
                 <span class="tool-label">DELETE</span>
             </button>
@@ -469,6 +474,19 @@
 
         <!-- Center: Workspace -->
         <div class="editor-workspace" id="workspace">
+            <!-- Region Action Bar (Hidden by default) -->
+            <div id="regionActionBar" class="hidden"
+                style="position:absolute; top:20px; left:50%; transform:translateX(-50%); z-index:100; background:var(--surface); padding:8px 16px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:flex; gap:8px; align-items:center;">
+                <span style="font-size:12px; font-weight:700; color:var(--text); margin-right:8px;">🔲 영역 옵션</span>
+                <button class="action-btn" onclick="cropByRegion()"
+                    style="background:#ffbd2e; color:#000; border:none; font-weight:800;">✂️ 자르기</button>
+                <div style="width:1px; height:16px; background:var(--border); margin:0 4px;"></div>
+                <button class="action-btn" onclick="filterByRegion('pixelate')">모자이크</button>
+                <button class="action-btn" onclick="filterByRegion('blur')">블러</button>
+                <div style="width:1px; height:16px; background:var(--border); margin:0 4px;"></div>
+                <button class="action-btn" onclick="cancelSelection()">✖ 닫기</button>
+            </div>
+
             <div class="canvas-zoom-wrapper" id="zoomWrapper">
                 <canvas id="c"></canvas>
             </div>
@@ -567,6 +585,45 @@
                     </div>
                 </div>
 
+                <!-- Image Filters Specific Props -->
+                <div id="imageFiltersBar" class="hidden"
+                    style="margin-top:20px; border-top:1px dashed var(--border); padding-top:16px;">
+                    <div class="prop-title" style="color:#ffbd2e">Image Filters</div>
+
+                    <div class="prop-row">
+                        <label
+                            style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <input type="checkbox" id="chkGrayscale" onchange="applyFilters()"> 흑백 (Grayscale)
+                        </label>
+                    </div>
+                    <div class="prop-row">
+                        <label
+                            style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <input type="checkbox" id="chkSepia" onchange="applyFilters()"> 세피아 (Sepia)
+                        </label>
+                    </div>
+                    <div class="prop-row" style="flex-direction:column; align-items:stretch; margin-top:12px;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600;">
+                            <input type="checkbox" id="chkBlur" onchange="applyFilters()"> 블러 (Blur)
+                        </label>
+                        <div style="display:flex; align-items:center; gap:8px; padding-left:24px;">
+                            <span class="prop-label" style="min-width:40px">강도</span>
+                            <input type="range" id="blurValue" min="0" max="1" step="0.05" value="0.2" style="flex:1"
+                                onchange="if(document.getElementById('chkBlur').checked) applyFilters()">
+                        </div>
+                    </div>
+                    <div class="prop-row" style="flex-direction:column; align-items:stretch; margin-top:12px;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600;">
+                            <input type="checkbox" id="chkPixelate" onchange="applyFilters()"> 모자이크 (Pixelate)
+                        </label>
+                        <div style="display:flex; align-items:center; gap:8px; padding-left:24px;">
+                            <span class="prop-label" style="min-width:40px">크기</span>
+                            <input type="range" id="pixelateValue" min="2" max="20" step="1" value="8" style="flex:1"
+                                onchange="if(document.getElementById('chkPixelate').checked) applyFilters()">
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <div style="flex:1"></div> <!-- Push export to bottom -->
@@ -602,6 +659,12 @@
         let saveFormat = 'png';
         let currentZoom = 1;
 
+        // Selection / Region state variables
+        let isSelectionMode = false;
+        let isDrawingSelection = false;
+        let selectionRect = null;
+        let startX, startY;
+
         function initCanvas() {
             const w = parseInt(document.getElementById('canvasW').value, 10) || 1200;
             const h = parseInt(document.getElementById('canvasH').value, 10) || 800;
@@ -616,6 +679,11 @@
             canvas.on('selection:created', onObjSelected);
             canvas.on('selection:updated', onObjSelected);
             canvas.on('selection:cleared', onObjCleared);
+
+            // Selection 마우스 훅
+            canvas.on('mouse:down', onMouseDown);
+            canvas.on('mouse:move', onMouseMove);
+            canvas.on('mouse:up', onMouseUp);
 
             setTimeout(resetZoom, 100); // 렌더링 후 줌 리셋
         }
@@ -633,6 +701,208 @@
             resetZoom();
         }
 
+        // ─── Region Selection Logic ───
+        function startSelectionMode() {
+            if (isSelectionMode) return;
+            isSelectionMode = true;
+            canvas.discardActiveObject();
+            canvas.renderAll();
+
+            // 캔버스 인터랙션 차단 (객체 선택 안 되게)
+            canvas.forEachObject(obj => {
+                obj.selectable = false;
+                obj.evented = false;
+            });
+            canvas.defaultCursor = 'crosshair';
+
+            // UI
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btnSelect').classList.add('active');
+        }
+
+        function cancelSelection() {
+            isSelectionMode = false;
+            isDrawingSelection = false;
+
+            if (selectionRect) {
+                canvas.remove(selectionRect);
+                selectionRect = null;
+            }
+
+            // 객체 상호작용 원복
+            canvas.forEachObject(obj => {
+                obj.selectable = true;
+                obj.evented = true;
+            });
+            canvas.defaultCursor = 'default';
+
+            document.getElementById('btnSelect').classList.remove('active');
+            document.getElementById('regionActionBar').classList.add('hidden');
+            document.getElementById('regionActionBar').style.display = '';
+            canvas.renderAll();
+        }
+
+        function onMouseDown(opt) {
+            if (!isSelectionMode) return;
+
+            // 기존 선택상자 있으면 제거 (바탕 클릭 시 재작성 또는 취소 용도)
+            if (selectionRect) {
+                // 클릭한 곳이 선택상자 내부면 (실은 evented=false라 안잡히지만 보수적으로)
+                canvas.remove(selectionRect);
+                selectionRect = null;
+                document.getElementById('regionActionBar').classList.add('hidden');
+                document.getElementById('regionActionBar').style.display = '';
+            }
+
+            isDrawingSelection = true;
+            const pointer = canvas.getPointer(opt.e);
+            startX = pointer.x;
+            startY = pointer.y;
+
+            selectionRect = new fabric.Rect({
+                left: startX,
+                top: startY,
+                originX: 'left',
+                originY: 'top',
+                width: 0,
+                height: 0,
+                fill: 'rgba(0,122,255,0.1)',
+                stroke: '#007aff',
+                strokeWidth: 2,
+                strokeDashArray: [5, 5],
+                selectable: false, // 만들어진 후에도 선택 안되게
+                evented: false,
+                strokeUniform: true
+            });
+            canvas.add(selectionRect);
+        }
+
+        function onMouseMove(opt) {
+            if (!isDrawingSelection) return;
+            const pointer = canvas.getPointer(opt.e);
+
+            if (startX > pointer.x) {
+                selectionRect.set({ left: Math.abs(pointer.x) });
+            }
+            if (startY > pointer.y) {
+                selectionRect.set({ top: Math.abs(pointer.y) });
+            }
+
+            selectionRect.set({ width: Math.abs(startX - pointer.x) });
+            selectionRect.set({ height: Math.abs(startY - pointer.y) });
+            canvas.renderAll();
+        }
+
+        function onMouseUp(opt) {
+            if (!isDrawingSelection) return;
+            isDrawingSelection = false;
+
+            if (selectionRect && selectionRect.width > 20 && selectionRect.height > 20) {
+                // 영역 그리기 성공시 액션바 띄움
+                document.getElementById('regionActionBar').classList.remove('hidden');
+                document.getElementById('regionActionBar').style.display = 'flex'; // hidden 덮어쓰기 위해
+            } else {
+                // 너무 작으면 실수로 간주하고 취소
+                if (selectionRect) canvas.remove(selectionRect);
+                selectionRect = null;
+            }
+            canvas.renderAll();
+        }
+
+        // ─── Region Action Functions ───
+
+        // 1. 자르기 (Crop Canvas)
+        function cropByRegion() {
+            if (!selectionRect) return;
+
+            const rWidth = parseInt(selectionRect.width, 10);
+            const rHeight = parseInt(selectionRect.height, 10);
+            const rLeft = selectionRect.left;
+            const rTop = selectionRect.top;
+
+            // 모든 객체의 좌표를 rLeft, rTop 만큼 빼서 이동
+            canvas.forEachObject(obj => {
+                if (obj === selectionRect) return; // 자신 제외
+                obj.left -= rLeft;
+                obj.top -= rTop;
+                obj.setCoords();
+            });
+
+            // 배경 이미지가 통으로 들어가 있으면 배경 삭제 (잘라낼 수 없기 때문 - 보통 Crop 시 배경색 위로 올림)
+            if (canvas.backgroundImage) {
+                // 원본 배경을 그냥 이미지 객체로 바꿔서 잘라내게 만드는 꼼수도 있으나 단순화를 위해 일단 backgroundImg 제거 (원래 캔버스 잘라내는 용도)
+                const bgImg = canvas.backgroundImage;
+                bgImg.left -= rLeft;
+                bgImg.top -= rTop;
+                canvas.backgroundImage = null;
+                canvas.backgroundColor = '#ffffff';
+                canvas.add(bgImg);
+                canvas.sendToBack(bgImg);
+            }
+
+            // 캔버스 크기 줄임
+            document.getElementById('canvasW').value = rWidth;
+            document.getElementById('canvasH').value = rHeight;
+            canvas.setWidth(rWidth);
+            canvas.setHeight(rHeight);
+
+            cancelSelection();
+            resetZoom();
+        }
+
+        // 2. 부분 필터 (모자이크 / 블러)
+        function filterByRegion(filterType) {
+            if (!selectionRect) return;
+
+            // 화면 캡쳐 후 해당 영역만 잘라서 필터 먹인 새 조각을 얹기
+            // 우선 selectionRect 숨기기
+            selectionRect.visible = false;
+            canvas.renderAll();
+
+            const rLeft = selectionRect.left;
+            const rTop = selectionRect.top;
+            const rWidth = selectionRect.width;
+            const rHeight = selectionRect.height;
+
+            // 전체 캔버스를 이미지로 변환
+            const dataURL = canvas.toDataURL({
+                format: 'png',
+                multiplier: 1 // 1:1 대응
+            });
+
+            // 그 다음 복구
+            selectionRect.visible = true;
+            canvas.renderAll();
+
+            fabric.Image.fromURL(dataURL, function (img) {
+                // 잘라낼 구역(영역 밖은 안보이게 crop)만 설정
+                img.set({
+                    cropX: rLeft,
+                    cropY: rTop,
+                    width: rWidth,
+                    height: rHeight,
+                    left: rLeft,
+                    top: rTop,
+                    originX: 'left',
+                    originY: 'top',
+                    selectable: true
+                });
+
+                // 지정된 필터 적용
+                if (filterType === 'pixelate') {
+                    img.filters.push(new fabric.Image.filters.Pixelate({ blocksize: 10 }));
+                } else if (filterType === 'blur') {
+                    img.filters.push(new fabric.Image.filters.Blur({ blur: 0.1 }));
+                }
+
+                img.applyFilters();
+                canvas.add(img);
+
+                cancelSelection(); // 선택 모드 종료 (새 객체로 떨어짐)
+                canvas.setActiveObject(img);
+            });
+        }
+
         function resizeCanvasToImage(img) {
             document.getElementById('canvasW').value = img.width;
             document.getElementById('canvasH').value = img.height;
@@ -648,15 +918,20 @@
         });
 
         function onObjSelected(e) {
+            // 자르기 중이면 무시
+            if (isSelectionMode) return;
+
             const obj = e.selected[0];
             if (!obj) return;
             document.getElementById('objPropsPanel').classList.remove('hidden');
 
+            // 색상 연동
             if (obj.fill && typeof obj.fill === 'string') {
                 document.getElementById('objColor').value = obj.fill;
                 document.getElementById('objColorHex').textContent = obj.fill.toUpperCase();
             }
 
+            // 텍스트 속성창 표시 토글
             const isText = (obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text');
             document.getElementById('textPropsBar').classList.toggle('hidden', !isText);
 
@@ -666,11 +941,31 @@
                 document.getElementById('btnItalic').classList.toggle('active', obj.fontStyle === 'italic');
             }
 
+            // 이미지 필터 속성창 표시 토글
+            const isImage = (obj.type === 'image');
+            // document.getElementById('imageFiltersBar').classList.toggle('hidden', !isImage); // 부분 필터 툴(Region Selection)로 대체하므로 우측 필터 옵션은 굳이 막지 않으나 로직 구조를 위해 남김
+            document.getElementById('imageFiltersBar').classList.toggle('hidden', !isImage);
+
+            if (isImage) {
+                // 현재 적용된 필터 상태를 UI에 반영
+                document.getElementById('chkGrayscale').checked = !!obj.filters.find(f => f && f.type === 'Grayscale');
+                document.getElementById('chkSepia').checked = !!obj.filters.find(f => f && f.type === 'Sepia');
+                const blurF = obj.filters.find(f => f && f.type === 'Blur');
+                document.getElementById('chkBlur').checked = !!blurF;
+                if (blurF) document.getElementById('blurValue').value = blurF.blur;
+
+                const pixF = obj.filters.find(f => f && f.type === 'Pixelate');
+                document.getElementById('chkPixelate').checked = !!pixF;
+                if (pixF) document.getElementById('pixelateValue').value = pixF.blocksize;
+            }
+
+            // 공통 속성
             document.getElementById('objOpacity').value = obj.opacity !== undefined ? obj.opacity : 1;
             document.getElementById('btnShadow').classList.toggle('active', !!obj.shadow);
         }
 
         function onObjCleared() {
+            if (isSelectionMode) return;
             document.getElementById('objPropsPanel').classList.add('hidden');
         }
 
@@ -722,7 +1017,39 @@
             canvas.renderAll();
         }
 
+        // 이미지 필터 모음 관리 함수
+        function applyFilters() {
+            const obj = canvas.getActiveObject();
+            if (!obj || obj.type !== 'image') return;
+
+            // 기존 필터 초기화 배열
+            obj.filters = [];
+
+            if (document.getElementById('chkGrayscale').checked) {
+                obj.filters.push(new fabric.Image.filters.Grayscale());
+            }
+            if (document.getElementById('chkSepia').checked) {
+                obj.filters.push(new fabric.Image.filters.Sepia());
+            }
+            if (document.getElementById('chkBlur').checked) {
+                // webgl 지원 여부 문제로 가끔 blur가 안 먹을 수 있음 - fabric의 canvas backend fallback
+                obj.filters.push(new fabric.Image.filters.Blur({
+                    blur: parseFloat(document.getElementById('blurValue').value)
+                }));
+            }
+            if (document.getElementById('chkPixelate').checked) {
+                obj.filters.push(new fabric.Image.filters.Pixelate({
+                    blocksize: parseInt(document.getElementById('pixelateValue').value, 10)
+                }));
+            }
+
+            // 필터 적용 (비동기 처리)
+            obj.applyFilters();
+            canvas.renderAll();
+        }
+
         function deleteObj() {
+            if (isSelectionMode) return; // 선택모드 중 삭제 방지
             const objects = canvas.getActiveObjects();
             if (!objects.length) return;
             objects.forEach(o => canvas.remove(o));
