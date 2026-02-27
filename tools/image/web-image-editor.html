@@ -457,39 +457,40 @@
                 <span class="tool-label">SELECT</span>
             </button>
             <div style="width:40px;height:1px;background:var(--border);margin:4px 0;"></div>
-            <button class="tool-btn" onclick="addShape('rect')">
-                <span class="tool-icon">⬛</span>
-                <span class="tool-label">RECT</span>
-            </button>
-            <button class="tool-btn" onclick="addShape('circle')">
-                <span class="tool-icon">⚫</span>
-                <span class="tool-label">CIRCLE</span>
-            </button>
-            <button class="tool-btn" onclick="addShape('triangle')">
-                <span class="tool-icon">▲</span>
-                <span class="tool-label">TRIANGLE</span>
-            </button>
-            <button class="tool-btn" onclick="addShape('line')">
-                <span class="tool-icon">➖</span>
-                <span class="tool-label">LINE</span>
-            </button>
-            <div style="width:40px;height:1px;background:var(--border);margin:4px 0;"></div>
-            <button class="tool-btn" onclick="addShape('heart')">
-                <span class="tool-icon">❤️</span>
-                <span class="tool-label">HEART</span>
-            </button>
-            <button class="tool-btn" onclick="addShape('star')">
-                <span class="tool-icon">⭐</span>
-                <span class="tool-label">STAR</span>
-            </button>
-            <button class="tool-btn" onclick="addShape('bolt')">
-                <span class="tool-icon">⚡</span>
-                <span class="tool-label">BOLT</span>
-            </button>
-            <button class="tool-btn" onclick="addShape('smile')">
-                <span class="tool-icon">🙂</span>
-                <span class="tool-label">SMILE</span>
-            </button>
+            <div style="position:relative;" id="shapeMenuWrapper">
+                <button class="tool-btn" onclick="toggleShapeMenu()">
+                    <span class="tool-icon">⬛</span>
+                    <span class="tool-label">SHAPES</span>
+                </button>
+                <!-- Flyout Shape Menu -->
+                <div id="shapeMenu" class="hidden"
+                    style="position:absolute; left:72px; top:-10px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px; display:grid; grid-template-columns:1fr 1fr; gap:4px; z-index:200; box-shadow:0 4px 12px rgba(0,0,0,0.15); width: max-content;">
+                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                        onclick="addShape('rect'); toggleShapeMenu()" title="사각형"><span class="tool-icon"
+                            style="margin:0">⬛</span></button>
+                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                        onclick="addShape('circle'); toggleShapeMenu()" title="원"><span class="tool-icon"
+                            style="margin:0">⚫</span></button>
+                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                        onclick="addShape('triangle'); toggleShapeMenu()" title="삼각형"><span class="tool-icon"
+                            style="margin:0">▲</span></button>
+                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                        onclick="addShape('line'); toggleShapeMenu()" title="선/화살표"><span class="tool-icon"
+                            style="margin:0">➖</span></button>
+                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                        onclick="addShape('heart'); toggleShapeMenu()" title="하트"><span class="tool-icon"
+                            style="margin:0">❤️</span></button>
+                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                        onclick="addShape('star'); toggleShapeMenu()" title="별"><span class="tool-icon"
+                            style="margin:0">⭐</span></button>
+                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                        onclick="addShape('bolt'); toggleShapeMenu()" title="번개"><span class="tool-icon"
+                            style="margin:0">⚡</span></button>
+                    <button class="tool-btn" style="width:40px;height:40px;border:none;"
+                        onclick="addShape('smile'); toggleShapeMenu()" title="스마일"><span class="tool-icon"
+                            style="margin:0">🙂</span></button>
+                </div>
+            </div>
         </div>
 
         <!-- Center: Workspace -->
@@ -1438,6 +1439,19 @@
         }
 
         window.addEventListener('resize', () => { setTimeout(resetZoom, 100); });
+
+        // Shape Menu Logic
+        function toggleShapeMenu() {
+            document.getElementById('shapeMenu').classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (e) => {
+            const wrapper = document.getElementById('shapeMenuWrapper');
+            // shape menu 외부 클릭 시 닫기
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('shapeMenu').classList.add('hidden');
+            }
+        });
     </script>
 </body>
 
