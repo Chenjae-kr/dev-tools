@@ -465,6 +465,14 @@
                 <span class="tool-icon">⚫</span>
                 <span class="tool-label">CIRCLE</span>
             </button>
+            <button class="tool-btn" onclick="addShape('triangle')">
+                <span class="tool-icon">▲</span>
+                <span class="tool-label">TRIANGLE</span>
+            </button>
+            <button class="tool-btn" onclick="addShape('line')">
+                <span class="tool-icon">➖</span>
+                <span class="tool-label">LINE</span>
+            </button>
         </div>
 
         <!-- Center: Workspace -->
@@ -1256,6 +1264,17 @@
                 obj = new fabric.Rect({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim * 1.5, height: baseDim, fill: '#cfd4de', rx: 8, ry: 8 });
             } else if (type === 'circle') {
                 obj = new fabric.Circle({ left: center.x, top: center.y, originX: 'center', originY: 'center', radius: baseDim / 2, fill: '#5f6fdd' });
+            } else if (type === 'triangle') {
+                obj = new fabric.Triangle({ left: center.x, top: center.y, originX: 'center', originY: 'center', width: baseDim, height: baseDim, fill: '#ffbd2e' });
+            } else if (type === 'line') {
+                obj = new fabric.Line([center.x - baseDim, center.y, center.x + baseDim, center.y], {
+                    stroke: '#1d1d1f',
+                    strokeWidth: 8,
+                    originX: 'center',
+                    originY: 'center'
+                });
+                // 화살표처럼 자주 쓰이므로 라인은 크기 조절 시 두께가 찌그러지지 않도록 양끝점 컨트롤 등 특별한 제어가 필요할 수 있으나 Web Editor 기본 사양으론 제공
+                // (선택 시 컨트롤 포인트 지원을 위해 일반 Line 객체로 일단 반환)
             }
             if (obj) {
                 canvas.add(obj);
