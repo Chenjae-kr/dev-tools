@@ -22,7 +22,7 @@
 .mode-tab{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;padding:10px 14px;border:none;background:none;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
 .mode-tab.active{color:var(--accent);border-bottom-color:var(--accent)}.mode-tab:hover:not(.active){color:var(--text)}
 /* ── Template cards ── */
-.tpl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px}
+.tpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 16px}
 .tpl-card{border-radius:8px;border:2px solid var(--border);cursor:pointer;overflow:hidden;transition:border-color .15s,transform .1s;position:relative}
 .tpl-card.active{border-color:var(--accent)}.tpl-card:hover{transform:translateY(-2px)}
 .tpl-card-inner{width:100%;padding:8px;display:flex;flex-direction:column;gap:3px;min-height:76px}
@@ -89,6 +89,14 @@
               <div class="tpl-name">Minimal</div>
               <div class="tpl-check">✓</div>
             </div>
+            <div class="tpl-card" data-tpl="terminal" onclick="applyPreset('terminal');syncAdvToSimple()">
+              <div class="tpl-card-inner" style="background:#0d1321">
+                <div class="tpl-h1" style="color:#4ec9b0;font-family:monospace;font-size:8px">&gt; 제목</div>
+                <div class="tpl-h2" style="color:#38bdf8;opacity:1">Terminal · 16:9</div>
+              </div>
+              <div class="tpl-name">Terminal</div>
+              <div class="tpl-check">✓</div>
+            </div>
           </div>
 
           <div class="panel-header"><div class="panel-title"><div class="dot"></div>CONTENT</div></div>
@@ -142,6 +150,8 @@
               <button class="toggle-btn preset-btn active" data-preset="quote">Quote</button>
               <button class="toggle-btn preset-btn" data-preset="blog">Blog</button>
               <button class="toggle-btn preset-btn" data-preset="youtube">YouTube</button>
+              <button class="toggle-btn preset-btn" data-preset="minimal">Minimal</button>
+              <button class="toggle-btn preset-btn" data-preset="terminal">Terminal</button>
             </div>
           </div>
           <div class="options-bar">
@@ -172,6 +182,7 @@
               <button class="toggle-btn decor-btn" data-decor="corner-lines">Style 3</button>
               <button class="toggle-btn decor-btn" data-decor="clean-box">Style 4</button>
               <button class="toggle-btn decor-btn" data-decor="minimal">Style 5</button>
+              <button class="toggle-btn decor-btn" data-decor="terminal">Terminal</button>
             </div>
           </div>
         </div>
@@ -271,6 +282,12 @@ const presets = {
     ov: 'none', ovStrength: 0, decor: 'minimal',
     mainScale: 105, subScale: 100, mainY: 43, subY: 72,
     main: '썸네일 제목\n핵심 키워드', sub: '부제목 텍스트'
+  },
+  terminal: {
+    ratio: '16:9', bgColor: '#0d1321', textColor: '#4ec9b0', strokeColor: '#000000', strokeWidth: 0, pad: 80,
+    ov: 'none', ovStrength: 0, decor: 'terminal',
+    mainScale: 100, subScale: 100, mainY: 43, subY: 72,
+    main: 'What is the real\nproblem?', sub: 'BLOG COVER · DEV SENSE'
   }
 };
 
@@ -446,6 +463,104 @@ function drawOutlinedText(ctx, text, x, y, fillColor, strokeColor, outlinePx) {
   ctx.fillText(text, x, y);
 }
 
+function rrect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y);
+  ctx.arcTo(x+w, y, x+w, y+r, r); ctx.lineTo(x+w, y+h-r);
+  ctx.arcTo(x+w, y+h, x+w-r, y+h, r); ctx.lineTo(x+r, y+h);
+  ctx.arcTo(x, y+h, x, y+h-r, r); ctx.lineTo(x, y+r);
+  ctx.arcTo(x, y, x+r, y, r); ctx.closePath();
+}
+
+function drawTerminalTemplate(ctx, w, h, main, sub) {
+  // 1. Background
+  ctx.fillStyle = '#0d1321';
+  ctx.fillRect(0, 0, w, h);
+
+  // 2. Left blue glow
+  const g1 = ctx.createRadialGradient(w*0.07, h*0.45, 0, w*0.07, h*0.45, w*0.52);
+  g1.addColorStop(0, 'rgba(56,189,248,0.22)');
+  g1.addColorStop(0.6, 'rgba(56,189,248,0.06)');
+  g1.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g1; ctx.fillRect(0, 0, w, h);
+
+  // 3. Right teal glow
+  const g2 = ctx.createRadialGradient(w*0.93, h*0.58, 0, w*0.93, h*0.58, w*0.38);
+  g2.addColorStop(0, 'rgba(20,184,166,0.14)');
+  g2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g2; ctx.fillRect(0, 0, w, h);
+
+  // 4. Outer screen border
+  const om = Math.floor(w * 0.027);
+  const oy = Math.floor(h * 0.032);
+  const or_ = Math.floor(w * 0.027);
+  rrect(ctx, om, oy, w - om*2, h - oy*2, or_);
+  ctx.fillStyle = 'rgba(12,22,38,0.5)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(100,150,200,0.22)';
+  ctx.lineWidth = Math.max(2, Math.floor(w * 0.0013)); ctx.stroke();
+
+  // 5. Terminal panel
+  const px = Math.floor(w * 0.125);
+  const py = Math.floor(h * 0.37);
+  const pw = Math.floor(w * 0.75);
+  const ph = Math.floor(h * 0.42);
+  const pr = Math.floor(pw * 0.016);
+  rrect(ctx, px, py, pw, ph, pr);
+  ctx.fillStyle = '#111b2a'; ctx.fill();
+  ctx.strokeStyle = 'rgba(100,155,210,0.28)';
+  ctx.lineWidth = Math.max(1, Math.floor(w * 0.001)); ctx.stroke();
+
+  // 6. Traffic lights
+  const tlR = Math.max(8, Math.floor(ph * 0.067));
+  const tlCY = py + Math.floor(ph * 0.21);
+  const tlX0 = px + Math.floor(pw * 0.038);
+  const tlGap = tlR * 2.65;
+  [['#ff5f57', 0], ['#ffbd2e', 1], ['#28c840', 2]].forEach(([c, i]) => {
+    ctx.beginPath(); ctx.arc(tlX0 + tlGap*i, tlCY, tlR, 0, Math.PI*2);
+    ctx.fillStyle = c; ctx.fill();
+  });
+
+  // 7. Prompt >
+  const ipx = Math.floor(pw * 0.04);
+  const promptFs = Math.max(18, Math.floor(ph * 0.172));
+  const monoFont = `600 ${promptFs}px 'JetBrains Mono','Courier New',monospace`;
+  ctx.font = monoFont;
+  ctx.fillStyle = '#4ec9b0';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('>', px + ipx, py + Math.floor(ph * 0.43));
+
+  // 8. Main text (monospace, fitted)
+  const textMaxW = pw - ipx * 2;
+  const mainLines = (main || 'What is the real problem?').split('\n').filter(Boolean);
+  let mfs = Math.max(18, Math.floor(ph * 0.172));
+  mainLines.forEach(line => {
+    ctx.font = `600 ${mfs}px 'JetBrains Mono','Courier New',monospace`;
+    while (ctx.measureText(line).width > textMaxW && mfs > 14) {
+      mfs--; ctx.font = `600 ${mfs}px 'JetBrains Mono','Courier New',monospace`;
+    }
+  });
+  ctx.fillStyle = '#4ec9b0'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  let ty = py + Math.floor(ph * 0.6);
+  mainLines.forEach(line => {
+    ctx.fillText(line, px + ipx, ty);
+    ty += Math.floor(mfs * 1.38);
+  });
+
+  // 9. Badge pill
+  const badgeText = (sub || 'BLOG COVER').toUpperCase();
+  const bfs = Math.max(12, Math.floor(w * 0.018));
+  ctx.font = `700 ${bfs}px 'JetBrains Mono','Courier New',monospace`;
+  const btw = ctx.measureText(badgeText).width;
+  const bph = Math.floor(bfs * 0.65);
+  const bpv = Math.floor(bfs * 0.52);
+  const bw = btw + bph*2, bh = bfs + bpv*2;
+  const bx = px, by = py + ph + Math.floor(h * 0.043);
+  rrect(ctx, bx, by, bw, bh, bh/2);
+  ctx.fillStyle = '#38bdf8'; ctx.fill();
+  ctx.fillStyle = '#0a1929'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(badgeText, bx + bw/2, by + bh/2);
+}
+
 function drawDecor(ctx, w, h) {
   const m=Math.max(34,Math.floor(w*0.08));
   const lw=Math.max(6,Math.floor(w*0.007));
@@ -513,6 +628,11 @@ function renderThumb(){
   const cv=document.getElementById('thumbCanvas');
   cv.width=w; cv.height=h;
   const ctx=cv.getContext('2d');
+
+  if (decorStyle === 'terminal') {
+    drawTerminalTemplate(ctx, w, h, main, sub);
+    return;
+  }
 
   drawBg(ctx,w,h);
   drawOverlay(ctx,w,h);
