@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background rounded square -->
+  <rect width="32" height="32" rx="7" fill="#4fffb0"/>
+  <!-- "D" letter -->
+  <text x="5" y="23" font-family="'JetBrains Mono', 'Courier New', monospace" font-size="20" font-weight="800" fill="#0d0f14" letter-spacing="-1">D</text>
+  <!-- Small dot accent -->
+  <circle cx="25" cy="10" r="3" fill="#0d0f14" opacity="0.5"/>
+</svg>

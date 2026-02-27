@@ -12,7 +12,8 @@
       "Bash(printf:*)",
       "Bash(/tmp/gen_diff.js:*)",
       "Bash(wc:*)",
-      "Bash(git -C /c/proj/dev-tools log --oneline --max-count=10)"
+      "Bash(git -C /c/proj/dev-tools log --oneline --max-count=10)",
+      "Bash(# Kill whatever is on port 3000 netstat -ano)"
     ]
   }
 }
