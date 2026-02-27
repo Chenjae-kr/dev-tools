@@ -1023,6 +1023,15 @@
             canvas.renderAll();
         }
 
+        // 텍스트 선택 영역에 스타일을 줄 때 Fabric.js 내부 캐시 꼬임 방지 (글자가 뒤섞이는 현상 해결)
+        function applySelectionStyle(obj, styleObj) {
+            obj.setSelectionStyles(styleObj);
+            // 캐시와 크기 계산 강제 갱신
+            obj.initDimensions();
+            obj.setCoords();
+            canvas.renderAll();
+        }
+
         document.getElementById('objColor').addEventListener('input', e => {
             const obj = canvas.getActiveObject();
             const val = e.target.value;
@@ -1030,7 +1039,7 @@
             if (!obj) return;
 
             if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
-                obj.setSelectionStyles({ fill: val });
+                applySelectionStyle(obj, { fill: val });
             } else if (obj.type === 'path' || obj.type === 'line') {
                 obj.set('stroke', val);
             } else {
@@ -1046,11 +1055,11 @@
 
             const applyFont = () => {
                 if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
-                    obj.setSelectionStyles({ fontFamily: fontName });
+                    applySelectionStyle(obj, { fontFamily: fontName });
                 } else {
                     obj.set('fontFamily', fontName);
+                    canvas.renderAll();
                 }
-                canvas.renderAll();
             };
 
             // 시스템 기본 폰트는 그냥 바로 적용
@@ -1077,12 +1086,12 @@
             if (isNaN(size)) return;
 
             if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
-                obj.setSelectionStyles({ fontSize: size });
+                applySelectionStyle(obj, { fontSize: size });
             } else {
                 // scaleX, scaleY를 시각적으로 초기화하고 실제 fontSize를 반영
                 obj.set({ fontSize: size, scaleX: 1, scaleY: 1 });
+                canvas.renderAll();
             }
-            canvas.renderAll();
         }
 
         // 텍스트 외곽선 (Stroke)
@@ -1093,11 +1102,11 @@
             const width = parseInt(document.getElementById('textStrokeWidth').value, 10);
 
             if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
-                obj.setSelectionStyles({ stroke: color, strokeWidth: width });
+                applySelectionStyle(obj, { stroke: color, strokeWidth: width });
             } else {
                 obj.set({ stroke: color, strokeWidth: width });
+                canvas.renderAll();
             }
-            canvas.renderAll();
         }
 
         // 텍스트 배경 (Highlight)
@@ -1114,11 +1123,11 @@
             if (!obj || !(obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text')) return;
 
             if (obj.isEditing && obj.selectionStart !== obj.selectionEnd) {
-                obj.setSelectionStyles({ textBackgroundColor: val || null });
+                applySelectionStyle(obj, { textBackgroundColor: val || null });
             } else {
                 obj.set('textBackgroundColor', val || null);
+                canvas.renderAll();
             }
-            canvas.renderAll();
         }
 
         function toggleStyle(type) {
@@ -1130,17 +1139,22 @@
             if (type === 'bold') {
                 const currentBold = obj.fontWeight === 'bold';
                 const newVal = currentBold ? 'normal' : 'bold';
-                if (isSelection) obj.setSelectionStyles({ fontWeight: newVal });
-                else obj.set('fontWeight', newVal);
+                if (isSelection) applySelectionStyle(obj, { fontWeight: newVal });
+                else {
+                    obj.set('fontWeight', newVal);
+                    canvas.renderAll();
+                }
                 document.getElementById('btnBold').classList.toggle('active', newVal === 'bold');
             } else if (type === 'italic') {
                 const currentItalic = obj.fontStyle === 'italic';
                 const newVal = currentItalic ? 'normal' : 'italic';
-                if (isSelection) obj.setSelectionStyles({ fontStyle: newVal });
-                else obj.set('fontStyle', newVal);
+                if (isSelection) applySelectionStyle(obj, { fontStyle: newVal });
+                else {
+                    obj.set('fontStyle', newVal);
+                    canvas.renderAll();
+                }
                 document.getElementById('btnItalic').classList.toggle('active', newVal === 'italic');
             }
-            canvas.renderAll();
         }
 
         function toggleShadow() {
